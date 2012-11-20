@@ -58,9 +58,6 @@
     <Compile Include="UserInterface\EditDataForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UserInterface\EditDataForm.Designer.cs">
-      <DependentUpon>EditDataForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="UserInterface\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -94,7 +91,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\AppIcon.ico" />
+    <Content Include="time_table_input.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
