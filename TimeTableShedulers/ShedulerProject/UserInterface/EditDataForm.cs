@@ -88,9 +88,7 @@ namespace ShedulerProject.UserInterface
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
-        {
-            ComponentResourceManager resources = new ComponentResourceManager(typeof(EditDataForm));
-                      
+        {                      
             tabControl.SuspendLayout();
             tabEditEvents.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -325,8 +323,8 @@ namespace ShedulerProject.UserInterface
             ClientSize = new Size(708, 562);
             Controls.Add(tabControl);
             Controls.Add(menuStrip1);
-            FormBorderStyle = FormBorderStyle.Sizable;//.SizableToolWindow;
-            Icon = ((Icon)(resources.GetObject("$this.Icon")));
+            FormBorderStyle = FormBorderStyle.Sizable;
+            Icon = Properties.Resources.AppIcon;
             Name = "EditDataForm";
             Text = "Правка данных";
             tabControl.ResumeLayout(false);
