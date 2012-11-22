@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Xml.Linq;
 
-namespace ShedulerProject.Core
+namespace SchedulerProject.Core
 {
     public class TimeTable
     {
@@ -57,7 +57,7 @@ namespace ShedulerProject.Core
         public static TimeTable LoadFromXml(string filename)
         {
             var data = XDocument.Load(filename);
-            var mainNode = data.Element("ShedulerInput");
+            var mainNode = data.Element("SchedulerInput");
 
             var roomsQuery = from e in mainNode.Element("Rooms").Elements()
                              let room = new Room()

@@ -1,4 +1,4 @@
-﻿namespace ShedulerProject.UserInterface
+﻿namespace SchedulerProject.UserInterface
 {
     partial class MainForm
     {
@@ -397,7 +397,7 @@
             this.ClientSize = new System.Drawing.Size(471, 438);
             this.Controls.Add(this.splitContainer);
             this.Controls.Add(this.menuStrip);
-            this.Icon = global::ShedulerProject.Properties.Resources.AppIcon;
+            this.Icon = global::SchedulerProject.Properties.Resources.AppIcon;
             this.MainMenuStrip = this.menuStrip;
             this.Name = "MainForm";
             this.Text = "Составление расписаний";

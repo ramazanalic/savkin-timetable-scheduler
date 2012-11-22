@@ -3,10 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-using ShedulerProject.Core;
-using ShedulerProject.UserInterface;
+using SchedulerProject.Core;
+using SchedulerProject.UserInterface;
 
-namespace ShedulerProject
+namespace SchedulerProject
 {
     static class Program
     {

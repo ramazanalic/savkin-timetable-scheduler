@@ -8,8 +8,8 @@
     <ProjectGuid>{D113EFFD-066D-4F18-BC5D-AADA34670424}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ShedulerProject</RootNamespace>
-    <AssemblyName>Sheduler</AssemblyName>
+    <RootNamespace>SchedulerProject</RootNamespace>
+    <AssemblyName>Scheduler</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -98,6 +98,7 @@
     <Content Include="time_table_input.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

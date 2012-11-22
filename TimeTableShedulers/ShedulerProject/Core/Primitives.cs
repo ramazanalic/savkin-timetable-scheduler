@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace ShedulerProject.Core
+namespace SchedulerProject.Core
 {
     public static class ParseHelper
     {  
