@@ -26,8 +26,9 @@ namespace ShedulerProject
             //    //Console.WriteLine("Event {0} -> TimeSlot: {1}, Room: {2}", i, result[i].TimeSlotId, result[i].RoomId);
             //    Console.WriteLine("{0}\t{1}\t{2}", i, result[i].TimeSlotId, result[i].RoomId);            
             //}
-            MainForm f = new MainForm();
             Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            MainForm f = new MainForm();
             Application.Run(f);
         }
     }

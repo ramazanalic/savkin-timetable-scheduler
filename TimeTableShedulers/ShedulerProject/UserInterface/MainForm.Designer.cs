@@ -127,16 +127,16 @@
             // miOpenTimeTable
             // 
             this.miOpenTimeTable.Name = "miOpenTimeTable";
-            this.miOpenTimeTable.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift)
-                        | System.Windows.Forms.Keys.O)));
+            this.miOpenTimeTable.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.O)));
             this.miOpenTimeTable.Size = new System.Drawing.Size(272, 22);
             this.miOpenTimeTable.Text = "Открыть расписание";
             // 
             // miSaveTimeTable
             // 
             this.miSaveTimeTable.Name = "miSaveTimeTable";
-            this.miSaveTimeTable.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift)
-                        | System.Windows.Forms.Keys.S)));
+            this.miSaveTimeTable.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
             this.miSaveTimeTable.Size = new System.Drawing.Size(272, 22);
             this.miSaveTimeTable.Text = "Сохранить расписание";
             // 
@@ -187,9 +187,9 @@
             this.miEditData.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.miEditGroups,
             this.miEditSubjects,
+            this.miEditLecturers,
             this.miEditRooms,
-            this.miEventsToolStripMenuItem,
-            this.miEditLecturers});
+            this.miEventsToolStripMenuItem});
             this.miEditData.Name = "miEditData";
             this.miEditData.Size = new System.Drawing.Size(176, 22);
             this.miEditData.Text = "Данные";
@@ -397,8 +397,8 @@
             this.ClientSize = new System.Drawing.Size(471, 438);
             this.Controls.Add(this.splitContainer);
             this.Controls.Add(this.menuStrip);
+            this.Icon = global::ShedulerProject.Properties.Resources.AppIcon;
             this.MainMenuStrip = this.menuStrip;
-            this.Icon = Properties.Resources.AppIcon;
             this.Name = "MainForm";
             this.Text = "Составление расписаний";
             this.menuStrip.ResumeLayout(false);

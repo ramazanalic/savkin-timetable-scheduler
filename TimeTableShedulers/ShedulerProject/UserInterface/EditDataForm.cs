@@ -6,23 +6,15 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-
 using ShedulerProject.Core;
 
 namespace ShedulerProject.UserInterface
 {
     public partial class EditDataForm : Form
     {
-        public enum Tab
-        {
-            Groups,
-            Subjects,
-            Rooms,
-            Lecturers,
-            Events
-        }
+        public const string UNDEFINED_COMBOBOX_VALUE = "Не выбрано";
 
-        TimeTable data;
+        #region Construction routines
 
         SchedulingPrimitivesGrigView<Group> gridGroups;
         SchedulingPrimitivesGrigView<Subject> gridSubjects;
@@ -67,21 +59,6 @@ namespace ShedulerProject.UserInterface
         /// Required designer variable.
         /// </summary>
         private IContainer components = null;
-
-        public EditDataForm(TimeTable data)
-        {
-            InitializeComponent();
-            this.data = data;
-            InitGrids();
-            FillGrids();
-            cbxSubjectFilter.SelectedIndexChanged += (s, e) =>
-            {
-                var selectedSubjectName = cbxSubjectFilter.SelectedItem as string;
-                var selectedSubject = gridSubjects.Items.FirstOrDefault(sbj => sbj.Name == selectedSubjectName);
-                gridEvents.ShowFilter = ev => ev.SubjectId == selectedSubject.Id;
-                //gridSubjects.Refresh();
-            };
-        }
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -169,6 +146,7 @@ namespace ShedulerProject.UserInterface
             cbxSubjectFilter.Name = "cbxSubjectFilter";
             cbxSubjectFilter.Size = new Size(208, 21);
             cbxSubjectFilter.TabIndex = 3;
+            cbxSubjectFilter.SelectedValue = EditDataForm.UNDEFINED_COMBOBOX_VALUE;
             // 
             // label1
             // 
@@ -189,6 +167,7 @@ namespace ShedulerProject.UserInterface
             // 
             colGroupId.HeaderText = "ID";
             colGroupId.Name = "colGroupId";
+            colGroupId.ReadOnly = true;
             // 
             // colGroupName
             // 
@@ -198,10 +177,12 @@ namespace ShedulerProject.UserInterface
             // colGroupCourse
             // 
             colGroupCourse.HeaderText = "Курс";
-            colGroupCourse.Items.AddRange("1", "2", "3", "4", "5", "6");
+            colGroupCourse.Items.AddRange(EditDataForm.UNDEFINED_COMBOBOX_VALUE, "1", "2", "3", "4", "5", "6");
             colGroupCourse.Name = "colGroupCourse";
             colGroupCourse.Resizable = DataGridViewTriState.True;
             colGroupCourse.SortMode = DataGridViewColumnSortMode.Automatic;
+            colGroupCourse.AutoComplete = true;
+            colGroupCourse.FlatStyle = FlatStyle.Flat;
             // 
             // colSubjectId
             // 
@@ -220,12 +201,17 @@ namespace ShedulerProject.UserInterface
             colSubjectLecturer.Name = "colSubjectLecturer";
             colSubjectLecturer.Resizable = DataGridViewTriState.True;
             colSubjectLecturer.SortMode = DataGridViewColumnSortMode.Automatic;
+            colSubjectLecturer.Items.AddRange(EditDataForm.UNDEFINED_COMBOBOX_VALUE);
+            colSubjectLecturer.AutoComplete = true;
+            colSubjectLecturer.FlatStyle = FlatStyle.Flat;
             // 
             // colSubjectDifficulty
             // 
             colSubjectDifficulty.HeaderText = "Сложность";
             colSubjectDifficulty.Name = "colSubjectDifficulty";
-            colSubjectDifficulty.Items.AddRange("0", "1", "2", "3");
+            colSubjectDifficulty.Items.AddRange(EditDataForm.UNDEFINED_COMBOBOX_VALUE, "1", "2", "3");
+            colSubjectDifficulty.AutoComplete = true;
+            colSubjectDifficulty.FlatStyle = FlatStyle.Flat;
             // 
             // colEventId
             // 
@@ -236,16 +222,22 @@ namespace ShedulerProject.UserInterface
             // 
             colEventLecturer.HeaderText = "Преподаватель";
             colEventLecturer.Name = "colEventLecturer";
+            colEventLecturer.Items.AddRange(EditDataForm.UNDEFINED_COMBOBOX_VALUE);
+            colEventLecturer.AutoComplete = true;
+            colEventLecturer.FlatStyle = FlatStyle.Flat;
             // 
             // colEventType
             // 
             colEventType.HeaderText = "Тип";
             colEventType.Name = "colEventType";
             colEventType.Items.AddRange(
+                EditDataForm.UNDEFINED_COMBOBOX_VALUE, 
                 RoomType.Laboratory.ToString(),
                 RoomType.Lecture.ToString(),
                 RoomType.Practice.ToString(),
                 RoomType.Special.ToString());
+            colEventType.AutoComplete = true;
+            colEventType.FlatStyle = FlatStyle.Flat;
             // 
             // colEventGroups
             // 
@@ -304,12 +296,15 @@ namespace ShedulerProject.UserInterface
             colRoomType.HeaderText = "Тип";
             colRoomType.Name = "colRoomType";
             colRoomType.Items.AddRange(
+                EditDataForm.UNDEFINED_COMBOBOX_VALUE, 
                 RoomType.Laboratory.ToString(), 
                 RoomType.Lecture.ToString(), 
                 RoomType.Practice.ToString(), 
                 RoomType.Special.ToString());
             colRoomType.Resizable = DataGridViewTriState.True;
             colRoomType.SortMode = DataGridViewColumnSortMode.Automatic;
+            colRoomType.AutoComplete = true;
+            colRoomType.FlatStyle = FlatStyle.Flat;
             // 
             // colRoomTimeConstraints
             // 
@@ -336,19 +331,89 @@ namespace ShedulerProject.UserInterface
             PerformLayout();
         }
 
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #endregion
+
+        public enum Tab
+        {
+            Groups,
+            Subjects,
+            Rooms,
+            Lecturers,
+            Events
+        }
+
+        public EditDataForm(TimeTable data)
+        {
+            InitializeComponent();
+            InitGrids();
+            FillGrids(data);
+            NewData = null;
+            cbxSubjectFilter.SelectedIndexChanged += (s, e) =>
+            {
+                var selectedSubjectName = cbxSubjectFilter.SelectedItem as string;
+                var selectedSubject = gridSubjects.Items.FirstOrDefault(sbj => sbj.Name == selectedSubjectName);
+                gridEvents.ShowFilter = ev => ev.SubjectId == selectedSubject.Id;
+            };
+            applyChangesToolStripMenuItem.Click += (s, e) => ApplyChanges();
+        }
+
         void InitGrids()
         {
-            var groupsRules = new Dictionary<DataGridViewColumn, Func<Group, string>>()
+            InitGroupsGrid();
+            InitEventsGrid();
+            InitSubjectsGrid();
+            InitRoomsGrid();
+            InitLecturersGrid();
+        }        
+
+        private void FillGrids(TimeTable data)
+        {
+            gridGroups.FillGrid(data.Groups);
+            gridLecturers.FillGrid(data.Lecturers);
+            gridSubjects.FillGrid(data.Subjects);
+            gridRooms.FillGrid(data.Rooms);
+            gridEvents.FillGrid(data.Events);
+            gridEvents.ShowFilter = e => false;//hide all events after loading
+        }
+
+        void InitGroupsGrid()
+        {
+            var fillGroupsRules = new Dictionary<DataGridViewColumn, Func<Group, string>>()
             {
                 {colGroupId, g => g.Id.ToString()},
                 {colGroupName, g => g.Name},
                 {colGroupCourse, g => g.Course.ToString()}
             };
-            gridGroups = new SchedulingPrimitivesGrigView<Group>(tabEditGroups, groupsRules.Keys, groupsRules);
+
+            var parseGroupsRules = new Dictionary<DataGridViewColumn, Action<string, Group>>()
+            {
+                {colGroupId, (val, g) => g.Id = int.Parse(val)},
+                {colGroupName, (val, g) => g.Name = val},
+                {colGroupCourse, (val, g) => g.Course = int.Parse(val)}
+            };
+
+            gridGroups = new SchedulingPrimitivesGrigView<Group>(
+                tabEditGroups, fillGroupsRules.Keys, fillGroupsRules, parseGroupsRules);
             
             //gridGroups.LinkControl(); link to the groups select form
+        }
 
-            var eventsRules = new Dictionary<DataGridViewColumn, Func<Event, string>>()
+        void InitEventsGrid()
+        {
+            var fillEventsRules = new Dictionary<DataGridViewColumn, Func<Event, string>>()
             {
                 {colEventId, e => e.Id.ToString()},
                 {colEventLecturer, e => 
@@ -358,16 +423,38 @@ namespace ShedulerProject.UserInterface
                     {
                         return lecturer.Name;
                     }
-                    else return string.Empty;
+                    else return UNDEFINED_COMBOBOX_VALUE;
                 }},
                 {colEventType, e => e.RoomType.ToString()},
                 {colEventGroups, e =>  string.Join(",", gridGroups.Items
                                                                   .Where(g => e.Groups.Contains(g.Id))
                                                                   .Select(g => g.Name))}
             };
-            gridEvents = new SchedulingPrimitivesGrigView<Event>(panelEditEvents, eventsRules.Keys, eventsRules);
 
-            var subjectsRules = new Dictionary<DataGridViewColumn, Func<Subject, string>>()
+            var parseEventsRules = new Dictionary<DataGridViewColumn, Action<string, Event>>()
+            {
+                {colEventId, (val, e) => e.Id = int.Parse(val)},
+                {colEventLecturer, (val, e) => 
+                {
+                    var lecturer = gridLecturers.Items.FirstOrDefault(l => l.ToString() == val);
+                    e.LecturerId = lecturer.Id;
+                }},
+                {colEventType, (val, e) => e.RoomType = ParseHelper.ParseEnum<RoomType>(val)},
+                {colEventGroups, (val, e) => 
+                    e.Groups = string.IsNullOrWhiteSpace(val) ? new int[0] : 
+                                val.Split(',')
+                                  .Select(s => gridGroups.Items.First(g => g.Name == s).Id)
+                                  .ToArray()}
+            };
+
+            gridEvents = new SchedulingPrimitivesGrigView<Event>(
+                panelEditEvents, fillEventsRules.Keys, fillEventsRules, parseEventsRules);
+
+        }
+
+        void InitSubjectsGrid()
+        {
+            var fillSubjectsRules = new Dictionary<DataGridViewColumn, Func<Subject, string>>()
             {
                 {colSubjectId, s => s.Id.ToString()},
                 {colSubjectName, s => s.Name},
@@ -378,14 +465,35 @@ namespace ShedulerProject.UserInterface
                     {
                         return lecturer.Name;
                     }
-                    else return string.Empty;
+                    else return UNDEFINED_COMBOBOX_VALUE;
                 }},
                 {colSubjectDifficulty, s => s.Difficulty.ToString()}
             };
-            gridSubjects = new SchedulingPrimitivesGrigView<Subject>(tabEditSubjects, subjectsRules.Keys, subjectsRules);
-            gridSubjects.LinkControl(cbxSubjectFilter);
 
-            var roomsRules = new Dictionary<DataGridViewColumn, Func<Room, string>>()
+            var parseSubjectsRules = new Dictionary<DataGridViewColumn, Action<string, Subject>>()
+            {
+                {colSubjectId, (val, s) => s.Id = int.Parse(val)},
+                {colSubjectName, (val, s) => s.Name = val},
+                {colSubjectLecturer, (val, s) =>
+                {
+                    var lecturer = gridLecturers.Items.FirstOrDefault(l => l.Id == s.LecturerId);
+                    if (lecturer != null)
+                    {
+                        s.LecturerId = lecturer.Id;
+                    }
+                    else s.LecturerId = null;
+                }},
+                {colSubjectDifficulty, (val, s) => s.Difficulty = int.Parse(val)}
+            };
+
+            gridSubjects = new SchedulingPrimitivesGrigView<Subject>(
+                tabEditSubjects, fillSubjectsRules.Keys, fillSubjectsRules, parseSubjectsRules);
+            gridSubjects.LinkControl(cbxSubjectFilter);
+        }
+
+        void InitRoomsGrid()
+        {
+            var fillRoomsRules = new Dictionary<DataGridViewColumn, Func<Room, string>>()
             {
                 {colRoomId, r => r.Id.ToString()},
                 {colRoomNumber, r => r.RoomNumber.ToString()},
@@ -396,27 +504,43 @@ namespace ShedulerProject.UserInterface
                 //    var x = c as DataGridViewButtonCell;
                 //}}
             };
-            gridRooms = new SchedulingPrimitivesGrigView<Room>(tabEditRooms, roomsRules.Keys, roomsRules);
 
-            var lecturerRules = new Dictionary<DataGridViewColumn, Func<Lecturer, string>>()
+            var parseRoomsRules = new Dictionary<DataGridViewColumn, Action<string, Room>>()
+            {
+                {colRoomId, (val, r) => r.Id = int.Parse(val)},
+                {colRoomNumber, (val, r) => r.RoomNumber = val},
+                {colRoomHousing, (val, r) => r.Housing = int.Parse(val)},
+                {colRoomType, (val, r) => r.Type = ParseHelper.ParseEnum<RoomType>(val)},
+                //{"colRoomTimeConstraints", (c, r) => 
+                //{
+                //    var x = c as DataGridViewButtonCell;
+                //}}
+            };
+
+            gridRooms = new SchedulingPrimitivesGrigView<Room>(
+                tabEditRooms, fillRoomsRules.Keys, fillRoomsRules, parseRoomsRules);
+        }
+
+        void InitLecturersGrid()
+        {
+            var fillLecturerRules = new Dictionary<DataGridViewColumn, Func<Lecturer, string>>()
             {
                 {colLecturerId, l => l.Id.ToString()},
                 {colLecturerName, l => l.Name}
                 //{"colLecturerTimeConstraints", l => new ConstraintsButton(l) }
             };
-            gridLecturers = new SchedulingPrimitivesGrigView<Lecturer>(tabEditLecturers, lecturerRules.Keys, lecturerRules);
+
+            var parseLecturerRules = new Dictionary<DataGridViewColumn, Action<string, Lecturer>>()
+            {
+                {colLecturerId, (val, l) => l.Id = int.Parse(val)},
+                {colLecturerName, (val, l) => l.Name = val}
+                //{"colLecturerTimeConstraints", l => new ConstraintsButton(l) }
+            };
+
+            gridLecturers = new SchedulingPrimitivesGrigView<Lecturer>(
+                tabEditLecturers, fillLecturerRules.Keys, fillLecturerRules, parseLecturerRules);
             gridLecturers.LinkControl(colEventLecturer);
             gridLecturers.LinkControl(colSubjectLecturer);
-        }        
-
-        private void FillGrids()
-        {
-            gridGroups.FillGrid(data.Groups);
-            gridLecturers.FillGrid(data.Lecturers);
-            gridSubjects.FillGrid(data.Subjects);
-            gridRooms.FillGrid(data.Rooms);
-            gridEvents.FillGrid(data.Events);
-            gridEvents.ShowFilter = e => false;//hide all events after loading
         }
 
         public void SetActiveTab(Tab tab)
@@ -431,16 +555,18 @@ namespace ShedulerProject.UserInterface
             }
         }
 
-        public bool DataChanged { get; private set; }
+        public bool DataChanged { get { return NewData != null; } }
+
+        public TimeTable NewData { get; private set; }
 
         private void ApplyChanges()
         {
-            DataChanged = true;
-            data.Rooms = gridRooms.Items.ToArray();
-            data.Groups = gridGroups.Items.ToArray();
-            data.Subjects = gridSubjects.Items.ToArray();
-            data.Lecturers = gridLecturers.Items.ToArray();
-            data.Events = gridEvents.Items.ToArray();
+            NewData = TimeTable.MakeEmpty();
+            NewData.Rooms = gridRooms.Items.ToArray();
+            NewData.Groups = gridGroups.Items.ToArray();
+            NewData.Subjects = gridSubjects.Items.ToArray();
+            NewData.Lecturers = gridLecturers.Items.ToArray();
+            NewData.Events = gridEvents.Items.ToArray();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -456,150 +582,6 @@ namespace ShedulerProject.UserInterface
             }
 
             base.OnFormClosing(e);
-        }
-
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-    }
-
-    public class SchedulingPrimitivesGrigView<PrimitiveType> : DataGridView
-        where PrimitiveType : AbstractPrimitive, new()
-    {
-        Dictionary<DataGridViewColumn, Action<DataGridViewCell, PrimitiveType>> parseRules;
-        Dictionary<DataGridViewColumn, Func<PrimitiveType, string>> fillRules;
-
-        public SchedulingPrimitivesGrigView(
-            Control parent,
-            IEnumerable<DataGridViewColumn> columns,
-            Dictionary<DataGridViewColumn, Func<PrimitiveType, string>> fillRules,
-            Dictionary<DataGridViewColumn, Action<DataGridViewCell, PrimitiveType>> parseRules = null)
-        {
-            if (fillRules.Keys.Any(c => !columns.Contains(c)))
-            {
-                throw new ArgumentException("Column does not belong to the grid", "fillRules");
-            }
-
-            if (parseRules != null && parseRules.Keys.Any(c => !columns.Contains(c)))
-            {
-                throw new ArgumentException("Column does not belong to the grid", "fillRules");
-            }
-
-            this.fillRules = fillRules;
-            this.parseRules = parseRules;
-
-            parent.Controls.Add(this);
-            Dock = DockStyle.Fill;
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            Columns.AddRange(columns.ToArray());
-
-            RowsAdded += (s, e) =>
-            {
-                for (var i = e.RowIndex; i < e.RowIndex + e.RowCount; i++)
-                {
-                    // add an empty primitive for each new row
-                    associatedPrimitives.Add(Rows[i], new PrimitiveType());
-                }
-            };
-
-            DataError += (s, e) =>
-            {
-                MessageBox.Show(
-                    "DataError in cell[" + e.RowIndex + ", "
-                    + e.ColumnIndex + "] (" + typeof(PrimitiveType) + "):\n" +
-                    e.Exception.Message);
-            };
-        }
-
-        public IEnumerable<PrimitiveType> Items
-        {
-            get { return associatedPrimitives.Values.Where(p => !p.IsEmpty); }
-        }
-
-        public void FillGrid(IEnumerable<PrimitiveType> source)
-        {
-            Rows.Clear();
-
-            foreach (PrimitiveType elem in source)
-            {
-                var i = Rows.Add();
-                var newRow = Rows[i];
-                foreach (var fillRule in fillRules)
-                {
-                    newRow.Cells[fillRule.Key.Name].Value = fillRule.Value(elem);
-                }
-                associatedPrimitives[newRow] = elem;
-            }
-            AutoResizeColumns();
-            RefreshLinkedControlsData();
-        }
-
-        Predicate<PrimitiveType> filterCriteria;
-
-        Dictionary<DataGridViewRow, PrimitiveType> associatedPrimitives =
-            new Dictionary<DataGridViewRow, PrimitiveType>();
-
-        public Predicate<PrimitiveType> ShowFilter
-        {
-            set
-            {
-                filterCriteria = value;
-                if (filterCriteria != null)
-                {
-                    foreach (DataGridViewRow row in Rows)
-                    {
-                        row.Visible = row.IsNewRow || filterCriteria(associatedPrimitives[row]);
-                    }
-                }
-            }
-        }
-
-        public void LinkControl(DataGridViewComboBoxColumn comboBoxColumn)
-        {
-            linkedControlsData.Add(comboBoxColumn.Items);
-        }
-
-        public void LinkControl(ComboBox comboBox)
-        {
-            linkedControlsData.Add(comboBox.Items);
-        }
-
-        private void RefreshLinkedControlsData()
-        {
-            var items = Items.Select(p => p.ToString()).OrderBy(s => s).ToArray();
-            foreach (var data in linkedControlsData)
-            {
-                data.Clear();
-                foreach (var item in items)
-                {
-                    data.Add(item);
-                }
-            }
-        }
-
-        List<System.Collections.IList> linkedControlsData = new List<System.Collections.IList>();
-
-        protected override void OnLeave(EventArgs e)
-        {
-            base.OnLeave(e);
-            RefreshLinkedControlsData();
-        }
-    }
-    
-    public class ConstraintsButton : Button
-    {
-        public ConstraintsButton(IConstrainedPrimitive primitive)
-            : base()
-        {
         }
     }
 }
