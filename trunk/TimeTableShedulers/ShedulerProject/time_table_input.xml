@@ -1,4 +1,4 @@
-<ShedulerInput id = "432" days = "6" slots_per_day = "5">
+<SchedulerInput id = "432" days = "6" slots_per_day = "5">
     <Rooms>
         <Room house_n = "15" class_n = "97" type = "Lecture" id = "1" /> 
         <Room house_n = "18" class_n = "301" type = "Lecture" id = "2" /> 
@@ -127,7 +127,7 @@
 
         <!-- SECOND COURSE -->
     </Subjects>
-</ShedulerInput>
+</SchedulerInput>
 
 
 

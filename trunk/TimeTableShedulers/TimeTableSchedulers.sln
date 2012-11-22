@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShedulerProject", "ShedulerProject\ShedulerProject.csproj", "{D113EFFD-066D-4F18-BC5D-AADA34670424}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerProject", "ShedulerProject\SchedulerProject.csproj", "{D113EFFD-066D-4F18-BC5D-AADA34670424}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3757C6B2-14C9-4EE4-8F45-00D066D81A9C}"
 	ProjectSection(SolutionItems) = preProject

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ShedulerProject.Core
+namespace SchedulerProject.Core
 {
-    class Sheduler
+    class Scheduler
     {
         const int ANTS_NUMBER = 5;
         const int DEFAULT_MAX_STEPS = 100;

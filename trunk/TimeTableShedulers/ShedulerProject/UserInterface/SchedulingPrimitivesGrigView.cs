@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using ShedulerProject.Core;
+using SchedulerProject.Core;
 
-namespace ShedulerProject.UserInterface
+namespace SchedulerProject.UserInterface
 {
     public class SchedulingPrimitivesGrigView<PrimitiveType> : DataGridView
         where PrimitiveType : AbstractPrimitive<PrimitiveType>, new()
