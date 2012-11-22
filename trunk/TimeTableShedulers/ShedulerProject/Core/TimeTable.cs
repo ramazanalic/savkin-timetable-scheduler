@@ -63,7 +63,7 @@ namespace ShedulerProject.Core
                              let room = new Room()
                              {
                                  Id = int.Parse(e.Attribute("id").Value) - 1,//check room id needs t obe specified in the input file
-                                 Type = ParseEnum<RoomType>(e.Attribute("type").Value),
+                                 Type = ParseHelper.ParseEnum<RoomType>(e.Attribute("type").Value),
                                  Housing = int.Parse(e.Attribute("house_n").Value),
                                  RoomNumber = e.Attribute("class_n").Value
                              }
@@ -105,7 +105,7 @@ namespace ShedulerProject.Core
                               {
                                   SubjectId = subjectId,
                                   LecturerId = (GetLecturerId(eventElement) ?? subjectLecturer).Value,
-                                  RoomType = ParseEnum<RoomType>(eventElement.Attribute("type").Value),
+                                  RoomType = ParseHelper.ParseEnum<RoomType>(eventElement.Attribute("type").Value),
                                   Groups = eventElement.Attribute("groups").Value
                                                                            .Split(',')
                                                                            .Select(int.Parse)
@@ -191,11 +191,6 @@ namespace ShedulerProject.Core
                             eventConflicts[i, j] = true;
                             break;
                         }
-        }
-
-        public static T ParseEnum<T>(string value)
-        {
-            return (T)Enum.Parse(typeof(T), value);
         }
 
         private static int? GetLecturerId(XElement element)

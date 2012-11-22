@@ -99,7 +99,11 @@ namespace ShedulerProject.UserInterface
             _editDataForm = new EditDataForm(_currentData);
             _editDataForm.SetActiveTab(startTab);
             _editDataForm.ShowDialog(this);
-            OpenedDataChanged = _editDataForm.DataChanged;
+            if(_editDataForm.DataChanged)
+            {
+                OpenedDataChanged = true;
+                _currentData = _editDataForm.NewData;
+            }
         }
 
         private void miShedule_Click(object sender, EventArgs e)
