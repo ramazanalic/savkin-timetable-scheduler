@@ -2,10 +2,18 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Drawing;
 using SchedulerProject.Core;
 
 namespace SchedulerProject.UserInterface
 {
+    public enum ColumnConstraintsType
+    {
+        NoConstraints = 0,
+        NotEmpty = 1,
+        UniqueValues = 2
+    }
+
     public class SchedulingPrimitivesGrigView<PrimitiveType> : DataGridView
         where PrimitiveType : AbstractPrimitive<PrimitiveType>, new()
     {
@@ -28,38 +36,94 @@ namespace SchedulerProject.UserInterface
         Dictionary<DataGridViewRow, PrimitiveType> associatedPrimitives =
             new Dictionary<DataGridViewRow, PrimitiveType>();
 
+        Dictionary<DataGridViewColumn, ColumnConstraintsType> columnsConstraints;
+
         public SchedulingPrimitivesGrigView(
             Control parent,
-            IEnumerable<DataGridViewColumn> columns,
+            Dictionary<DataGridViewColumn, ColumnConstraintsType> columnsConstraints,
             Dictionary<DataGridViewColumn, Func<PrimitiveType, string>> fillRules,
             Dictionary<DataGridViewColumn, Action<string, PrimitiveType>> parseRules)
         {
-            if (fillRules.Keys.Any(c => !columns.Contains(c)))
+            if (fillRules.Keys.Any(c => !columnsConstraints.Keys.Contains(c)))
             {
                 throw new ArgumentException("Column does not belong to the grid", "fillRules");
             }
 
-            if (parseRules != null && parseRules.Keys.Any(c => !columns.Contains(c)))
+            if (parseRules != null && parseRules.Keys.Any(c => !columnsConstraints.Keys.Contains(c)))
             {
                 throw new ArgumentException("Column does not belong to the grid", "fillRules");
             }
 
             this.fillRules = fillRules;
             this.parseRules = parseRules;
+            this.columnsConstraints = columnsConstraints;
 
             parent.Controls.Add(this);
             Dock = DockStyle.Fill;
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            EditMode = DataGridViewEditMode.EditOnEnter;
+            EditMode = DataGridViewEditMode.EditOnKeystroke;
             DoubleBuffered = true;
-            Columns.AddRange(columns.ToArray());
+            Columns.AddRange(columnsConstraints.Keys.ToArray());
         }
 
         #endregion
 
+        public bool DataValid
+        {
+            get;
+            private set;
+        }
+
         public IEnumerable<PrimitiveType> Items
         {
             get { return associatedPrimitives.Values.Where(p => !p.IsEmpty); }
+        }
+
+        public void SetCellValue(DataGridViewCell cell, string value)
+        {
+            cell.Value = value;
+            parseRules[cell.OwningColumn](value, associatedPrimitives[cell.OwningRow]);
+        }
+
+        void ValidateRowData(DataGridViewRow validatedRow)
+        {
+            if (!validatedRow.IsNewRow)
+            {
+                var valid = validatedRow.Cells.OfType<DataGridViewCell>().Select(IsCellValueValid).ToArray();
+                for (var i = 0; i < valid.Length; i++)
+                {
+                    if (!valid[i])
+                    {
+                        DataValid = false;
+                    }
+                    HighlinghtCell(validatedRow.Cells[i], valid[i]);
+                }
+            }
+        }
+
+        void ValidateWholeData()
+        {
+            DataValid = true;
+            foreach (var r in Rows.OfType<DataGridViewRow>())
+            {
+                ValidateRowData(r);
+            }
+        }
+
+        bool IsCellValueValid(DataGridViewCell cell)
+        {
+            var val = cell.Value as string;
+            switch (columnsConstraints[cell.OwningColumn])
+            {
+                case ColumnConstraintsType.NotEmpty:
+                    return !string.IsNullOrWhiteSpace(val) && val != EditDataForm.UNDEFINED_COMBOBOX_VALUE;
+                case ColumnConstraintsType.UniqueValues:
+                    return Rows.OfType<DataGridViewRow>()
+                                .Where(r => r.Visible && r != cell.OwningRow)
+                                .All(r => r.Cells[cell.OwningColumn.Name].Value as string != val);
+                default:
+                    return true;
+            }
         }
 
         public void FillGrid(IEnumerable<PrimitiveType> source)
@@ -78,7 +142,8 @@ namespace SchedulerProject.UserInterface
                 latestAddedRows[newRow] = elem.ToString();
             }
             AutoResizeColumns();
-            RefreshLinkedObjectsData();
+            bool valid = RefreshLinkedObjectsData();
+            HighlightParentText(valid);
         }
 
         public Predicate<PrimitiveType> ShowFilter
@@ -108,17 +173,23 @@ namespace SchedulerProject.UserInterface
             linkedObjects.Add(comboBox);
         }
 
-        void RefreshLinkedObjectsData()
+        bool RefreshLinkedObjectsData()
         {
-            foreach (var cbxCol in linkedObjects.OfType<DataGridViewComboBoxColumn>())
+            ValidateWholeData();
+            if (DataValid)
             {
-                RefreshLinkedComboboxColumnData(cbxCol);
+                foreach (var cbxCol in linkedObjects.OfType<DataGridViewComboBoxColumn>())
+                {
+                    RefreshLinkedComboboxColumnData(cbxCol);
+                }
+                foreach (var cbx in linkedObjects.OfType<ComboBox>())
+                {
+                    RefreshLinkedComboboxData(cbx);
+                }
+                ClearChangesCollections();
+                return true;
             }
-            foreach (var cbx in linkedObjects.OfType<ComboBox>())
-            {
-                RefreshLinkedComboboxData(cbx);
-            }
-            ClearChangesCollections();
+            else return false;
         }
 
         private void ClearChangesCollections()
@@ -130,8 +201,17 @@ namespace SchedulerProject.UserInterface
 
         void RefreshLinkedComboboxData(ComboBox cbx)
         {
+            var prevSelection = cbx.SelectedItem as string;
             cbx.Items.Clear();
             cbx.Items.AddRange(this.Items.Select(p => p.ToString()).ToArray());
+            if (cbx.Items.OfType<string>().Contains(prevSelection))
+            {
+                cbx.SelectedItem = prevSelection;
+            }
+            else if (cbx.Items.Count > 0)
+            {
+                cbx.SelectedIndex = 0;
+            }
         }
 
         void RefreshLinkedComboboxColumnData(DataGridViewComboBoxColumn col)
@@ -171,9 +251,9 @@ namespace SchedulerProject.UserInterface
 
         protected override void OnRowsAdded(DataGridViewRowsAddedEventArgs e)
         {
-            for (var i = e.RowIndex; i < e.RowIndex + e.RowCount; i++)
+            for (var r = e.RowIndex; r < e.RowIndex + e.RowCount; r++)
             {
-                var row = Rows[i];
+                var row = Rows[r];
                 foreach (var cell in row.Cells.OfType<DataGridViewComboBoxCell>())
                 {
                     cell.Value = EditDataForm.UNDEFINED_COMBOBOX_VALUE;
@@ -182,6 +262,9 @@ namespace SchedulerProject.UserInterface
                 var elem = new PrimitiveType();
                 associatedPrimitives.Add(row, elem);
                 latestAddedRows.Add(row, elem.ToString());
+
+                ValidateWholeData();
+                //ValidateRowData(row);
             }
             base.OnRowsAdded(e);
         }
@@ -198,25 +281,62 @@ namespace SchedulerProject.UserInterface
             base.OnUserDeletingRow(e);
         }
 
+        protected override void OnUserDeletedRow(DataGridViewRowEventArgs e)
+        {
+            ValidateWholeData();
+            base.OnUserDeletedRow(e);
+        }
+
         protected override void OnCellEndEdit(DataGridViewCellEventArgs e)
         {
             var row = Rows[e.RowIndex];
+            var cell = row.Cells[e.ColumnIndex];
 
             if (row.Cells[0].Value == null)
             {
                 var ids = associatedPrimitives.Values.Select(p => p.Id);
                 var id = ids.Any() ? ids.Max() + 1 : 0;
                 associatedPrimitives[row].Id = id;
-                row.Cells[0].Value = id.ToString(); // Implying first row is always id-row. Should be refactored
             }
 
             if (!latestChangedRows.ContainsKey(row) && !latestAddedRows.ContainsKey(row))
                 latestChangedRows.Add(row, associatedPrimitives[row].ToString());
+
             var parseRule = parseRules[Columns[e.ColumnIndex]];
-            var val = row.Cells[e.ColumnIndex].Value as string;
+            var val = cell.Value as string;
             if (val != EditDataForm.UNDEFINED_COMBOBOX_VALUE)
                 parseRule(val, associatedPrimitives[row]);
+
+            var isValid = IsCellValueValid(cell);
+            if(!isValid)
+            {
+                DataValid = false;
+            }
+            ValidateWholeData();
+            //HighlinghtCell(cell, isValid);
+
             base.OnCellEndEdit(e);
+        }
+
+        void HighlinghtCell(DataGridViewCell cell, bool valid)
+        {
+            if (!cell.OwningRow.IsNewRow)
+            {
+                cell.Style.BackColor = valid ? Color.White : Color.Red;
+                InvalidateCell(cell);
+            }
+        }
+
+        void HighlightParentText(bool dataValid)
+        {
+            //if (dataValid)
+            //{
+            //    Parent.ForeColor = Color.Black;
+            //}
+            //else
+            //{
+            //    Parent.ForeColor = Color.Red;
+            //}
         }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
@@ -228,8 +348,15 @@ namespace SchedulerProject.UserInterface
 
         protected override void OnLeave(EventArgs e)
         {
-            RefreshLinkedObjectsData();
+            var done = RefreshLinkedObjectsData();
+            HighlightParentText(DataValid);
             base.OnLeave(e);
+        }
+
+        protected override void OnEnter(EventArgs e)
+        {
+            HighlightParentText(DataValid);
+            base.OnEnter(e);
         }
 
         #endregion
