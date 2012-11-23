@@ -43,6 +43,7 @@ namespace SchedulerProject.UserInterface
        DataGridViewComboBoxColumn colEventSubject = new DataGridViewComboBoxColumn();
        DataGridViewComboBoxColumn colEventLecturer = new DataGridViewComboBoxColumn();
        DataGridViewComboBoxColumn colEventType = new DataGridViewComboBoxColumn();
+       DataGridViewComboBoxColumn colEventHardAssignedRoom = new DataGridViewComboBoxColumn();
        DataGridViewTextBoxColumn colEventGroups = new DataGridViewTextBoxColumn();
        DataGridViewTextBoxColumn colLecturerName = new DataGridViewTextBoxColumn();
        DataGridViewButtonColumn colLecturerTimeConstraints = new DataGridViewButtonColumn();
@@ -232,6 +233,14 @@ namespace SchedulerProject.UserInterface
             // 
             colEventGroups.HeaderText = "Группы";
             colEventGroups.Name = "colEventGroups";
+            //
+            // colEventHardAssignedRoom
+            //
+            colEventHardAssignedRoom.HeaderText = "Заданная аудитория";
+            colEventHardAssignedRoom.Name = "colEventHardAssignedRoom";
+            colEventHardAssignedRoom.Items.AddRange(EditDataForm.UNDEFINED_COMBOBOX_VALUE);
+            colEventHardAssignedRoom.AutoComplete = true;
+            colEventHardAssignedRoom.FlatStyle = FlatStyle.Flat;
             // 
             // menuStrip1
             // 
@@ -381,7 +390,7 @@ namespace SchedulerProject.UserInterface
         {
             var columnConstraints = new Dictionary<DataGridViewColumn, ColumnConstraintsType>()
             {
-                {colGroupName, ColumnConstraintsType.UniqueValues},
+                {colGroupName, ColumnConstraintsType.UniqueValuesGroupMember},//ColumnConstraintsType.UniqueValues},
                 {colGroupCourse, ColumnConstraintsType.NotEmpty}
             };
 
@@ -410,7 +419,8 @@ namespace SchedulerProject.UserInterface
                 {colEventSubject, ColumnConstraintsType.NotEmpty},
                 {colEventLecturer, ColumnConstraintsType.NotEmpty},
                 {colEventType, ColumnConstraintsType.NotEmpty},
-                {colEventGroups, ColumnConstraintsType.NotEmpty}
+                {colEventGroups, ColumnConstraintsType.NotEmpty},
+                {colEventHardAssignedRoom, ColumnConstraintsType.NoConstraints}
             };
 
             var fillEventsRules = new Dictionary<DataGridViewColumn, Func<Event, string>>()
@@ -436,7 +446,19 @@ namespace SchedulerProject.UserInterface
                 {colEventType, e => e.RoomType.ToString()},
                 {colEventGroups, e =>  string.Join(",", gridGroups.Items
                                                                   .Where(g => e.Groups.Contains(g.Id))
-                                                                  .Select(g => g.Name))}
+                                                                  .Select(g => g.Name))},
+                                                                  
+                {colEventHardAssignedRoom, e => 
+                {
+                    if(e.HardAssignedRoom == -1)
+                       return UNDEFINED_COMBOBOX_VALUE;
+                    var room = gridRooms.Items.FirstOrDefault(r => r.Id == e.HardAssignedRoom);
+                    if (room != null)
+                    {
+                        return room.ToString();
+                    }
+                    else return UNDEFINED_COMBOBOX_VALUE;
+                }}                                                                  
             };
 
             var parseEventsRules = new Dictionary<DataGridViewColumn, Action<string, Event>>()
@@ -456,9 +478,19 @@ namespace SchedulerProject.UserInterface
                     e.Groups = string.IsNullOrWhiteSpace(val) ? new int[0] : 
                                 val.Split(',')
                                   .Select(s => gridGroups.Items.First(g => g.Name == s).Id)
-                                  .ToArray()}
+                                  .ToArray()},
+                {colEventHardAssignedRoom, (val, e) => 
+                {
+                    if (val != UNDEFINED_COMBOBOX_VALUE)
+                    {
+                        var room = gridRooms.Items.FirstOrDefault(r => r.ToString() == val);
+                        if (room != null)
+                        {
+                            e.HardAssignedRoom = room.Id;
+                        }
+                    }
+                }}   
             };
-
 
             gridEvents = new SchedulingPrimitivesGrigView<Event>(
                 panelEditEvents, columnConstraints, fillEventsRules, parseEventsRules);
@@ -481,7 +513,7 @@ namespace SchedulerProject.UserInterface
         {
             var columnConstraints = new Dictionary<DataGridViewColumn, ColumnConstraintsType>()
             {
-                {colSubjectName, ColumnConstraintsType.UniqueValues},
+                {colSubjectName, ColumnConstraintsType.UniqueValuesGroupMember},//ColumnConstraintsType.UniqueValues},
                 {colSubjectLecturer, ColumnConstraintsType.NoConstraints},
                 {colSubjectDifficulty, ColumnConstraintsType.NoConstraints}
             };
@@ -526,8 +558,8 @@ namespace SchedulerProject.UserInterface
         {
             var columnConstraints = new Dictionary<DataGridViewColumn, ColumnConstraintsType>()
             {
-                {colRoomNumber, ColumnConstraintsType.NotEmpty},
-                {colRoomHousing, ColumnConstraintsType.NotEmpty},
+                {colRoomNumber, ColumnConstraintsType.UniqueValuesGroupMember},
+                {colRoomHousing, ColumnConstraintsType.UniqueValuesGroupMember},
                 {colRoomType, ColumnConstraintsType.NotEmpty},
             };
 
@@ -555,13 +587,14 @@ namespace SchedulerProject.UserInterface
 
             gridRooms = new SchedulingPrimitivesGrigView<Room>(
                 tabEditRooms, columnConstraints, fillRoomsRules, parseRoomsRules);
+            gridRooms.LinkControl(colEventHardAssignedRoom);
         }
 
         void InitLecturersGrid()
         {
             var columnConstraints = new Dictionary<DataGridViewColumn, ColumnConstraintsType>()
             {
-                {colLecturerName, ColumnConstraintsType.UniqueValues}
+                {colLecturerName, ColumnConstraintsType.UniqueValuesGroupMember}//ColumnConstraintsType.UniqueValues}
             };
 
             var fillLecturerRules = new Dictionary<DataGridViewColumn, Func<Lecturer, string>>()

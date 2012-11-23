@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SchedulerProject.Core
 {
@@ -11,7 +12,7 @@ namespace SchedulerProject.Core
         }
     }
 
-    public abstract class AbstractPrimitive<T>
+    public abstract class AbstractPrimitive<T> : IEquatable<AbstractPrimitive<T>>
     {
         public int Id = -1;
 
@@ -22,17 +23,24 @@ namespace SchedulerProject.Core
 
         public abstract void CopyTo(T destination);
 
+        // UID of the primitive, Id field presents just for performance
         protected abstract string StringRepresentation();
 
         public override string ToString()
         {
             return StringRepresentation();
         }
+
+        public bool Equals(AbstractPrimitive<T> other)
+        {
+            return ReferenceEquals(this, other) || 
+                   this.StringRepresentation() == other.StringRepresentation();
+        }
     }
 
-    public interface IConstrainedPrimitive
+    public interface ITimeConstrainedPrimitive
     {
-        //TimeConstraints TimeConstraints { get; }
+        TimeConstraints TimeConstraints { get; }
     }
 
     public enum RoomType
@@ -71,11 +79,10 @@ namespace SchedulerProject.Core
         }
     }
 
-    public class Lecturer : AbstractPrimitive<Lecturer>, IConstrainedPrimitive
+    public class Lecturer : AbstractPrimitive<Lecturer>, ITimeConstrainedPrimitive
     {
         public string Name = string.Empty;
-        //public TimeConstraints timeConstraints;
-        //public TimeConstraints TimeConstraints { get { return timeConstraints; } }
+        public TimeConstraints TimeConstraints { get; private set; }
 
         public override bool IsEmpty
         {
@@ -123,13 +130,12 @@ namespace SchedulerProject.Core
     //    public int[] SoftTimeSlotsConstraints;
     //}
 
-    public class Room : AbstractPrimitive<Room>, IConstrainedPrimitive
+    public class Room : AbstractPrimitive<Room>, ITimeConstrainedPrimitive
     {
         public int Housing;
         public string RoomNumber = string.Empty;
         public RoomType Type;
-        //public TimeConstraints timeConstraints;
-        //public TimeConstraints TimeConstraints { get { return timeConstraints; } }
+        public TimeConstraints TimeConstraints { get; private set; }
 
         public override bool IsEmpty
         { 
@@ -141,8 +147,7 @@ namespace SchedulerProject.Core
             destination.Id = Id;
             destination.Housing = Housing;
             destination.RoomNumber = RoomNumber;
-            //destination.RoomType = RoomType;
-            //destination.Groups = Groups.AsEnumerable().ToArray();
+            destination.Type = Type;
         }
 
         protected override string StringRepresentation()
@@ -157,6 +162,17 @@ namespace SchedulerProject.Core
         public int SubjectId;
         public int[] Groups;
         public RoomType RoomType;
+        public int HardAssignedRoom = -1;
+
+        public static int[] ParseGroups(string str)
+        {
+            return str.Split(',').Select(int.Parse).ToArray();
+        }
+
+        public static string GroupsToString(int[] groupIds)
+        {
+            return string.Join(",", groupIds);
+        }
 
         public override bool IsEmpty
         {

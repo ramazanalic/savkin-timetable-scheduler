@@ -11,7 +11,8 @@ namespace SchedulerProject.UserInterface
     {
         NoConstraints = 0,
         NotEmpty = 1,
-        UniqueValues = 2
+        //UniqueValues = 2,
+        UniqueValuesGroupMember = 3
     }
 
     public class SchedulingPrimitivesGrigView<PrimitiveType> : DataGridView
@@ -117,10 +118,20 @@ namespace SchedulerProject.UserInterface
             {
                 case ColumnConstraintsType.NotEmpty:
                     return !string.IsNullOrWhiteSpace(val) && val != EditDataForm.UNDEFINED_COMBOBOX_VALUE;
-                case ColumnConstraintsType.UniqueValues:
+                //case ColumnConstraintsType.UniqueValues:
+                //    return Rows.OfType<DataGridViewRow>()
+                //                .Where(r => r.Visible && r != cell.OwningRow)
+                //                .All(r => r.Cells[cell.OwningColumn.Name].Value as string != val);
+                case ColumnConstraintsType.UniqueValuesGroupMember:
+                    var uniqueGroup = columnsConstraints
+                                              .Where(p => p.Value == ColumnConstraintsType.UniqueValuesGroupMember)
+                                              .Select(p => p.Key)
+                                              .ToArray();
+                    var checkedRow = cell.OwningRow;
                     return Rows.OfType<DataGridViewRow>()
-                                .Where(r => r.Visible && r != cell.OwningRow)
-                                .All(r => r.Cells[cell.OwningColumn.Name].Value as string != val);
+                               .Where(r => r.Visible && r != cell.OwningRow)
+                               .All(row => uniqueGroup.Any(col => row.Cells[col.Name].Value as string !=
+                                                                  checkedRow.Cells[col.Name].Value as string));
                 default:
                     return true;
             }
@@ -254,6 +265,27 @@ namespace SchedulerProject.UserInterface
             //}
         }
 
+        void HighlinghtCell(DataGridViewCell cell, bool valid)
+        {
+            if (!cell.OwningRow.IsNewRow)
+            {
+                cell.Style.BackColor = valid ? Color.White : Color.Red;
+                InvalidateCell(cell);
+            }
+        }
+
+        void HighlightParentText(bool dataValid)
+        {
+            //if (dataValid)
+            //{
+            //    Parent.ForeColor = Color.Black;
+            //}
+            //else
+            //{
+            //    Parent.ForeColor = Color.Red;
+            //}
+        }
+
         #region Overrides
 
         protected override void OnRowsAdded(DataGridViewRowsAddedEventArgs e)
@@ -326,27 +358,6 @@ namespace SchedulerProject.UserInterface
             //HighlinghtCell(cell, isValid);
 
             base.OnCellEndEdit(e);
-        }
-
-        void HighlinghtCell(DataGridViewCell cell, bool valid)
-        {
-            if (!cell.OwningRow.IsNewRow)
-            {
-                cell.Style.BackColor = valid ? Color.White : Color.Red;
-                InvalidateCell(cell);
-            }
-        }
-
-        void HighlightParentText(bool dataValid)
-        {
-            //if (dataValid)
-            //{
-            //    Parent.ForeColor = Color.Black;
-            //}
-            //else
-            //{
-            //    Parent.ForeColor = Color.Red;
-            //}
         }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)
