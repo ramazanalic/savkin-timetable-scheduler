@@ -50,6 +50,7 @@ namespace SchedulerProject.UserInterface
         public MainForm()
         {
             InitializeComponent();
+            tabByGroups.Controls.Add(new TimeSlotsControl<Control>());
             OpenedFile = "Untitled.xml";
         }
 
