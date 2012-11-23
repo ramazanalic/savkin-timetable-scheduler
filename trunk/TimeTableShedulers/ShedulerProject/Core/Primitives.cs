@@ -160,7 +160,7 @@ namespace SchedulerProject.Core
 
         public override bool IsEmpty
         {
-            get { return base.IsEmpty || LecturerId <= 0 || SubjectId <= 0 || !Groups.Any(); }
+            get { return base.IsEmpty || LecturerId < 0 || SubjectId < 0 || !Groups.Any(); }
         }
 
         public override void CopyTo(Event destination)

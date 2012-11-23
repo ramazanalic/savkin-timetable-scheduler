@@ -103,6 +103,7 @@ namespace SchedulerProject.Core
                               from eventElement in subjectElement.Elements()
                               select new Event()
                               {
+                                  Id = int.Parse(eventElement.Attribute("id").Value),
                                   SubjectId = subjectId,
                                   LecturerId = (GetLecturerId(eventElement) ?? subjectLecturer).Value,
                                   RoomType = ParseHelper.ParseEnum<RoomType>(eventElement.Attribute("type").Value),
@@ -131,38 +132,40 @@ namespace SchedulerProject.Core
 
         public void SaveToXml(string filename)
         {
-            XElement root = new XElement("ShedulerInput",
+            XElement root = new XElement("SchedulerInput",
+                new XAttribute("id", Id),
                 new XAttribute("days", Days),
                 new XAttribute("slots_per_day", SlotsPerDay),
                 new XElement("Rooms", 
                              from r in Rooms 
                              select new XElement("Room",
+                                                 new XAttribute("id", r.Id),
                                                  new XAttribute("house_n", r.Housing),
                                                  new XAttribute("class_n", r.RoomNumber),
-                                                 new XAttribute("type", r.Type),
-                                                 new XAttribute("id", r.Id))),
+                                                 new XAttribute("type", r.Type))),
                 new XElement("Groups", from g in Groups 
                                        group g by g.Course into c 
                                        select new XElement("Course",
                                                            new XAttribute("number", c.Key), 
                                                            from gc in c select 
-                                                           new XElement("Group", 
-                                                                         new XAttribute("name", gc.Name),
-                                                                         new XAttribute("id", gc.Id)))),
+                                                           new XElement("Group",
+                                                                         new XAttribute("id", gc.Id), 
+                                                                         new XAttribute("name", gc.Name)))),
                 new XElement("Lecturers", 
                              from l in Lecturers 
                              select new XElement("Lecturer",
-                                                 new XAttribute("name", l.Name),
-                                                 new XAttribute("id", l.Id))),
+                                                 new XAttribute("id", l.Id),
+                                                 new XAttribute("name", l.Name))),
                 new XElement("Subjects", 
                              from s in Subjects 
                              select new XElement("Subject",
+                                                 new XAttribute("id", s.Id),
                                                  new XAttribute("name", s.Name),
                                                  new XAttribute("lecturer_id", s.LecturerId.HasValue ? s.LecturerId.ToString() : string.Empty),
-                                                 new XAttribute("id", s.Id),
                                                  from e in Events 
                                                  where e.SubjectId == s.Id
-                                                 select new XElement("Event", 
+                                                 select new XElement("Event",
+                                                                     new XAttribute("id", e.Id),
                                                                      new XAttribute("type", e.RoomType), 
                                                                      new XAttribute("groups", string.Join(",", e.Groups)),
                                                                      new XAttribute("lecturer_id", e.LecturerId)))));

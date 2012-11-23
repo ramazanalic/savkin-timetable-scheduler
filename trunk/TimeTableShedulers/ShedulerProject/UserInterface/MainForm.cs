@@ -17,12 +17,20 @@ namespace SchedulerProject.UserInterface
         EditDataForm _editDataForm;
 
         string _openedFile;
+        string _openedFileName;
+        string _openedFileDirectory;
         private bool _dataChanged;
 
         private string OpenedFile
         {
             get { return _openedFile; }
-            set { _openedFile = value; Text = WindowTitle; }
+            set 
+            { 
+                _openedFile = value;
+                _openedFileName = System.IO.Path.GetFileName(_openedFile);
+                _openedFileDirectory = System.IO.Path.GetDirectoryName(_openedFile);
+                Text = WindowTitle; 
+            }
         }
 
         private bool OpenedDataChanged
@@ -47,25 +55,44 @@ namespace SchedulerProject.UserInterface
 
         private void miLoadData_Click(object sender, EventArgs e)
         {
+            openDataFileDialog.InitialDirectory = _openedFileDirectory;
+            openDataFileDialog.FileName = _openedFileName;
             if (openDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
-                _currentData = TimeTable.LoadFromXml(openDataFileDialog.FileName);
+                try
+                {
+                    _currentData = TimeTable.LoadFromXml(openDataFileDialog.FileName);
+                    OpenedFile = openDataFileDialog.FileName;
+                    OpenedDataChanged = false;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Ошибка при загрузке файла", 
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 Cursor = Cursors.Arrow;
-                OpenedFile = openDataFileDialog.FileName;
-                OpenedDataChanged = false;
             }
         }
 
         private void miSaveData_Click(object sender, EventArgs e)
         {
-            saveDataFileDialog.FileName = OpenedFile;
+            saveDataFileDialog.InitialDirectory = _openedFileDirectory;
+            saveDataFileDialog.FileName = _openedFileName;
             if (saveDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
-                _currentData.SaveToXml(saveDataFileDialog.FileName);
+                try
+                {
+                    _currentData.SaveToXml(saveDataFileDialog.FileName);
+                    OpenedDataChanged = false;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Ошибка при сохранении файла",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 Cursor = Cursors.Arrow;
-                OpenedDataChanged = false;
             }
         }
 

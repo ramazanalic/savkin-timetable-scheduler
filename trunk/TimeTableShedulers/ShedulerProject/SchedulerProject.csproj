@@ -96,7 +96,7 @@
   <ItemGroup>
     <Content Include="app_icon.ico" />
     <Content Include="time_table_input.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TODO.txt" />
   </ItemGroup>
