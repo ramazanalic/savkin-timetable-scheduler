@@ -104,13 +104,11 @@ namespace SchedulerProject.Core
                               select new Event()
                               {
                                   Id = int.Parse(eventElement.Attribute("id").Value),
+                                  HardAssignedRoom = GetHardAssignedRoom(eventElement),
                                   SubjectId = subjectId,
                                   LecturerId = (GetLecturerId(eventElement) ?? subjectLecturer).Value,
                                   RoomType = ParseHelper.ParseEnum<RoomType>(eventElement.Attribute("type").Value),
-                                  Groups = eventElement.Attribute("groups").Value
-                                                                           .Split(',')
-                                                                           .Select(int.Parse)
-                                                                           .ToArray()
+                                  Groups = Event.ParseGroups(eventElement.Attribute("groups").Value)
                               };
             
              return new TimeTable()
@@ -167,7 +165,8 @@ namespace SchedulerProject.Core
                                                  select new XElement("Event",
                                                                      new XAttribute("id", e.Id),
                                                                      new XAttribute("type", e.RoomType), 
-                                                                     new XAttribute("groups", string.Join(",", e.Groups)),
+                                                                     new XAttribute("groups", Event.GroupsToString(e.Groups)),
+                                                                     new XAttribute("hard_assigned_room", e.HardAssignedRoom),
                                                                      new XAttribute("lecturer_id", e.LecturerId)))));
             root.Save(filename);
         }
@@ -196,16 +195,22 @@ namespace SchedulerProject.Core
                         }
         }
 
+        public static int GetHardAssignedRoom(XElement element)
+        {
+            int res;
+            var attr = element.Attribute("hard_assigned_room");
+            if (attr != null && int.TryParse(attr.Value, out res))
+                return res;
+            return -1;
+        }
+
         private static int? GetLecturerId(XElement element)
         {
-            try
-            {
-                return int.Parse(element.Attribute("lecturer_id").Value);
-            }
-            catch
-            {
-                return null;
-            }
+            int res;
+            var attr = element.Attribute("lecturer_id");
+            if (attr != null && int.TryParse(attr.Value, out res))
+                return res;
+            return null;
         }
     }
 }
