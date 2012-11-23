@@ -140,7 +140,7 @@ namespace SchedulerProject.UserInterface
             cbxSubjectFilter.FormattingEnabled = true;
             cbxSubjectFilter.Location = new Point(117, 6);
             cbxSubjectFilter.Name = "cbxSubjectFilter";
-            cbxSubjectFilter.Size = new Size(208, 21);
+            cbxSubjectFilter.Size = new Size(218, 21);
             cbxSubjectFilter.TabIndex = 3;
             cbxSubjectFilter.SelectedValue = EditDataForm.UNDEFINED_COMBOBOX_VALUE;
             // 
@@ -348,6 +348,14 @@ namespace SchedulerProject.UserInterface
             var selectedSubjectName = cbxSubjectFilter.SelectedItem as string;
             var selectedSubject = gridSubjects.Items.FirstOrDefault(sbj => sbj.Name == selectedSubjectName);
             gridEvents.ShowFilter = ev => ev.SubjectId == selectedSubject.Id;
+            if (cbxSubjectFilter.SelectedItem != null)
+            {
+                foreach (var row in gridEvents.Rows.OfType<DataGridViewRow>().Where(r => r.IsNewRow))
+                {
+                    gridEvents.SetCellValue(row.Cells[colEventSubject.Name],
+                                            cbxSubjectFilter.SelectedItem.ToString());
+                }
+            }
         }
 
         void InitGrids()
@@ -498,7 +506,7 @@ namespace SchedulerProject.UserInterface
                 {colSubjectName, (val, s) => s.Name = val},
                 {colSubjectLecturer, (val, s) =>
                 {
-                    var lecturer = gridLecturers.Items.FirstOrDefault(l => l.Id == s.LecturerId);
+                    var lecturer = gridLecturers.Items.FirstOrDefault(l => l.Name == val);
                     if (lecturer != null)
                     {
                         s.LecturerId = lecturer.Id;

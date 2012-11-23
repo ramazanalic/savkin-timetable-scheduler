@@ -1,165 +1,130 @@
 <SchedulerInput id = "432" days = "6" slots_per_day = "5">
-    <Rooms>
-        <Room house_n = "15" class_n = "97" type = "Lecture" id = "1" /> 
-        <Room house_n = "18" class_n = "301" type = "Lecture" id = "2" /> 
-        <Room house_n = "7" class_n = "823" type = "Practice" id = "3" /> 
-        <Room house_n = "15" class_n = "117/2" type = "Laboratory" id = "4" />
-        <Room house_n = "15" class_n = "92" type = "Practice" id = "5" /> 
-        <Room house_n = "15" class_n = "93" type = "Practice" id = "6" /> 
-        <Room house_n = "15" class_n = "94" type = "Practice" id = "7" /> 
-        <Room house_n = "24" class_n = "any" type = "Special" id = "8" />
-    </Rooms>
+  <Rooms>
+    <Room house_n = "15" class_n = "97" type = "Lecture" id = "1" />
+    <Room house_n = "18" class_n = "301" type = "Lecture" id = "2" />
+    <Room house_n = "7" class_n = "823" type = "Practice" id = "3" />
+    <Room house_n = "15" class_n = "117/2" type = "Laboratory" id = "4" />
+    <Room house_n = "15" class_n = "92" type = "Practice" id = "5" />
+    <Room house_n = "15" class_n = "93" type = "Practice" id = "6" />
+    <Room house_n = "15" class_n = "94" type = "Practice" id = "7" />
+    <Room house_n = "24" class_n = "any" type = "Special" id = "8" />
+  </Rooms>
 
-    <Groups>
-        <Course number = "2">
-            <Group name = "KP-61" id = "8" />
-            <Group name = "KV-61" id = "5" />
-            <Group name = "KV-62" id = "6" />
-            <Group name = "KV-63" id = "7" />
-        </Course>
-        <Course number = "1">
-            <Group name = "KV-73" id = "3" />
-            <Group name = "KV-71" id = "1" />
-            <Group name = "KP-71" id = "4" />
-            <Group name = "KV-72" id = "2" />
-        </Course>
-    </Groups>
-	
-	<Lecturers>
-		<Lecturer id = "1" name = "Марченко" />
-		<Lecturer id = "2" name = "Рита Федоровна" />
-		<Lecturer id = "3" name = "Иван Иванович" />
-		<Lecturer id = "4" name = "Ноунейм какой-то" />
-		<Lecturer id = "5" name = "Бохонов" />
-		<Lecturer id = "6" name = "Леся Украинка" />
-		<Lecturer id = "7" name = "Инженерка" />
-		<Lecturer id = "8" name = "Минарченко" />
-		<Lecturer id = "9" name = "Помошник Марченка" />
-		<Lecturer id = "10" name = "Англичнанка 1" />
-		<Lecturer id = "11" name = "Англичнанка 2" />
-		<Lecturer id = "12" name = "Англичнанка 3" />
-		<Lecturer id = "13" name = "Англичнанка 4" />
-	</Lecturers>
+  <Groups>
+    <Course number = "2">
+      <Group name = "KP-61" id = "8" />
+      <Group name = "KV-61" id = "5" />
+      <Group name = "KV-62" id = "6" />
+      <Group name = "KV-63" id = "7" />
+    </Course>
+    <Course number = "1">
+      <Group name = "KV-73" id = "3" />
+      <Group name = "KV-71" id = "1" />
+      <Group name = "KP-71" id = "4" />
+      <Group name = "KV-72" id = "2" />
+    </Course>
+  </Groups>
 
-    <Subjects>
-        <!-- FIRST COURSE -->
-        <Subject name = "Структуры данных и алгоритмы" lecturer_id="1" id ="1">
-            <Event type = "Lecture" groups = "1,2,3,4" /> 
-            <Event type = "Laboratory" groups = "1" lecturer_id = "9" /> 
-            <Event type = "Laboratory" groups = "2" lecturer_id = "9" /> 
-            <Event type = "Laboratory" groups = "3" /> 
-            <Event type = "Laboratory" groups = "4" /> 
-            <Event type = "Practice" groups = "1" /> 
-            <Event type = "Practice" groups = "2" /> 
-            <Event type = "Practice" groups = "3" /> 
-            <Event type = "Practice" groups = "4" /> 
-        </Subject>
+  <Lecturers>
+    <Lecturer id = "1" name = "Марченко" />
+    <Lecturer id = "2" name = "Рита Федоровна" />
+    <Lecturer id = "3" name = "Иван Иванович" />
+    <Lecturer id = "4" name = "Ноунейм какой-то" />
+    <Lecturer id = "5" name = "Бохонов" />
+    <Lecturer id = "6" name = "Леся Украинка" />
+    <Lecturer id = "7" name = "Инженерка" />
+    <Lecturer id = "8" name = "Минарченко" />
+    <Lecturer id = "9" name = "Помошник Марченка" />
+    <Lecturer id = "10" name = "Англичнанка 1" />
+    <Lecturer id = "11" name = "Англичнанка 2" />
+    <Lecturer id = "12" name = "Англичнанка 3" />
+    <Lecturer id = "13" name = "Англичнанка 4" />
+  </Lecturers>
 
-        <Subject name = "Программирование" lecturer_id = "2" id ="2">
-            <Event type = "Lecture" groups = "1,2,3,4" /> 
-            <Event type = "Laboratory" groups = "1" />  
-            <Event type = "Laboratory" groups = "2" /> 
-            <Event type = "Laboratory" groups = "3" />  
-            <Event type = "Laboratory" groups = "4" />  
-        </Subject>
+  <Subjects>
+    <!-- FIRST COURSE -->
+    <Subject name = "Структуры данных и алгоритмы" lecturer_id="1" id ="1">
+      <Event id = "1" type = "Lecture" groups = "1,2,3,4" />
+      <Event id = "2" type = "Laboratory" groups = "1" lecturer_id = "9" />
+      <Event id = "3" type = "Laboratory" groups = "2" lecturer_id = "9" />
+      <Event id = "4" type = "Laboratory" groups = "3" />
+      <Event id = "5" type = "Laboratory" groups = "4" />
+      <Event id = "6" type = "Practice" groups = "1" />
+      <Event id = "7" type = "Practice" groups = "2" />
+      <Event id = "8" type = "Practice" groups = "3" />
+      <Event id = "9" type = "Practice" groups = "4" />
+    </Subject>
 
-        <Subject name = "Физра" lecturer_id = "3" class_constrait = "id=8" id ="3">
-            <Event type = "Practice" groups = "1" />  
-            <Event type = "Practice" groups = "2" />  
-            <Event type = "Practice" groups = "3" />  
-            <Event type = "Practice" groups = "4" />  
-            <Event type = "Practice" groups = "5" />  
-            <Event type = "Practice" groups = "6" />  
-            <Event type = "Practice" groups = "7" />  
-            <Event type = "Practice" groups = "8" />  
-            <Event type = "Practice" groups = "1" />  
-            <Event type = "Practice" groups = "2" /> 
-            <Event type = "Practice" groups = "3" /> 
-            <Event type = "Practice" groups = "4" /> 
-            <Event type = "Practice" groups = "5" /> 
-            <Event type = "Practice" groups = "6" /> 
-            <Event type = "Practice" groups = "7" /> 
-            <Event type = "Practice" groups = "8" /> 
-        </Subject>
+    <Subject name = "Программирование" lecturer_id = "2" id ="2">
+      <Event id = "10" type = "Lecture" groups = "1,2,3,4" />
+      <Event id = "11" type = "Laboratory" groups = "1" />
+      <Event id = "12" type = "Laboratory" groups = "2" />
+      <Event id = "13" type = "Laboratory" groups = "3" />
+      <Event id = "14" type = "Laboratory" groups = "4" />
+    </Subject>
 
-        <Subject name = "Линейка" lecturer_id = "5" id ="4">
-            <Event type = "Lecture" groups = "1,2,3,4" />  
-            <Event type = "Practice" groups = "1" /> 
-            <Event type = "Practice" groups = "2" /> 
-            <Event type = "Practice" groups = "3" /> 
-            <Event type = "Practice" groups = "4" /> 
-        </Subject>
+    <Subject name = "Физра" lecturer_id = "3" class_constrait = "id=8" id ="3">
+      <Event id = "15" type = "Practice" groups = "1" />
+      <Event id = "16" type = "Practice" groups = "2" />
+      <Event id = "17" type = "Practice" groups = "3" />
+      <Event id = "18" type = "Practice" groups = "4" />
+      <Event id = "19" type = "Practice" groups = "5" />
+      <Event id = "20" type = "Practice" groups = "6" />
+      <Event id = "21" type = "Practice" groups = "7" />
+      <Event id = "22" type = "Practice" groups = "8" />
+      <Event id = "23" type = "Practice" groups = "1" />
+      <Event id = "24" type = "Practice" groups = "2" />
+      <Event id = "25" type = "Practice" groups = "3" />
+      <Event id = "26" type = "Practice" groups = "4" />
+      <Event id = "27" type = "Practice" groups = "5" />
+      <Event id = "28" type = "Practice" groups = "6" />
+      <Event id = "29" type = "Practice" groups = "7" />
+      <Event id = "30" type = "Practice" groups = "8" />
+    </Subject>
 
-        <Subject name = "Украинский язык" lecturer_id = "6" id ="5">
-            <Event type = "Lecture" groups = "1,2,3,4" />  
-            <Event type = "Practice" groups = "1" /> 
-            <Event type = "Practice" groups = "2" /> 
-            <Event type = "Practice" groups = "3" /> 
-            <Event type = "Practice" groups = "4" /> 
-        </Subject>
+    <Subject name = "Линейка" lecturer_id = "5" id ="4">
+      <Event id = "31" type = "Lecture" groups = "1,2,3,4" />
+      <Event id = "32" type = "Practice" groups = "1" />
+      <Event id = "33" type = "Practice" groups = "2" />
+      <Event id = "34" type = "Practice" groups = "3" />
+      <Event id = "35" type = "Practice" groups = "4" />
+    </Subject>
 
-        <Subject name = "Инженерная графика" lecturer_id = "7" id ="6">
-            <Event type = "Lecture" groups = "1,2,3,4" />  
-            <Event type = "Practice" groups = "1" /> 
-            <Event type = "Practice" groups = "2" /> 
-            <Event type = "Practice" groups = "3" /> 
-            <Event type = "Practice" groups = "4" /> 
-        </Subject>
-		
-        <Subject name = "Матан" lecturer_id = "8" id ="7">
-            <Event type = "Lecture" groups = "1,2,3,4" />  
-            <Event type = "Practice" groups = "1" /> 
-            <Event type = "Practice" groups = "2" /> 
-            <Event type = "Practice" groups = "3" /> 
-            <Event type = "Practice" groups = "4" /> 
-        </Subject>
+    <Subject name = "Украинский язык" lecturer_id = "6" id ="5">
+      <Event id = "36" type = "Lecture" groups = "1,2,3,4" />
+      <Event id = "37" type = "Practice" groups = "1" />
+      <Event id = "38" type = "Practice" groups = "2" />
+      <Event id = "39" type = "Practice" groups = "3" />
+      <Event id = "40" type = "Practice" groups = "4" />
+    </Subject>
 
-        <Subject name = "Английский язык" id ="8">
-            <Event type = "Practice" groups = "1" lecturer_id = "10" />   
-            <Event type = "Practice" groups = "2" lecturer_id = "10" />  
-            <Event type = "Practice" groups = "3" lecturer_id = "11" />  
-            <Event type = "Practice" groups = "4" lecturer_id = "11" />  
-            <Event type = "Practice" groups = "5" lecturer_id = "12" />  
-            <Event type = "Practice" groups = "6" lecturer_id = "12" />  
-            <Event type = "Practice" groups = "7" lecturer_id = "13" />  
-            <Event type = "Practice" groups = "8" lecturer_id = "13" />  
-        </Subject>
+    <Subject name = "Инженерная графика" lecturer_id = "7" id ="6">
+      <Event id = "41" type = "Lecture" groups = "1,2,3,4" />
+      <Event id = "42" type = "Practice" groups = "1" />
+      <Event id = "43" type = "Practice" groups = "2" />
+      <Event id = "44" type = "Practice" groups = "3" />
+      <Event id = "45" type = "Practice" groups = "4" />
+    </Subject>
 
-        <!-- SECOND COURSE -->
-    </Subjects>
+    <Subject name = "Матан" lecturer_id = "8" id ="7">
+      <Event id = "46" type = "Lecture" groups = "1,2,3,4" />
+      <Event id = "47" type = "Practice" groups = "1" />
+      <Event id = "48" type = "Practice" groups = "2" />
+      <Event id = "49" type = "Practice" groups = "3" />
+      <Event id = "50" type = "Practice" groups = "4" />
+    </Subject>
+
+    <Subject name = "Английский язык" id ="8">
+      <Event id = "51" type = "Practice" groups = "1" lecturer_id = "10" />
+      <Event id = "52" type = "Practice" groups = "2" lecturer_id = "10" />
+      <Event id = "53" type = "Practice" groups = "3" lecturer_id = "11" />
+      <Event id = "54" type = "Practice" groups = "4" lecturer_id = "11" />
+      <Event id = "55" type = "Practice" groups = "5" lecturer_id = "12" />
+      <Event id = "56" type = "Practice" groups = "6" lecturer_id = "12" />
+      <Event id = "57" type = "Practice" groups = "7" lecturer_id = "13" />
+      <Event id = "58" type = "Practice" groups = "8" lecturer_id = "13" />
+    </Subject>
+
+    <!-- SECOND COURSE -->
+  </Subjects>
 </SchedulerInput>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

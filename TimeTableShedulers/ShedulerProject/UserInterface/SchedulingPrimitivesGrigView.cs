@@ -30,7 +30,7 @@ namespace SchedulerProject.UserInterface
 
         // stores changed rows with their pre-changed/added/removed values
         Dictionary<DataGridViewRow, string> latestChangedRows = new Dictionary<DataGridViewRow, string>(),
-                                            latestAddedRows = new Dictionary<DataGridViewRow, string>(),
+                                            //latestAddedRows = new Dictionary<DataGridViewRow, string>(),
                                             latestRemovedRows = new Dictionary<DataGridViewRow, string>();
 
         Dictionary<DataGridViewRow, PrimitiveType> associatedPrimitives =
@@ -61,7 +61,7 @@ namespace SchedulerProject.UserInterface
             parent.Controls.Add(this);
             Dock = DockStyle.Fill;
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            EditMode = DataGridViewEditMode.EditOnKeystroke;
+            EditMode = DataGridViewEditMode.EditOnKeystrokeOrF2;
             DoubleBuffered = true;
             Columns.AddRange(columnsConstraints.Keys.ToArray());
         }
@@ -139,7 +139,7 @@ namespace SchedulerProject.UserInterface
                     newRow.Cells[fillRule.Key.Name].Value = fillRule.Value(elem);
                 }
                 elem.CopyTo(associatedPrimitives[newRow]);
-                latestAddedRows[newRow] = elem.ToString();
+                latestChangedRows[newRow] = elem.ToString();
             }
             AutoResizeColumns();
             bool valid = RefreshLinkedObjectsData();
@@ -196,7 +196,7 @@ namespace SchedulerProject.UserInterface
         {
             latestRemovedRows.Clear();
             latestChangedRows.Clear();
-            latestAddedRows.Clear();
+            //latestAddedRows.Clear();
         }
 
         void RefreshLinkedComboboxData(ComboBox cbx)
@@ -231,20 +231,27 @@ namespace SchedulerProject.UserInterface
             {
                 var oldValue = pair.Value;
                 var newValue = associatedPrimitives[pair.Key].ToString();
-                col.Items.Add(newValue);
-                foreach (DataGridViewRow row in col.DataGridView.Rows)
+                if (oldValue != newValue)
                 {
-                    if ((string)row.Cells[col.Name].Value == oldValue)
-                        row.Cells[col.Name].Value = newValue;
+                    col.Items.Add(newValue);
+                    foreach (DataGridViewRow row in col.DataGridView.Rows)
+                    {
+                        if ((string)row.Cells[col.Name].Value == oldValue)
+                            row.Cells[col.Name].Value = newValue;
+                    }
+                    col.Items.Remove(oldValue);
                 }
-                col.Items.Remove(oldValue);
+                else if (!col.Items.Contains(newValue))
+                {
+                    col.Items.Add(newValue);
+                }
             }
 
-            foreach (var pair in latestAddedRows.Where(r => !r.Key.IsNewRow))
-            {
-                var newValue = pair.Value;
-                col.Items.Add(newValue);
-            }
+            //foreach (var pair in latestAddedRows.Where(r => !r.Key.IsNewRow))
+            //{
+            //    var newValue = pair.Value;
+            //    col.Items.Add(newValue);
+            //}
         }
 
         #region Overrides
@@ -254,6 +261,7 @@ namespace SchedulerProject.UserInterface
             for (var r = e.RowIndex; r < e.RowIndex + e.RowCount; r++)
             {
                 var row = Rows[r];
+
                 foreach (var cell in row.Cells.OfType<DataGridViewComboBoxCell>())
                 {
                     cell.Value = EditDataForm.UNDEFINED_COMBOBOX_VALUE;
@@ -261,7 +269,7 @@ namespace SchedulerProject.UserInterface
                 // add an empty primitive for each new row
                 var elem = new PrimitiveType();
                 associatedPrimitives.Add(row, elem);
-                latestAddedRows.Add(row, elem.ToString());
+                //latestAddedRows.Add(row, elem.ToString());
 
                 ValidateWholeData();
                 //ValidateRowData(row);
@@ -274,8 +282,8 @@ namespace SchedulerProject.UserInterface
             var row = e.Row;
             if (latestChangedRows.ContainsKey(row))
                 latestChangedRows.Remove(row);
-            if (latestAddedRows.ContainsKey(row))
-                latestAddedRows.Remove(row);
+            //if (latestAddedRows.ContainsKey(row))
+            //    latestAddedRows.Remove(row);
             latestRemovedRows.Add(row, associatedPrimitives[row].ToString());
             associatedPrimitives.Remove(row);
             base.OnUserDeletingRow(e);
@@ -292,14 +300,16 @@ namespace SchedulerProject.UserInterface
             var row = Rows[e.RowIndex];
             var cell = row.Cells[e.ColumnIndex];
 
-            if (row.Cells[0].Value == null)
+            if (associatedPrimitives[row].Id == -1)
             {
                 var ids = associatedPrimitives.Values.Select(p => p.Id);
-                var id = ids.Any() ? ids.Max() + 1 : 0;
-                associatedPrimitives[row].Id = id;
+                associatedPrimitives[row].Id = ids.Any() ? ids.Max() + 1 : 0;
             }
 
-            if (!latestChangedRows.ContainsKey(row) && !latestAddedRows.ContainsKey(row))
+            //if (latestAddedRows.ContainsKey(row))
+            //    latestAddedRows.Remove(row);
+
+            if (!latestChangedRows.ContainsKey(row))
                 latestChangedRows.Add(row, associatedPrimitives[row].ToString());
 
             var parseRule = parseRules[Columns[e.ColumnIndex]];
