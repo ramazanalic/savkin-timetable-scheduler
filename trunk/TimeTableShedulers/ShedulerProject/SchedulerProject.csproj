@@ -71,6 +71,9 @@
     <Compile Include="UserInterface\SchedulingPrimitivesGrigView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="UserInterface\TimeConstraintsControls.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UserInterface\TimeSlotsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
