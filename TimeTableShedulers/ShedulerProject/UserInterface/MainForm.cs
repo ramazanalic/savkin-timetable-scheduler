@@ -50,11 +50,7 @@ namespace SchedulerProject.UserInterface
         public MainForm()
         {
             InitializeComponent();
-            var c = new TimeSlotsControl<Button>();
-            c.TimeSlotControlSize = new Size(150, 150);
-            c.AddControlToSlot(new TimeSlot(1, 5), new Button() { Size = new Size(150, 150)});
-            c.AddControlToSlot(new TimeSlot(1, 5), new Button() { Size = new Size(150, 150)});
-            c.AddControlToSlot(new TimeSlot(3, 2), new Button() { Size = new Size(150, 150)});
+            var c = new TimeSlotsConstraintsEditControl(new Size(100, 100));
             tabByGroups.Controls.Add(c);
             OpenedFile = "Untitled.xml";
         }

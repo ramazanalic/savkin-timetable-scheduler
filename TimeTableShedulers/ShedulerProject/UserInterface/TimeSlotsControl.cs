@@ -11,18 +11,101 @@ using SchedulerProject.Core;
 
 namespace SchedulerProject.UserInterface
 {
-    public class TimeSlotsControl<TimeSlotControl> : UserControl
-        where TimeSlotControl : Control
+    public class TimeSlotControl<T> : Control
+        where T : TimeSlotControl<T>
     {
-        string[] dayNames = { "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота" };
-        string[] slotNames = {"Первая пара", "Вторая пара", "Третья пара", "Четвертая пара", "Пятая пара"};
-
-        public TimeSlotsControl(Func<TimeSlotControl> defaultControlConstructor = null)
+        protected TimeSlot currentSlot;
+        public TimeSlot CurrentTimeSlot
         {
-            TimeSlotControlSize = new Size(50, 50);
+            get { return currentSlot; }
+            set
+            {
+                var owningGrid = OwningGrid;
+                if (owningGrid != null)
+                {
+                    owningGrid.RemoveControlFromSlot(currentSlot);
+                }
+                currentSlot = value;
+                if (owningGrid != null)
+                {
+                    owningGrid.AddControlToSlot(this as T);
+                }
+            }
         }
 
+        public TimeSlotsGrid<T> OwningGrid
+        {
+            get { return Parent as TimeSlotsGrid<T>; }
+            set
+            {
+                value.AddControlToSlot(this as T);
+            }
+        }
+    }
+
+    public class TimeSlotsGrid<ControlType> : UserControl
+        where ControlType : TimeSlotControl<ControlType>
+    {
+        string[] dayNames = { "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота" };
+        string[] slotNames = { "Первая пара", "Вторая пара", "Третья пара", "Четвертая пара", "Пятая пара" };
+
+        protected int slotsCount = 5, daysCount = 6;
+
+        public TimeSlotsGrid(int days, int slots)
+        {
+            if (days <= 0 || days > dayNames.Length)
+            {
+                throw new ArgumentOutOfRangeException("days");
+            }
+            if (slots <= 0 || slots > slotNames.Length)
+            {
+                throw new ArgumentOutOfRangeException("slots");
+            }
+            daysCount = days;
+            slotsCount = slots;
+            minTimeSlot = new TimeSlot(1, 1);
+            maxTimeSlot = new TimeSlot(daysCount, slotsCount);
+            gridPen = Pens.Black;
+        }
+
+        TimeSlot minTimeSlot, maxTimeSlot;
         Size timeSlotControlSize;
+        Pen gridPen;
+
+        int slotOffset;
+        int dayOffset;
+        int minTimeSlotControlWidth;
+        int minTimeSlotControlHeight;
+        int penWidth;
+
+        void SetControlLocation(TimeSlot timeSlot, TimeSlotControl<ControlType> control)
+        {
+            var x = slotOffset + (timeSlot.Day - 1) * (TimeSlotControlSize.Width + penWidth) + penWidth;
+            var y = dayOffset + (timeSlot.Slot - 1) * (TimeSlotControlSize.Height + penWidth) + penWidth;
+            control.Location = new Point(x, y);
+        }
+
+        void CalculateControlParams()
+        {
+            using (Graphics g = CreateGraphics())
+            {
+                SizeF[] slotRectangles = slotNames.Select(s => g.MeasureString(s, Font)).ToArray();
+                SizeF[] dayRectangles = dayNames.Select(s => g.MeasureString(s, Font)).ToArray();
+                slotOffset = (int)slotRectangles.Max(r => r.Width);
+                dayOffset = (int)dayRectangles.Max(r => r.Height);
+                minTimeSlotControlWidth = (int)dayRectangles.Max(r => r.Width) + 4;
+                minTimeSlotControlHeight = (int)slotRectangles.Max(r => r.Height) + 4;
+                timeSlotControlSize = new Size(Math.Max(minTimeSlotControlWidth, timeSlotControlSize.Width),
+                                               Math.Max(minTimeSlotControlHeight, timeSlotControlSize.Height));
+                penWidth = (int)gridPen.Width;
+                Size = MaximumSize = new Size(
+                    slotOffset + daysCount * timeSlotControlSize.Width + penWidth * (daysCount + 1),                                              
+                    dayOffset + slotsCount * timeSlotControlSize.Height + penWidth * (slotsCount + 1));
+
+                foreach (var pair in timeSlotControls)
+                    SetControlLocation(pair.Key, pair.Value);
+            }
+        }
 
         public Size TimeSlotControlSize
         {
@@ -35,23 +118,35 @@ namespace SchedulerProject.UserInterface
             }
         }
 
-        protected Dictionary<TimeSlot, TimeSlotControl> timeSlotControls = new Dictionary<TimeSlot, TimeSlotControl>();
-
-        public void AddControlToSlot(TimeSlot timeSlot, TimeSlotControl control)
+        public Pen GridPen
         {
-            if (!Controls.Contains(control))
+            get { return gridPen; }
+            set
+            {
+                gridPen = value;
+                CalculateControlParams();
+            }
+        }
+
+        Dictionary<TimeSlot, ControlType> timeSlotControls = new Dictionary<TimeSlot, ControlType>();
+
+        public void AddControlToSlot(ControlType control)
+        {
+            TimeSlot timeSlot = control.CurrentTimeSlot;
+            if (timeSlot.CompareTo(minTimeSlot) >= 0 && 
+                timeSlot.CompareTo(maxTimeSlot) <= 0 &&
+                !Controls.Contains(control))
             {
                 RemoveControlFromSlot(timeSlot);
                 timeSlotControls[timeSlot] = control;
                 Controls.Add(control);
                 SetControlLocation(timeSlot, control);
             }
-            
         }
 
         public void RemoveControlFromSlot(TimeSlot slot)
         {
-            TimeSlotControl control = GetTimeSlotControl(slot);
+            TimeSlotControl<ControlType> control = GetTimeSlotControl(slot);
             if (control != null)
             {
                 Controls.Remove(control);
@@ -59,9 +154,9 @@ namespace SchedulerProject.UserInterface
             }
         }
 
-        public TimeSlotControl GetTimeSlotControl(TimeSlot slot)
+        public ControlType GetTimeSlotControl(TimeSlot slot)
         {
-            TimeSlotControl control;
+            ControlType control;
             if (timeSlotControls.TryGetValue(slot, out control))
             {
                 return control;
@@ -69,11 +164,9 @@ namespace SchedulerProject.UserInterface
             return null;
         }
 
-        void SetControlLocation(TimeSlot timeSlot, TimeSlotControl control)
+        public IEnumerable<ControlType> EnumerateTimeSlotsControls()
         {
-            var x = slotOffset + (timeSlot.Day - 1) * TimeSlotControlSize.Width;
-            var y = dayOffset + (timeSlot.Slot - 1) * TimeSlotControlSize.Height;
-            control.Location = new Point(x, y);
+            return timeSlotControls.Values.AsEnumerable();
         }
 
         protected override void OnFontChanged(EventArgs e)
@@ -82,63 +175,28 @@ namespace SchedulerProject.UserInterface
             base.OnFontChanged(e);
         }
 
-        int slotOffset;
-        int dayOffset;
-        int minTimeSlotControlWidth; 
-        int minTimeSlotControlHeight;
-
-        const int SLOTS_COUNT = 5, DAYS_COUNT = 6;
-
-        protected void CalculateControlParams()
-        {
-            using (Graphics g = CreateGraphics())
-            {
-                SizeF[] slotRectangles = slotNames.Select(s => g.MeasureString(s, Font)).ToArray();
-                SizeF[] dayRectangles = dayNames.Select(s => g.MeasureString(s, Font)).ToArray();
-                slotOffset = (int)slotRectangles.Max(r => r.Width);
-                dayOffset = (int)dayRectangles.Max(r => r.Height);
-                minTimeSlotControlWidth = (int)dayRectangles.Max(r => r.Width) + 4;
-                minTimeSlotControlHeight = (int)slotRectangles.Max(r => r.Height) + 4;
-                timeSlotControlSize = new Size(Math.Max(minTimeSlotControlWidth, timeSlotControlSize.Width),
-                                               Math.Max(minTimeSlotControlHeight, timeSlotControlSize.Height));
-
-                 Size = MaximumSize = new Size(slotOffset + DAYS_COUNT * timeSlotControlSize.Width + 1,
-                                               dayOffset + SLOTS_COUNT * timeSlotControlSize.Height + 1);
-
-                foreach (var pair in timeSlotControls)
-                    SetControlLocation(pair.Key, pair.Value);
-            }
-        }
-
-        //public event EventHandler TimeSlotSizeChanged;
-
-        //public virtual void OnTimeSlotSizeChanged()
-        //{
-        //    if (TimeSlotSizeChanged != null)
-        //        TimeSlotSizeChanged(this, new EventArgs());
-        //}
-
         protected override void OnPaint(PaintEventArgs e)
         {
-            for (var day = 0; day < DAYS_COUNT; day++)
-            {                
-                var x = slotOffset + day * TimeSlotControlSize.Width;
+            var x = slotOffset;
+            e.Graphics.DrawLine(gridPen, x, dayOffset, x, Height);
+            for (var day = 0; day < daysCount; day++)
+            {
                 e.Graphics.DrawString(dayNames[day], Font, new SolidBrush(ForeColor),
                     new RectangleF(x, 0, TimeSlotControlSize.Width, minTimeSlotControlHeight),
                     new StringFormat() { Alignment = StringAlignment.Center });
-                for (var slot = 0; slot < SLOTS_COUNT; slot++)
-                {                    
-                    e.Graphics.DrawRectangle(Pens.Black, new Rectangle(new Point(x, dayOffset + slot * TimeSlotControlSize.Height),
-                                                                       TimeSlotControlSize));                                                         
-                }
+                x += TimeSlotControlSize.Width + penWidth;
+                e.Graphics.DrawLine(gridPen, x, dayOffset, x, Height);
             }
 
-            for (var slot = 0; slot < SLOTS_COUNT; slot++)
+            var y = dayOffset;
+            e.Graphics.DrawLine(gridPen, slotOffset, y, Width, y);
+            for (var slot = 0; slot < slotsCount; slot++)
             {
-                var y = dayOffset + slot * TimeSlotControlSize.Height;
                 e.Graphics.DrawString(slotNames[slot], Font, new SolidBrush(ForeColor),
                     new RectangleF(0, y, minTimeSlotControlWidth, TimeSlotControlSize.Height),
                     new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center });
+                y += TimeSlotControlSize.Height + penWidth;
+                e.Graphics.DrawLine(gridPen, slotOffset, y, Width, y);
             }
 
             base.OnPaint(e);

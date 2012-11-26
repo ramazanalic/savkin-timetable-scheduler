@@ -266,6 +266,8 @@ namespace SchedulerProject.UserInterface
             // 
             colLecturerTimeConstraints.HeaderText = "Ограничения по времени";
             colLecturerTimeConstraints.Name = "colLecturerTimeConstraints";
+            colLecturerTimeConstraints.Text = "Редактировать";
+            colLecturerTimeConstraints.FlatStyle = FlatStyle.Flat;
             // 
             // colRoomNumber
             // 
@@ -296,6 +298,8 @@ namespace SchedulerProject.UserInterface
             // 
             colRoomTimeConstraints.HeaderText = "Ограничения по времени";
             colRoomTimeConstraints.Name = "colRoomTimeConstraints";
+            colRoomTimeConstraints.Text = "Редактировать";
+            colRoomTimeConstraints.FlatStyle = FlatStyle.Flat;
             // 
             // EditDataForm
             // 
@@ -561,6 +565,7 @@ namespace SchedulerProject.UserInterface
                 {colRoomNumber, ColumnConstraintsType.UniqueValuesGroupMember},
                 {colRoomHousing, ColumnConstraintsType.UniqueValuesGroupMember},
                 {colRoomType, ColumnConstraintsType.NotEmpty},
+                {colRoomTimeConstraints, ColumnConstraintsType.NoConstraints}
             };
 
             var fillRoomsRules = new Dictionary<DataGridViewColumn, Func<Room, string>>()
@@ -568,10 +573,7 @@ namespace SchedulerProject.UserInterface
                 {colRoomNumber, r => r.RoomNumber.ToString()},
                 {colRoomHousing, r => r.Housing.ToString()},
                 {colRoomType, r => r.Type.ToString()},
-                //{"colRoomTimeConstraints", (c, r) => 
-                //{
-                //    var x = c as DataGridViewButtonCell;
-                //}}
+                {colRoomTimeConstraints, r => r.TimeConstraints != null ? r.TimeConstraints.ToString() : string.Empty }
             };
 
             var parseRoomsRules = new Dictionary<DataGridViewColumn, Action<string, Room>>()
@@ -579,14 +581,21 @@ namespace SchedulerProject.UserInterface
                 {colRoomNumber, (val, r) => r.RoomNumber = val},
                 {colRoomHousing, (val, r) => r.Housing = int.Parse(val)},
                 {colRoomType, (val, r) => r.Type = ParseHelper.ParseEnum<RoomType>(val)},
-                //{"colRoomTimeConstraints", (c, r) => 
-                //{
-                //    var x = c as DataGridViewButtonCell;
-                //}}
+                {colRoomTimeConstraints, (val, r) => 
+                    r.TimeConstraints = (val == string.Empty) ? null : TimeConstraints.Parse(val)}
             };
 
             gridRooms = new SchedulingPrimitivesGrigView<Room>(
                 tabEditRooms, columnConstraints, fillRoomsRules, parseRoomsRules);
+            gridRooms.CellClick += (s, e) =>
+            {
+                if (e.ColumnIndex == colRoomTimeConstraints.Index && e.RowIndex != -1)
+                {
+                    var cell = gridRooms.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    EditConstraintsButtonClicked(cell as DataGridViewButtonCell);
+                    gridRooms.ProcessNewCellValue(e);
+                }
+            };
             gridRooms.LinkControl(colEventHardAssignedRoom);
         }
 
@@ -594,25 +603,69 @@ namespace SchedulerProject.UserInterface
         {
             var columnConstraints = new Dictionary<DataGridViewColumn, ColumnConstraintsType>()
             {
-                {colLecturerName, ColumnConstraintsType.UniqueValuesGroupMember}//ColumnConstraintsType.UniqueValues}
+                {colLecturerName, ColumnConstraintsType.UniqueValuesGroupMember},//ColumnConstraintsType.UniqueValues}
+                {colLecturerTimeConstraints, ColumnConstraintsType.NoConstraints}
             };
 
             var fillLecturerRules = new Dictionary<DataGridViewColumn, Func<Lecturer, string>>()
             {
-                {colLecturerName, l => l.Name}
-                //{"colLecturerTimeConstraints", l => new ConstraintsButton(l) }
+                {colLecturerName, l => l.Name},
+                {colLecturerTimeConstraints, l => l.TimeConstraints != null ? l.TimeConstraints.ToString() : string.Empty }
             };
 
             var parseLecturerRules = new Dictionary<DataGridViewColumn, Action<string, Lecturer>>()
             {
-                {colLecturerName, (val, l) => l.Name = val}
-                //{"colLecturerTimeConstraints", l => new ConstraintsButton(l) }
+                {colLecturerName, (val, l) => l.Name = val},                
+                {colLecturerTimeConstraints, (val, l) => 
+                    l.TimeConstraints = (val == string.Empty) ? null : TimeConstraints.Parse(val)}
             };
 
             gridLecturers = new SchedulingPrimitivesGrigView<Lecturer>(
                 tabEditLecturers, columnConstraints, fillLecturerRules, parseLecturerRules);
             gridLecturers.LinkControl(colEventLecturer);
             gridLecturers.LinkControl(colSubjectLecturer);
+
+            gridLecturers.CellClick += (s, e) =>
+            {
+                if (e.ColumnIndex == colLecturerTimeConstraints.Index && e.RowIndex != -1)
+                {
+                    var cell = gridLecturers.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    EditConstraintsButtonClicked(cell as DataGridViewButtonCell);
+                    gridLecturers.ProcessNewCellValue(e);
+                }
+            };
+        }
+
+        void EditConstraintsButtonClicked(DataGridViewButtonCell cell)
+        {
+            var editor = new TimeSlotsConstraintsEditControl(new Size(100, 100));
+            if (cell.Value as string != string.Empty)
+            {
+                editor.SelectedConstraints = TimeConstraints.Parse(cell.Value as string);
+            }
+            // TODO: improve selection
+            var form = new Form()
+            {
+                ClientSize = editor.Size,
+                Text = "Редактирование ограничений",
+                Icon = Properties.Resources.AppIcon,
+                FormBorderStyle = FormBorderStyle.Fixed3D,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                KeyPreview = true
+            };
+            form.Controls.Add(editor);
+            form.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Escape)
+                    form.Close();
+            };
+            form.FormClosing += (s, e) =>
+            {
+                var constraints = editor.SelectedConstraints;
+                cell.Value = constraints.IsEmpty ? string.Empty : constraints.ToString();
+            };
+            form.ShowDialog();            
         }
 
         public void SetActiveTab(Tab tab)
