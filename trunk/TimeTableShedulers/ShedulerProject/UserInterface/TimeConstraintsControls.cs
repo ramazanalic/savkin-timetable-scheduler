@@ -11,25 +11,31 @@ using SchedulerProject.Core;
 
 namespace SchedulerProject.UserInterface
 {
-    public class SingleTimeSlotConstraintsController : Control
+    public class SingleTimeSlotConstraintsController : TimeSlotControl<SingleTimeSlotConstraintsController>
     {
-        TimeConstrainsType?[] availableConstraints = new TimeConstrainsType?[]{ null,
-                                                                                TimeConstrainsType.Desirible, 
-                                                                                TimeConstrainsType.Undesirible, 
-                                                                                TimeConstrainsType.Impossible, 
-                                                                                TimeConstrainsType.Necessary};
+        public SingleTimeSlotConstraintsController()
+        {
+            RefreshBackColor();
+        }
+
+        TimeConstraintType?[] availableConstraints = new TimeConstraintType?[]{ null,
+                                                                                TimeConstraintType.Desirible, 
+                                                                                TimeConstraintType.Undesirible, 
+                                                                                TimeConstraintType.Impossible, 
+                                                                                TimeConstraintType.Necessary};
 
         Color[] constrainsColors = new Color[] { Color.White, Color.LightGreen, Color.Orange, Color.Red, Color.DarkBlue };
 
         int currIndex = 0;
 
-        public TimeConstrainsType? SelectedConstraint
+        public TimeConstraintType? SelectedConstraint
         {
             get { return availableConstraints[currIndex]; }
             set
             {
                 currIndex = Array.IndexOf(availableConstraints, value);
                 if (currIndex == -1) currIndex = 0;
+                RefreshBackColor();
             }
         }
 
@@ -44,18 +50,29 @@ namespace SchedulerProject.UserInterface
                 else
                     currIndex--;
             }
-            BackColor = constrainsColors[currIndex];
+            RefreshBackColor();
             base.OnMouseClick(e);
+        }
+
+        void RefreshBackColor()
+        {
+            BackColor = constrainsColors[currIndex];
         }
     }
 
-    public class TimeSlotsConstraintsController : TimeSlotsControl<SingleTimeSlotConstraintsController>
+    public class TimeSlotsConstraintsEditControl : TimeSlotsGrid<SingleTimeSlotConstraintsController>
     {
-        int DAYS_COUNT = 6, SLOTS_COUNT = 5;
-        public TimeSlotsConstraintsController()
+        static int DAYS_COUNT = 6, SLOTS_COUNT = 5;
+        public TimeSlotsConstraintsEditControl(Size slotSize)
+            : base(DAYS_COUNT, SLOTS_COUNT)
         {
+            TimeSlotControlSize = slotSize;
             foreach (var slot in TimeSlot.EnumerateAll(DAYS_COUNT, SLOTS_COUNT))
-                AddControlToSlot(slot, new SingleTimeSlotConstraintsController());
+                AddControlToSlot(new SingleTimeSlotConstraintsController()
+                {
+                    CurrentTimeSlot = slot,
+                    Size = slotSize
+                });
         }
 
         public TimeConstraints SelectedConstraints
@@ -66,22 +83,29 @@ namespace SchedulerProject.UserInterface
 
         TimeConstraints CollectTimeConstaints()
         {
-            return new TimeConstraints();
+            var result = new TimeConstraints();
+            FillConstraintSet(result, TimeConstraintType.Impossible);
+            FillConstraintSet(result, TimeConstraintType.Undesirible);
+            FillConstraintSet(result, TimeConstraintType.Necessary);
+            FillConstraintSet(result, TimeConstraintType.Desirible);
+            return result;
+        }
+
+        void FillConstraintSet(TimeConstraints constraints, TimeConstraintType type)
+        {
+            var slots = from c in EnumerateTimeSlotsControls()
+                        where c.SelectedConstraint == type
+                        select c.CurrentTimeSlot;
+            constraints[type].AddConstraintsRange(slots.ToArray());
         }
 
         void FillTimeConstraints(TimeConstraints constraints)
         {
-            foreach (var pair in timeSlotControls)
-            {
-                RemoveControlFromSlot(pair.Key);
-            }
-
             foreach (var constraintsSet in constraints.EnumerateConstraintsSets())
                 foreach(var timeSlot in constraintsSet)
                 {
                     GetTimeSlotControl(timeSlot).SelectedConstraint = constraintsSet.Type;
                 }
         }
-
     }
 }

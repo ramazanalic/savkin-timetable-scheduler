@@ -298,6 +298,10 @@ namespace SchedulerProject.UserInterface
                 {
                     cell.Value = EditDataForm.UNDEFINED_COMBOBOX_VALUE;
                 }
+                foreach (var cell in row.Cells.OfType<DataGridViewButtonCell>())
+                {
+                    cell.Value = string.Empty;
+                }
                 // add an empty primitive for each new row
                 var elem = new PrimitiveType();
                 associatedPrimitives.Add(row, elem);
@@ -329,6 +333,12 @@ namespace SchedulerProject.UserInterface
 
         protected override void OnCellEndEdit(DataGridViewCellEventArgs e)
         {
+            ProcessNewCellValue(e);
+            base.OnCellEndEdit(e);
+        }
+
+        public void ProcessNewCellValue(DataGridViewCellEventArgs e)
+        {
             var row = Rows[e.RowIndex];
             var cell = row.Cells[e.ColumnIndex];
 
@@ -356,8 +366,6 @@ namespace SchedulerProject.UserInterface
             }
             ValidateWholeData();
             //HighlinghtCell(cell, isValid);
-
-            base.OnCellEndEdit(e);
         }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)

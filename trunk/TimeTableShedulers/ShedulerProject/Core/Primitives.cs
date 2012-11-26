@@ -82,7 +82,7 @@ namespace SchedulerProject.Core
     public class Lecturer : AbstractPrimitive<Lecturer>, ITimeConstrainedPrimitive
     {
         public string Name = string.Empty;
-        public TimeConstraints TimeConstraints { get; private set; }
+        public TimeConstraints TimeConstraints { get; set; }
 
         public override bool IsEmpty
         {
@@ -135,7 +135,7 @@ namespace SchedulerProject.Core
         public int Housing;
         public string RoomNumber = string.Empty;
         public RoomType Type;
-        public TimeConstraints TimeConstraints { get; private set; }
+        public TimeConstraints TimeConstraints { get; set; }
 
         public override bool IsEmpty
         { 

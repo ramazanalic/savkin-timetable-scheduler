@@ -8,9 +8,9 @@ namespace SchedulerProject.Core
     {
         public static IEnumerable<TimeSlot> EnumerateAll(int days, int slots)
         {
-            for (var day = 0; day < days; day++)
+            for (var day = 1; day <= days; day++)
             {
-                for (var slot = 0; slot < slots; slot++)
+                for (var slot = 1; slot <= slots; slot++)
                 {
                     yield return new TimeSlot(day, slot);
                 }
@@ -54,7 +54,7 @@ namespace SchedulerProject.Core
         }
     }
 
-    public enum TimeConstrainsType
+    public enum TimeConstraintType
     {
         Desirible,  //soft constraint
         Undesirible,//soft constraint
@@ -64,12 +64,12 @@ namespace SchedulerProject.Core
 
     public class TimeConstraintsSet : IEnumerable<TimeSlot>
     {
-        public TimeConstraintsSet(TimeConstrainsType type)
+        public TimeConstraintsSet(TimeConstraintType type)
         {
             Type = type;
         }
 
-        public TimeConstrainsType Type { get; set; }
+        public TimeConstraintType Type { get; set; }
 
         List<TimeSlot> constraints = new List<TimeSlot>();
 
@@ -78,15 +78,27 @@ namespace SchedulerProject.Core
             constraints.Add(new TimeSlot(day, slot));
         }
 
-         IEnumerator<TimeSlot> IEnumerable<TimeSlot>.GetEnumerator()
+        public void AddConstraint(TimeSlot slot)
+        {
+            if (!constraints.Contains(slot))
+                constraints.Add(slot);
+        }
+
+        public void AddConstraintsRange(params TimeSlot[] slots)
+        {
+            foreach (var slot in slots)
+                AddConstraint(slot);
+        }
+
+        IEnumerator<TimeSlot> IEnumerable<TimeSlot>.GetEnumerator()
         {
             return constraints.GetEnumerator();
         }
 
-          System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-         {
-             return constraints.GetEnumerator();
-         }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return constraints.GetEnumerator();
+        }
 
         public override string ToString()
         {
@@ -97,13 +109,13 @@ namespace SchedulerProject.Core
         {
             int typeLength = str.IndexOf(' ');
             string dataStr = str.Substring(typeLength).Trim();
-            TimeConstrainsType type = ParseHelper.ParseEnum<TimeConstrainsType>(str.Substring(0, typeLength));
+            TimeConstraintType type = ParseHelper.ParseEnum<TimeConstraintType>(str.Substring(0, typeLength));
             return new TimeConstraintsSet(type)
             {
-                constraints = str.Substring(1, str.Length - 2)
-                                 .Split(',')
-                                 .Select(s => TimeSlot.Parse(s.Trim()))
-                                 .ToList()
+                constraints = dataStr.Substring(1, dataStr.Length - 2)
+                                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(s => TimeSlot.Parse(s.Trim()))
+                                     .ToList()
             };
         }
     }
@@ -117,43 +129,68 @@ namespace SchedulerProject.Core
         //public TimeConstraintsSet ImpossibleTimeSlots { get; private set; }
         //public TimeConstraintsSet NecessaryTimeSlots { get; private set; }
 
-        public TimeConstraintsSet DesiribleTimeSlots = new TimeConstraintsSet(TimeConstrainsType.Desirible);
-        public TimeConstraintsSet UndesiribleTimeSlots = new TimeConstraintsSet(TimeConstrainsType.Undesirible);
-        public TimeConstraintsSet ImpossibleTimeSlots = new TimeConstraintsSet(TimeConstrainsType.Impossible);
-        public TimeConstraintsSet NecessaryTimeSlots = new TimeConstraintsSet(TimeConstrainsType.Necessary);
+        TimeConstraintsSet desiribleTimeSlots = new TimeConstraintsSet(TimeConstraintType.Desirible);
+        TimeConstraintsSet undesiribleTimeSlots = new TimeConstraintsSet(TimeConstraintType.Undesirible);
+        TimeConstraintsSet impossibleTimeSlots = new TimeConstraintsSet(TimeConstraintType.Impossible);
+        TimeConstraintsSet necessaryTimeSlots = new TimeConstraintsSet(TimeConstraintType.Necessary);
 
         public override string ToString()
         {
             return string.Format("[\n{0};\n{1};\n{2};\n{3};\n]", 
-                                 DesiribleTimeSlots, UndesiribleTimeSlots, ImpossibleTimeSlots, NecessaryTimeSlots);
+                                 desiribleTimeSlots, undesiribleTimeSlots, impossibleTimeSlots, necessaryTimeSlots);
+        }
+
+        public bool IsEmpty
+        {
+            get { return EnumerateConstraintsSets().All(s => !s.Any()); }
         }
 
         public static TimeConstraints Parse(string str)
         {
             var tmp = str.Substring(1, str.Length - 2)
-                         .Split(';')
+                         .Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries)                         
                          .Select(s => TimeConstraintsSet.Parse(s.Trim()))
                          .ToArray();
 
             return new TimeConstraints()
             {
-                DesiribleTimeSlots = tmp[0],
-                UndesiribleTimeSlots = tmp[1],
-                ImpossibleTimeSlots = tmp[2],
-                NecessaryTimeSlots = tmp[3]
+                desiribleTimeSlots = tmp[0],
+                undesiribleTimeSlots = tmp[1],
+                impossibleTimeSlots = tmp[2],
+                necessaryTimeSlots = tmp[3]
             };
         }
 
         public IEnumerable<TimeConstraintsSet> EnumerateConstraintsSets()
         {
-            if (DesiribleTimeSlots != null)
-                yield return DesiribleTimeSlots;
-            if (UndesiribleTimeSlots != null)
-                yield return UndesiribleTimeSlots;
-            if (ImpossibleTimeSlots != null)
-                yield return ImpossibleTimeSlots;
-            if (NecessaryTimeSlots != null)
-                yield return NecessaryTimeSlots;
+            if (desiribleTimeSlots != null)
+                yield return desiribleTimeSlots;
+            if (undesiribleTimeSlots != null)
+                yield return undesiribleTimeSlots;
+            if (impossibleTimeSlots != null)
+                yield return impossibleTimeSlots;
+            if (necessaryTimeSlots != null)
+                yield return necessaryTimeSlots;
+        }
+
+        public TimeConstraintsSet this[TimeConstraintType type]
+        {
+            get
+            {
+                switch (type)
+                {
+                    case TimeConstraintType.Desirible:
+                        return desiribleTimeSlots;
+                    case TimeConstraintType.Impossible:
+                        return impossibleTimeSlots;
+                    case TimeConstraintType.Necessary:
+                        return necessaryTimeSlots;
+                    case TimeConstraintType.Undesirible:
+                        return undesiribleTimeSlots;
+                    default:
+                        return null;
+                }
+            }
         }
     }
 }

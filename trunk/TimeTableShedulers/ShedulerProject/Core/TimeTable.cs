@@ -65,7 +65,8 @@ namespace SchedulerProject.Core
                                  Id = int.Parse(e.Attribute("id").Value) - 1,//check room id needs t obe specified in the input file
                                  Type = ParseHelper.ParseEnum<RoomType>(e.Attribute("type").Value),
                                  Housing = int.Parse(e.Attribute("house_n").Value),
-                                 RoomNumber = e.Attribute("class_n").Value
+                                 RoomNumber = e.Attribute("class_n").Value,
+                                 TimeConstraints = GetTimeConstrains(e)
                              }
                              orderby room.Id
                              select room;
@@ -74,7 +75,8 @@ namespace SchedulerProject.Core
                                  select new Lecturer()
                                  {
                                      Id = int.Parse(e.Attribute("id").Value),
-                                     Name = e.Attribute("name").Value
+                                     Name = e.Attribute("name").Value,
+                                     TimeConstraints = GetTimeConstrains(e)
                                  };
 
             var groupsQuery = from courseElement in mainNode.Element("Groups").Elements()
@@ -140,6 +142,7 @@ namespace SchedulerProject.Core
                                                  new XAttribute("id", r.Id),
                                                  new XAttribute("house_n", r.Housing),
                                                  new XAttribute("class_n", r.RoomNumber),
+                                                 GetTimeConstrainsAttribute(r.TimeConstraints),
                                                  new XAttribute("type", r.Type))),
                 new XElement("Groups", from g in Groups 
                                        group g by g.Course into c 
@@ -153,7 +156,8 @@ namespace SchedulerProject.Core
                              from l in Lecturers 
                              select new XElement("Lecturer",
                                                  new XAttribute("id", l.Id),
-                                                 new XAttribute("name", l.Name))),
+                                                 new XAttribute("name", l.Name),
+                                                 GetTimeConstrainsAttribute(l.TimeConstraints))),
                 new XElement("Subjects", 
                              from s in Subjects 
                              select new XElement("Subject",
@@ -166,7 +170,7 @@ namespace SchedulerProject.Core
                                                                      new XAttribute("id", e.Id),
                                                                      new XAttribute("type", e.RoomType), 
                                                                      new XAttribute("groups", Event.GroupsToString(e.Groups)),
-                                                                     new XAttribute("hard_assigned_room", e.HardAssignedRoom),
+                                                                     GetHardAssignedRoomAttribute(e.HardAssignedRoom),
                                                                      new XAttribute("lecturer_id", e.LecturerId)))));
             root.Save(filename);
         }
@@ -195,7 +199,7 @@ namespace SchedulerProject.Core
                         }
         }
 
-        public static int GetHardAssignedRoom(XElement element)
+        static int GetHardAssignedRoom(XElement element)
         {
             int res;
             var attr = element.Attribute("hard_assigned_room");
@@ -204,13 +208,40 @@ namespace SchedulerProject.Core
             return -1;
         }
 
-        private static int? GetLecturerId(XElement element)
+        static XAttribute GetHardAssignedRoomAttribute(int hardAssignedRoom)
+        {
+            return hardAssignedRoom == -1 ? null : new XAttribute("hard_assigned_room", hardAssignedRoom);
+        }
+
+        static int? GetLecturerId(XElement element)
         {
             int res;
             var attr = element.Attribute("lecturer_id");
             if (attr != null && int.TryParse(attr.Value, out res))
                 return res;
             return null;
+        }
+
+        static XAttribute GetTimeConstrainsAttribute(TimeConstraints constraints)
+        {
+            return constraints == null ? null : new XAttribute("time_constraints", constraints);
+        }
+
+        static TimeConstraints GetTimeConstrains(XElement element)
+        {
+            var attr = element.Attribute("time_constraints");
+            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
+            {
+                try
+                {
+                    return TimeConstraints.Parse(attr.Value);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            return null;            
         }
     }
 }
