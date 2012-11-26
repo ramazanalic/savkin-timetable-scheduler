@@ -4,14 +4,26 @@ using System.Collections.Generic;
 
 namespace SchedulerProject.Core
 {
-    public class TimeSlot : IComparable<TimeSlot>
+    public class TimeSlot : IComparable<TimeSlot>, IEquatable<TimeSlot>
     {
+        public static IEnumerable<TimeSlot> EnumerateAll(int days, int slots)
+        {
+            for (var day = 0; day < days; day++)
+            {
+                for (var slot = 0; slot < slots; slot++)
+                {
+                    yield return new TimeSlot(day, slot);
+                }
+            }
+        }
+
         public TimeSlot(int day, int slot)
         {
             Day = day;
             Slot = slot;
         }
 
+        // 1..
         public int Day, Slot;
 
         public override string ToString()
@@ -28,7 +40,17 @@ namespace SchedulerProject.Core
         public int CompareTo(TimeSlot other)
         {
             int d = Day.CompareTo(other.Day);
-            return d == 0 ? Slot.CompareTo(other.Day) : d;
+            return d == 0 ? Slot.CompareTo(other.Slot) : d;
+        }
+
+        public override int GetHashCode()
+        {
+            return Day * 100 + Slot;
+        }
+
+        public bool Equals(TimeSlot other)
+        {
+            return CompareTo(other) == 0;
         }
     }
 
@@ -40,7 +62,7 @@ namespace SchedulerProject.Core
         Impossible, //hard constraint
     }
 
-    public class TimeConstraintsSet
+    public class TimeConstraintsSet : IEnumerable<TimeSlot>
     {
         public TimeConstraintsSet(TimeConstrainsType type)
         {
@@ -56,10 +78,15 @@ namespace SchedulerProject.Core
             constraints.Add(new TimeSlot(day, slot));
         }
 
-        public IEnumerable<TimeSlot> Constraints
+         IEnumerator<TimeSlot> IEnumerable<TimeSlot>.GetEnumerator()
         {
-            get { return constraints; }
+            return constraints.GetEnumerator();
         }
+
+          System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+         {
+             return constraints.GetEnumerator();
+         }
 
         public override string ToString()
         {
@@ -115,6 +142,18 @@ namespace SchedulerProject.Core
                 ImpossibleTimeSlots = tmp[2],
                 NecessaryTimeSlots = tmp[3]
             };
+        }
+
+        public IEnumerable<TimeConstraintsSet> EnumerateConstraintsSets()
+        {
+            if (DesiribleTimeSlots != null)
+                yield return DesiribleTimeSlots;
+            if (UndesiribleTimeSlots != null)
+                yield return UndesiribleTimeSlots;
+            if (ImpossibleTimeSlots != null)
+                yield return ImpossibleTimeSlots;
+            if (NecessaryTimeSlots != null)
+                yield return NecessaryTimeSlots;
         }
     }
 }
