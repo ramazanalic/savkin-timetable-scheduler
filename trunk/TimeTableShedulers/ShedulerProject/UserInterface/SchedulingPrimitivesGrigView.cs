@@ -197,11 +197,17 @@ namespace SchedulerProject.UserInterface
                 {
                     RefreshLinkedComboboxData(cbx);
                 }
+                if (OnLinkedObjectsDataRefresh != null)
+                    OnLinkedObjectsDataRefresh(Items);
                 ClearChangesCollections();
                 return true;
             }
             else return false;
         }
+
+        public delegate void RefreshDataHandler(IEnumerable<PrimitiveType> items);
+
+        public event RefreshDataHandler OnLinkedObjectsDataRefresh;
 
         private void ClearChangesCollections()
         {
