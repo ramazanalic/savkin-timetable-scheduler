@@ -132,14 +132,14 @@ namespace SchedulerProject.Core
 
     public class Room : AbstractPrimitive<Room>, ITimeConstrainedPrimitive
     {
-        public int Housing;
+        public string Housing = string.Empty;
         public string RoomNumber = string.Empty;
         public RoomType Type;
         public TimeConstraints TimeConstraints { get; set; }
 
         public override bool IsEmpty
-        { 
-            get { return base.IsEmpty || string.IsNullOrWhiteSpace(RoomNumber) || Housing <= 0; } 
+        {
+            get { return base.IsEmpty || string.IsNullOrWhiteSpace(RoomNumber) || string.IsNullOrWhiteSpace(Housing); } 
         }
 
         public override void CopyTo(Room destination)

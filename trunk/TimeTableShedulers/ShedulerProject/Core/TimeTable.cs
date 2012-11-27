@@ -64,7 +64,7 @@ namespace SchedulerProject.Core
                              {
                                  Id = int.Parse(e.Attribute("id").Value) - 1,//check room id needs t obe specified in the input file
                                  Type = ParseHelper.ParseEnum<RoomType>(e.Attribute("type").Value),
-                                 Housing = int.Parse(e.Attribute("house_n").Value),
+                                 Housing = e.Attribute("house_n").Value,
                                  RoomNumber = e.Attribute("class_n").Value,
                                  TimeConstraints = GetTimeConstrains(e)
                              }

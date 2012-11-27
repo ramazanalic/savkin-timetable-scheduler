@@ -590,7 +590,7 @@ namespace SchedulerProject.UserInterface
             var parseRoomsRules = new Dictionary<DataGridViewColumn, Action<string, Room>>()
             {
                 {colRoomNumber, (val, r) => r.RoomNumber = val},
-                {colRoomHousing, (val, r) => r.Housing = int.Parse(val)},
+                {colRoomHousing, (val, r) => r.Housing = val},
                 {colRoomType, (val, r) => r.Type = ParseHelper.ParseEnum<RoomType>(val)},
                 {colRoomTimeConstraints, (val, r) => 
                     r.TimeConstraints = (val == string.Empty) ? null : TimeConstraints.Parse(val)}
