@@ -44,9 +44,9 @@
             this.miEditData = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditGroups = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditSubjects = new System.Windows.Forms.ToolStripMenuItem();
+            this.miEditLecturers = new System.Windows.Forms.ToolStripMenuItem();
             this.miEditRooms = new System.Windows.Forms.ToolStripMenuItem();
             this.miEventsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.miEditLecturers = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.miEditTimeTable = new System.Windows.Forms.ToolStripMenuItem();
             this.miOptions = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,7 +58,7 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.miAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
-            this.createdTimeTablesList = new System.Windows.Forms.ListView();
+            this.timeTablesList = new System.Windows.Forms.ListView();
             this.createdTimeTablesHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.timeTableDetails = new System.Windows.Forms.TabControl();
             this.tabByGroups = new System.Windows.Forms.TabPage();
@@ -131,6 +131,7 @@
             | System.Windows.Forms.Keys.O)));
             this.miOpenTimeTable.Size = new System.Drawing.Size(272, 22);
             this.miOpenTimeTable.Text = "Открыть расписание";
+            this.miOpenTimeTable.Click += new System.EventHandler(this.miOpenTimeTable_Click);
             // 
             // miSaveTimeTable
             // 
@@ -139,6 +140,7 @@
             | System.Windows.Forms.Keys.S)));
             this.miSaveTimeTable.Size = new System.Drawing.Size(272, 22);
             this.miSaveTimeTable.Text = "Сохранить расписание";
+            this.miSaveTimeTable.Click += new System.EventHandler(this.miSaveTimeTable_Click);
             // 
             // toolStripSeparator4
             // 
@@ -210,6 +212,14 @@
             this.miEditSubjects.Text = "Предметы";
             this.miEditSubjects.Click += new System.EventHandler(this.miEditSubjects_Click);
             // 
+            // miEditLecturers
+            // 
+            this.miEditLecturers.Name = "miEditLecturers";
+            this.miEditLecturers.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.L)));
+            this.miEditLecturers.Size = new System.Drawing.Size(195, 22);
+            this.miEditLecturers.Text = "Преподаватели";
+            this.miEditLecturers.Click += new System.EventHandler(this.miEditLecturers_Click);
+            // 
             // miEditRooms
             // 
             this.miEditRooms.Name = "miEditRooms";
@@ -225,14 +235,6 @@
             this.miEventsToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
             this.miEventsToolStripMenuItem.Text = "Занятия";
             this.miEventsToolStripMenuItem.Click += new System.EventHandler(this.miEventsToolStripMenuItem_Click);
-            // 
-            // miEditLecturers
-            // 
-            this.miEditLecturers.Name = "miEditLecturers";
-            this.miEditLecturers.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.L)));
-            this.miEditLecturers.Size = new System.Drawing.Size(195, 22);
-            this.miEditLecturers.Text = "Преподаватели";
-            this.miEditLecturers.Click += new System.EventHandler(this.miEditLecturers_Click);
             // 
             // toolStripSeparator1
             // 
@@ -312,7 +314,7 @@
             // 
             // splitContainer.Panel1
             // 
-            this.splitContainer.Panel1.Controls.Add(this.createdTimeTablesList);
+            this.splitContainer.Panel1.Controls.Add(this.timeTablesList);
             // 
             // splitContainer.Panel2
             // 
@@ -323,17 +325,17 @@
             // 
             // createdTimeTablesList
             // 
-            this.createdTimeTablesList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.timeTablesList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.createdTimeTablesHeader});
-            this.createdTimeTablesList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.createdTimeTablesList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.createdTimeTablesList.LabelEdit = true;
-            this.createdTimeTablesList.Location = new System.Drawing.Point(0, 0);
-            this.createdTimeTablesList.Name = "createdTimeTablesList";
-            this.createdTimeTablesList.Size = new System.Drawing.Size(155, 414);
-            this.createdTimeTablesList.TabIndex = 0;
-            this.createdTimeTablesList.UseCompatibleStateImageBehavior = false;
-            this.createdTimeTablesList.View = System.Windows.Forms.View.Details;
+            this.timeTablesList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.timeTablesList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.timeTablesList.LabelEdit = true;
+            this.timeTablesList.Location = new System.Drawing.Point(0, 0);
+            this.timeTablesList.Name = "createdTimeTablesList";
+            this.timeTablesList.Size = new System.Drawing.Size(155, 414);
+            this.timeTablesList.TabIndex = 0;
+            this.timeTablesList.UseCompatibleStateImageBehavior = false;
+            this.timeTablesList.View = System.Windows.Forms.View.Details;
             // 
             // createdTimeTablesHeader
             // 
@@ -382,14 +384,6 @@
             this.tabByRooms.Text = "По аудиториям";
             this.tabByRooms.UseVisualStyleBackColor = true;
             // 
-            // openDataFileDialog
-            // 
-            this.openDataFileDialog.Filter = "XML-файлы данных расписания|*.xml";
-            // 
-            // saveDataFileDialog
-            // 
-            this.saveDataFileDialog.Filter = "XML-файлы данных расписания|*.xml";
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -417,7 +411,7 @@
 
         private System.Windows.Forms.MenuStrip menuStrip;
         private System.Windows.Forms.SplitContainer splitContainer;
-        private System.Windows.Forms.ListView createdTimeTablesList;
+        private System.Windows.Forms.ListView timeTablesList;
         private System.Windows.Forms.ColumnHeader createdTimeTablesHeader;
         private System.Windows.Forms.TabControl timeTableDetails;
         private System.Windows.Forms.TabPage tabByGroups;

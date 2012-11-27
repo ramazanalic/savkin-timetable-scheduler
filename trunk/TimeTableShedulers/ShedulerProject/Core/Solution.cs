@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace SchedulerProject.Core
-{
-    struct EventAssignment
+{   
+    struct InternalEventAssignment
     {
         public int TimeSlotId;
         public int RoomId;
@@ -13,7 +13,7 @@ namespace SchedulerProject.Core
 
     class Solution : IComparable<Solution>
     {
-        public EventAssignment[] result; // vector of (timeslot, room) assigned for each event (index is an event number)
+        public InternalEventAssignment[] result; // vector of (timeslot, room) assigned for each event (index is an event number)
         public Dictionary<int, List<int>> timeslot_events = new Dictionary<int, List<int>>(); // for each timeslot a vector of events taking place in it
         public TimeTable data; // a pointer to the problem data
         public Random rg = new Random();
@@ -53,7 +53,7 @@ namespace SchedulerProject.Core
         {
             data = problemData;
             rg = new Random();
-            result = new EventAssignment[data.Events.Length];
+            result = new InternalEventAssignment[data.Events.Length];
             for (int t = 0; t < data.TotalTimeSlots; t++)
                 timeslot_events.Add(t, new List<int>());
             for (int i = 0; i < result.Length; i++)

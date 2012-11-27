@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Ant.cs" />
+    <Compile Include="Core\Circullum.cs" />
     <Compile Include="Core\MMASData.cs" />
     <Compile Include="Core\Sheduler.cs" />
     <Compile Include="Core\Solution.cs" />

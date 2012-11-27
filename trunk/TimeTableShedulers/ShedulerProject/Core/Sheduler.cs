@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SchedulerProject.Core
 {
-    class Scheduler
+    static class Scheduler
     {
         const int ANTS_NUMBER = 5;
         const int DEFAULT_MAX_STEPS = 100;
@@ -13,9 +13,10 @@ namespace SchedulerProject.Core
         const double EVAPORATION = 0.1;
         const double MIN_PHERAMONE = 0.3;
 
-        static public EventAssignment[] Shedule(TimeTable inputTimeTable)
+        static public Circullum Shedule(TimeTable inputTimeTable)
         {
             TimeTable timeTable = inputTimeTable;
+            timeTable.PrepareHelpers();
             MMASData mmasData = new MMASData(timeTable, EVAPORATION, MIN_PHERAMONE);
             
             Solution bestSoFarSolution = new Solution(inputTimeTable);
@@ -67,7 +68,22 @@ namespace SchedulerProject.Core
             bestSoFarSolution.computeHcv();
             Console.WriteLine("----------------------");
             Console.WriteLine("HCV: " + bestSoFarSolution.hcv);
-            return bestSoFarSolution.result;
+            return MakeCircullum(timeTable, bestSoFarSolution.result);
+        }
+
+        public static Circullum MakeCircullum(TimeTable timeTable, InternalEventAssignment[] assignments)
+        {
+            var result = new Circullum(timeTable);
+            for (int i = 0; i < assignments.Length; i++)
+            {
+                Event ev = timeTable.Events.FirstOrDefault(e => e.Id == timeTable.Events[i].Id);
+                Room room = timeTable.Rooms.FirstOrDefault(r => r.Id == assignments[i].RoomId);
+                TimeSlot slot = TimeSlot.FromId(assignments[i].TimeSlotId,
+                                                timeTable.Days, timeTable.SlotsPerDay);
+                result.AddAssignment(ev, room, slot);
+            }
+
+            return result;
         }
     }
 }
