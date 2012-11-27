@@ -44,7 +44,7 @@ namespace SchedulerProject.UserInterface
        DataGridViewComboBoxColumn colEventLecturer = new DataGridViewComboBoxColumn();
        DataGridViewComboBoxColumn colEventType = new DataGridViewComboBoxColumn();
        DataGridViewComboBoxColumn colEventHardAssignedRoom = new DataGridViewComboBoxColumn();
-       DataGridViewTextBoxColumn colEventGroups = new DataGridViewTextBoxColumn();
+       DataGridViewButtonColumn colEventGroups = new DataGridViewButtonColumn();
        DataGridViewTextBoxColumn colLecturerName = new DataGridViewTextBoxColumn();
        DataGridViewButtonColumn colLecturerTimeConstraints = new DataGridViewButtonColumn();
        DataGridViewTextBoxColumn colRoomNumber = new DataGridViewTextBoxColumn();
@@ -233,6 +233,8 @@ namespace SchedulerProject.UserInterface
             // 
             colEventGroups.HeaderText = "Группы";
             colEventGroups.Name = "colEventGroups";
+            colEventGroups.Text = "Редактировать";
+            colEventGroups.FlatStyle = FlatStyle.Flat;
             //
             // colEventHardAssignedRoom
             //
@@ -412,8 +414,8 @@ namespace SchedulerProject.UserInterface
 
             gridGroups = new SchedulingPrimitivesGrigView<Group>(
                 tabEditGroups, columnConstraints, fillGroupsRules, parseGroupsRules);
-            
-            //gridGroups.LinkControl(); link to the groups select form
+
+            gridGroups.OnLinkedObjectsDataRefresh += items => groupsControl.AvailableGroups = items;
         }
 
         void InitEventsGrid()
@@ -509,6 +511,15 @@ namespace SchedulerProject.UserInterface
                         gridEvents.SetCellValue(row.Cells[colEventSubject.Name],
                                                 cbxSubjectFilter.SelectedItem.ToString());
                     }
+                }
+            };
+            gridEvents.CellClick += (s, e) =>
+            {
+                if (e.ColumnIndex == colEventGroups.Index && e.RowIndex != -1)
+                {
+                    var cell = gridEvents.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    EditGroupsButtonClicked(cell as DataGridViewButtonCell);
+                    gridEvents.ProcessNewCellValue(e);
                 }
             };
         }
@@ -636,25 +647,21 @@ namespace SchedulerProject.UserInterface
             };
         }
 
-        void EditConstraintsButtonClicked(DataGridViewButtonCell cell)
+
+        Form MakePopupForm<ContentType>(DataGridViewCell cell, string text, ContentType content, Func<ContentType, string> contentValueSelector)
+            where ContentType : Control
         {
-            var editor = new TimeSlotsConstraintsEditControl(new Size(100, 100));
-            if (cell.Value as string != string.Empty)
-            {
-                editor.SelectedConstraints = TimeConstraints.Parse(cell.Value as string);
-            }
-            // TODO: improve selection
             var form = new Form()
             {
-                ClientSize = editor.Size,
-                Text = "Редактирование ограничений",
+                ClientSize = content.Size,
+                Text = text,
                 Icon = Properties.Resources.AppIcon,
-                FormBorderStyle = FormBorderStyle.Fixed3D,
+                FormBorderStyle = FormBorderStyle.FixedToolWindow,
                 MaximizeBox = false,
                 MinimizeBox = false,
                 KeyPreview = true
             };
-            form.Controls.Add(editor);
+            form.Controls.Add(content);
             form.KeyDown += (s, e) =>
             {
                 if (e.KeyCode == Keys.Escape)
@@ -662,9 +669,40 @@ namespace SchedulerProject.UserInterface
             };
             form.FormClosing += (s, e) =>
             {
-                var constraints = editor.SelectedConstraints;
-                cell.Value = constraints.IsEmpty ? string.Empty : constraints.ToString();
+                cell.Value = contentValueSelector(content);
             };
+            return form;
+        }
+
+        SelectGroupsControl groupsControl = new SelectGroupsControl();
+
+        void EditGroupsButtonClicked(DataGridViewButtonCell cell)
+        {
+            if (cell.Value as string != string.Empty)
+            {
+                var groupNames = (cell.Value as string).Split(',').Select(s => s.Trim());
+                groupsControl.SelectedGroups = groupsControl.AvailableGroups.Where(gr => groupNames.Contains(gr.Name));
+            }
+            var form = MakePopupForm(cell, "Выбор групп", groupsControl, cont =>
+            {
+                return string.Join(",", cont.SelectedGroups);
+            });
+            form.ShowDialog(); 
+        }
+
+        void EditConstraintsButtonClicked(DataGridViewButtonCell cell)
+        {
+            var editor = new TimeSlotsConstraintsEditControl(new Size(100, 100));
+            if (cell.Value as string != string.Empty)
+            {
+                editor.SelectedConstraints = TimeConstraints.Parse(cell.Value as string);
+            }
+            var form = MakePopupForm(cell, "Редактирование ограничений", editor, cont =>
+            {
+                var constraints = cont.SelectedConstraints;
+                return constraints.IsEmpty ? string.Empty : constraints.ToString();
+            });
+            // TODO: improve selection
             form.ShowDialog();            
         }
 
