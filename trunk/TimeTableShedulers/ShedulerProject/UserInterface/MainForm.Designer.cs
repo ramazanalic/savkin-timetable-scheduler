@@ -62,8 +62,11 @@
             this.createdTimeTablesHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.timeTableDetails = new System.Windows.Forms.TabControl();
             this.tabByGroups = new System.Windows.Forms.TabPage();
+            this.lblGroups = new System.Windows.Forms.Label();
+            this.cbxGroups = new System.Windows.Forms.ComboBox();
             this.tabByLecturers = new System.Windows.Forms.TabPage();
-            this.tabByRooms = new System.Windows.Forms.TabPage();
+            this.lblLecturer = new System.Windows.Forms.Label();
+            this.cbxLecturers = new System.Windows.Forms.ComboBox();
             this.openDataFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveDataFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.menuStrip.SuspendLayout();
@@ -72,6 +75,8 @@
             this.splitContainer.Panel2.SuspendLayout();
             this.splitContainer.SuspendLayout();
             this.timeTableDetails.SuspendLayout();
+            this.tabByGroups.SuspendLayout();
+            this.tabByLecturers.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip
@@ -323,7 +328,7 @@
             this.splitContainer.SplitterDistance = 155;
             this.splitContainer.TabIndex = 1;
             // 
-            // createdTimeTablesList
+            // timeTablesList
             // 
             this.timeTablesList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.createdTimeTablesHeader});
@@ -331,11 +336,15 @@
             this.timeTablesList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.timeTablesList.LabelEdit = true;
             this.timeTablesList.Location = new System.Drawing.Point(0, 0);
-            this.timeTablesList.Name = "createdTimeTablesList";
+            this.timeTablesList.MultiSelect = false;
+            this.timeTablesList.Name = "timeTablesList";
             this.timeTablesList.Size = new System.Drawing.Size(155, 414);
             this.timeTablesList.TabIndex = 0;
             this.timeTablesList.UseCompatibleStateImageBehavior = false;
             this.timeTablesList.View = System.Windows.Forms.View.Details;
+            this.timeTablesList.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.timeTablesList_AfterLabelEdit);
+            this.timeTablesList.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.timeTablesList_ItemSelectionChanged);
+            this.timeTablesList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.timeTablesList_KeyDown);
             // 
             // createdTimeTablesHeader
             // 
@@ -346,7 +355,6 @@
             // 
             this.timeTableDetails.Controls.Add(this.tabByGroups);
             this.timeTableDetails.Controls.Add(this.tabByLecturers);
-            this.timeTableDetails.Controls.Add(this.tabByRooms);
             this.timeTableDetails.Dock = System.Windows.Forms.DockStyle.Fill;
             this.timeTableDetails.Location = new System.Drawing.Point(0, 0);
             this.timeTableDetails.Name = "timeTableDetails";
@@ -356,6 +364,9 @@
             // 
             // tabByGroups
             // 
+            this.tabByGroups.AutoScroll = true;
+            this.tabByGroups.Controls.Add(this.lblGroups);
+            this.tabByGroups.Controls.Add(this.cbxGroups);
             this.tabByGroups.Location = new System.Drawing.Point(4, 22);
             this.tabByGroups.Name = "tabByGroups";
             this.tabByGroups.Padding = new System.Windows.Forms.Padding(3);
@@ -364,8 +375,29 @@
             this.tabByGroups.Text = "По группам";
             this.tabByGroups.UseVisualStyleBackColor = true;
             // 
+            // lblGroups
+            // 
+            this.lblGroups.AutoSize = true;
+            this.lblGroups.Location = new System.Drawing.Point(6, 9);
+            this.lblGroups.Name = "lblGroups";
+            this.lblGroups.Size = new System.Drawing.Size(45, 13);
+            this.lblGroups.TabIndex = 1;
+            this.lblGroups.Text = "Группа:";
+            // 
+            // cbxGroups
+            // 
+            this.cbxGroups.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxGroups.FormattingEnabled = true;
+            this.cbxGroups.Location = new System.Drawing.Point(57, 6);
+            this.cbxGroups.Name = "cbxGroups";
+            this.cbxGroups.Size = new System.Drawing.Size(121, 21);
+            this.cbxGroups.TabIndex = 0;
+            // 
             // tabByLecturers
             // 
+            this.tabByLecturers.AutoScroll = true;
+            this.tabByLecturers.Controls.Add(this.lblLecturer);
+            this.tabByLecturers.Controls.Add(this.cbxLecturers);
             this.tabByLecturers.Location = new System.Drawing.Point(4, 22);
             this.tabByLecturers.Name = "tabByLecturers";
             this.tabByLecturers.Padding = new System.Windows.Forms.Padding(3);
@@ -374,15 +406,23 @@
             this.tabByLecturers.Text = "По преподавателям";
             this.tabByLecturers.UseVisualStyleBackColor = true;
             // 
-            // tabByRooms
+            // lblLecturer
             // 
-            this.tabByRooms.Location = new System.Drawing.Point(4, 22);
-            this.tabByRooms.Name = "tabByRooms";
-            this.tabByRooms.Padding = new System.Windows.Forms.Padding(3);
-            this.tabByRooms.Size = new System.Drawing.Size(304, 388);
-            this.tabByRooms.TabIndex = 2;
-            this.tabByRooms.Text = "По аудиториям";
-            this.tabByRooms.UseVisualStyleBackColor = true;
+            this.lblLecturer.AutoSize = true;
+            this.lblLecturer.Location = new System.Drawing.Point(6, 9);
+            this.lblLecturer.Name = "lblLecturer";
+            this.lblLecturer.Size = new System.Drawing.Size(89, 13);
+            this.lblLecturer.TabIndex = 3;
+            this.lblLecturer.Text = "Преподаватель:";
+            // 
+            // cbxLecturers
+            // 
+            this.cbxLecturers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxLecturers.FormattingEnabled = true;
+            this.cbxLecturers.Location = new System.Drawing.Point(101, 6);
+            this.cbxLecturers.Name = "cbxLecturers";
+            this.cbxLecturers.Size = new System.Drawing.Size(121, 21);
+            this.cbxLecturers.TabIndex = 2;
             // 
             // MainForm
             // 
@@ -402,6 +442,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
             this.splitContainer.ResumeLayout(false);
             this.timeTableDetails.ResumeLayout(false);
+            this.tabByGroups.ResumeLayout(false);
+            this.tabByGroups.PerformLayout();
+            this.tabByLecturers.ResumeLayout(false);
+            this.tabByLecturers.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -416,7 +460,6 @@
         private System.Windows.Forms.TabControl timeTableDetails;
         private System.Windows.Forms.TabPage tabByGroups;
         private System.Windows.Forms.TabPage tabByLecturers;
-        private System.Windows.Forms.TabPage tabByRooms;
         private System.Windows.Forms.ToolStripMenuItem miFile;
         private System.Windows.Forms.ToolStripMenuItem miLoadData;
         private System.Windows.Forms.ToolStripMenuItem miSaveData;
@@ -447,6 +490,9 @@
         private System.Windows.Forms.OpenFileDialog openDataFileDialog;
         private System.Windows.Forms.SaveFileDialog saveDataFileDialog;
         private System.Windows.Forms.ToolStripMenuItem miEventsToolStripMenuItem;
-
+        private System.Windows.Forms.Label lblGroups;
+        private System.Windows.Forms.ComboBox cbxGroups;
+        private System.Windows.Forms.Label lblLecturer;
+        private System.Windows.Forms.ComboBox cbxLecturers;
     }
 }

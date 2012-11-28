@@ -13,33 +13,105 @@ namespace SchedulerProject.UserInterface
 {
     public partial class MainForm : Form
     {
-        TimeTable _currentData = TimeTable.MakeEmpty();
+        TimeTableData _openedData;
+
         EditDataForm _editDataForm;
 
         string _openedFile;
         string _openedFileName;
         string _openedFileDirectory;
         private bool _dataChanged;
-        Circullum _selectedCircullum;
+        TimeTable _selectedTimeTable;
 
-        Circullum SelectedCircullum
-        { 
-            get { return _selectedCircullum; }            
-            set
+        TimeTableView byGroupsTimeTableView, byLecturersTimeTableView;
+
+        public MainForm()
+        {
+            InitializeComponent();
+
+            byGroupsTimeTableView = MakeTimeTableView();
+            byLecturersTimeTableView = MakeTimeTableView();
+
+            tabByGroups.Controls.Add(byGroupsTimeTableView);
+            tabByLecturers.Controls.Add(byLecturersTimeTableView);
+
+            OpenedData = TimeTableData.MakeEmpty();
+
+            OpenedFile = "Untitled.xml";
+            SelectedTimeTable = null;
+        }
+
+        TimeTableView MakeTimeTableView()
+        {
+            return new TimeTableView(new Size(120, 120)) { Location = new Point(6, 28) };
+        }
+
+        void ValidateTimeTablesList()
+        {
+            foreach (ListViewItem item in
+                timeTablesList.Items.OfType<ListViewItem>()
+                                    .Where(i => (i.Tag as TimeTable).Data.Id != OpenedData.Id))
             {
-                _selectedCircullum = value;
-                OnSelectedCircullumChanged(value);
+                // TODO: disable selection of item or move item no special group or do something else
+                item.Remove();
             }
         }
 
-        void OnSelectedCircullumChanged(Circullum selectedCircullum)
+        TimeTableData OpenedData
         {
-            var empty = selectedCircullum == null;
-            //tabByLecturers.Enabled = tabByGroups.Enabled = tabByGroups.Enabled =
-                                     timeTableDetails.Enabled = miSaveTimeTable.Enabled = !empty;
-            if (!empty)
+            get { return _openedData; }
+            set
             {
+                _openedData = value;
+                PopulateListBoxes();
+                ValidateTimeTablesList();
             }
+        }
+
+        void PopulateListBoxes()
+        {
+            cbxGroups.Items.Clear();
+            cbxGroups.Items.AddRange(OpenedData.Groups.OrderBy(g => g.Name).ToArray());
+            cbxGroups.SelectedIndexChanged += (s, e) =>
+            {
+                var selectedGroup = cbxGroups.SelectedItem as Group;
+                if (selectedGroup != null)
+                {
+                    byGroupsTimeTableView.EventsFilter = ev => ev.Groups.Contains(selectedGroup.Id);
+                }
+            };
+            if (cbxGroups.Items.Count > 0)
+                cbxGroups.SelectedIndex = 0;
+
+            cbxLecturers.Items.Clear();
+            cbxLecturers.Items.AddRange(OpenedData.Lecturers.OrderBy(l => l.Name).ToArray());
+            cbxLecturers.SelectedIndexChanged += (s, e) =>
+            {
+                var selectedLecturer = cbxLecturers.SelectedItem as Lecturer;
+                if (selectedLecturer != null)
+                {
+                    byLecturersTimeTableView.EventsFilter = ev => ev.LecturerId == selectedLecturer.Id;
+                }
+            };
+            if (cbxLecturers.Items.Count > 0)
+                cbxLecturers.SelectedIndex = 0;
+        }
+
+        TimeTable SelectedTimeTable
+        { 
+            get { return _selectedTimeTable; }            
+            set
+            {
+                _selectedTimeTable = value;
+                OnSelectedTimeTableChanged(value);
+            }
+        }
+
+        void OnSelectedTimeTableChanged(TimeTable selectedTimeTable)
+        {
+            var empty = selectedTimeTable == null;
+            tabByLecturers.Enabled = tabByGroups.Enabled = miSaveTimeTable.Enabled = !empty;
+            byGroupsTimeTableView.TimeTable = byLecturersTimeTableView.TimeTable = selectedTimeTable;
         }
 
         private string OpenedFile
@@ -68,15 +140,6 @@ namespace SchedulerProject.UserInterface
             }
         }
 
-        public MainForm()
-        {
-            InitializeComponent();
-            var c = new TimeSlotsConstraintsEditControl(new Size(100, 100));
-            tabByGroups.Controls.Add(c);
-            OpenedFile = "Untitled.xml";
-            SelectedCircullum = null;
-        }
-
         private void miLoadData_Click(object sender, EventArgs e)
         {
             openDataFileDialog.InitialDirectory = _openedFileDirectory;
@@ -87,7 +150,7 @@ namespace SchedulerProject.UserInterface
                 Cursor = Cursors.WaitCursor;
                 try
                 {
-                    _currentData = TimeTable.LoadFromXml(openDataFileDialog.FileName);
+                    OpenedData = TimeTableData.LoadFromXml(openDataFileDialog.FileName);
                     OpenedFile = openDataFileDialog.FileName;
                     OpenedDataChanged = false;
                 }
@@ -110,7 +173,7 @@ namespace SchedulerProject.UserInterface
                 Cursor = Cursors.WaitCursor;
                 try
                 {
-                    _currentData.SaveToXml(saveDataFileDialog.FileName);
+                    OpenedData.SaveToXml(saveDataFileDialog.FileName);
                     OpenedDataChanged = false;
                 }
                 catch (Exception ex)
@@ -129,10 +192,10 @@ namespace SchedulerProject.UserInterface
             if (openDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
-                Circullum openedCircullum = null;
+                TimeTable openedTimeTable = null;
                 try
                 {
-                    openedCircullum = Circullum.LoadFromXml(_currentData, openDataFileDialog.FileName);
+                    openedTimeTable = TimeTable.LoadFromXml(OpenedData, openDataFileDialog.FileName);
                 }
                 catch (IdMismatchException)
                 {
@@ -144,8 +207,8 @@ namespace SchedulerProject.UserInterface
                     MessageBox.Show(ex.Message, "Ошибка при загрузке файла",
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                if (openedCircullum != null)
-                    AddCircullum(openedCircullum);
+                if (openedTimeTable != null)
+                    AddTimeTable(openedTimeTable);
                 Cursor = Cursors.Arrow;
             }
         }
@@ -153,13 +216,14 @@ namespace SchedulerProject.UserInterface
         private void miSaveTimeTable_Click(object sender, EventArgs e)
         {
             saveDataFileDialog.InitialDirectory = "";
+            saveDataFileDialog.FileName = SelectedTimeTable.Name + ".xml";
             saveDataFileDialog.Filter = "XML-файлы расписаний|*.xml";
             if (saveDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
                 try
                 {
-                    SelectedCircullum.SaveToXml(saveDataFileDialog.FileName);
+                    SelectedTimeTable.SaveToXml(saveDataFileDialog.FileName);
                 }
                 catch (Exception ex)
                 {
@@ -197,28 +261,63 @@ namespace SchedulerProject.UserInterface
 
         private void ShowEditDataForm(EditDataForm.Tab startTab)
         {
-            _editDataForm = new EditDataForm(_currentData);
+            _editDataForm = new EditDataForm(OpenedData);
             _editDataForm.SetActiveTab(startTab);
             _editDataForm.ShowDialog(this);
             if (_editDataForm.DataChanged)
             {
                 OpenedDataChanged = true;
-                _currentData = _editDataForm.NewData;
+                OpenedData = _editDataForm.NewData;
             }
         }
 
-        void AddCircullum(Circullum circullum)
+        void AddTimeTable(TimeTable timeTable)
         {
-            timeTablesList.Items.Add(new ListViewItem(circullum.Name) { Tag = circullum });
-            SelectedCircullum = circullum;
+            var item = new ListViewItem(timeTable.Name) { Tag = timeTable };
+            timeTablesList.Items.Add(item);
+            item.Selected = true;
         }
 
         private void miShedule_Click(object sender, EventArgs e)
         {
-            var circullum = Scheduler.Shedule(_currentData);
-            string newName = "Untitled circullum";
-            circullum.Name = newName;
-            AddCircullum(circullum);
+            var timeTable = Scheduler.Shedule(OpenedData);
+            timeTable.Name = "Безымянное расписание";
+            AddTimeTable(timeTable);
+        }
+
+        private void timeTablesList_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            if (e.Item.Selected)
+            {
+                SelectedTimeTable = e.Item.Tag as TimeTable;
+                e.Item.BackColor = SystemColors.MenuHighlight;
+                e.Item.ForeColor = SystemColors.HighlightText;
+            }
+            else
+            {
+                SelectedTimeTable = null;
+                e.Item.BackColor = Color.White;
+                e.Item.ForeColor = Color.Black;
+            }
+        }
+
+        private void timeTablesList_AfterLabelEdit(object sender, LabelEditEventArgs e)
+        {
+            var listView = sender as ListView;
+            (listView.Items[e.Item].Tag as TimeTable).Name = e.Label;
+        }
+
+        private void timeTablesList_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                var listView = sender as ListView;
+                foreach (ListViewItem item in listView.SelectedItems)
+                    item.Remove();
+                SelectedTimeTable = null;
+                if (listView.Items.Count > 0)
+                    listView.Items[0].Selected = true;
+            }                
         }
     }
 }

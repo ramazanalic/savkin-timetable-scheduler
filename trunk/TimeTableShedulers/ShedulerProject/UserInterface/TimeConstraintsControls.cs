@@ -70,7 +70,7 @@ namespace SchedulerProject.UserInterface
             foreach (var slot in TimeSlot.EnumerateAll(DAYS_COUNT, SLOTS_COUNT))
                 AddControlToSlot(new SingleTimeSlotConstraintsController()
                 {
-                    CurrentTimeSlot = slot,
+                    TimeSlot = slot,
                     Size = slotSize
                 });
         }
@@ -95,7 +95,7 @@ namespace SchedulerProject.UserInterface
         {
             var slots = from c in EnumerateTimeSlotsControls()
                         where c.SelectedConstraint == type
-                        select c.CurrentTimeSlot;
+                        select c.TimeSlot;
             constraints[type].AddConstraintsRange(slots.ToArray());
         }
 
