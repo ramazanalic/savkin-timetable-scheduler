@@ -1,247 +1,105 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using System.Text;
 
 namespace SchedulerProject.Core
 {
+    public class EventAssignment //: IEquatable<EventAssignment> ??
+    {
+        public EventAssignment(Event e, Room r, TimeSlot slot)
+        {
+            Event = e;
+            Room = r; 
+            TimeSlot = slot;
+        }
+        public Event Event { get; private set; }
+        public Room Room { get; private set; }
+        public TimeSlot TimeSlot { get; private set; }
+
+    }
+
+    public class IdMismatchException : Exception { };
+
     public class TimeTable
     {
-        private TimeTable()
+        public TimeTable(TimeTableData data)
         {
+            Data = data;
         }
 
-        public string Id;
-        public int Days;
-        public int SlotsPerDay;
-        public int TotalTimeSlots;
+        public TimeTableData Data { get; private set; }
+        public string Name { get; set; }
 
-        //Monday, ... Saturday
-        //First = 1, Second = 2, ... Sixth = 6.
-        //Tuple<Day, Period> GetDayAndPeriod(int timeSlotId, int daysCount, int slotsPerDay) 
+        Dictionary<Event, EventAssignment> assignments = new Dictionary<Event, EventAssignment>();
 
-        /// <summary>
-        /// Rooms ordered by id.
-        /// </summary>
-        public Room[] Rooms;
-
-        /// <summary>
-        /// Events ordered by id. ???
-        /// </summary>
-        public Event[] Events;
-        public Subject[] Subjects;
-        public Group[] Groups;
-        public Lecturer[] Lecturers;
-
-        // helpers 
-        public bool[,] eventConflicts;
-        public bool[,] groupEvents;
-
-        public static TimeTable MakeEmpty()
+        public void AddAssignment(Event e, Room r, TimeSlot slot)
         {
-            byte[] bytes = new byte[10];
-            new Random().NextBytes(bytes);
-
-            return new TimeTable()
-            {
-                Id = string.Join("-", bytes.Select(b => b.ToString("X"))),
-                Days = 6,
-                SlotsPerDay = 5,
-                Rooms = new Room[0],
-                Lecturers = new Lecturer[0],
-                Groups = new Group[0],
-                Subjects = new Subject[0],
-                Events = new Event[0]
-            };
+            assignments.Add(e, new EventAssignment(e, r, slot));
         }
 
-        public static TimeTable LoadFromXml(string filename)
+        public bool RemoveAssignment(Event e)
+        {
+            return assignments.Remove(e);
+        }
+
+        public EventAssignment GetAssignment(Event e)
+        {
+            EventAssignment result;
+            return assignments.TryGetValue(e, out result) ? result : null;
+        }
+
+        public IEnumerable<EventAssignment> Assignments
+        {
+            get { return assignments.Values; }
+        }
+
+        public static TimeTable LoadFromXml(TimeTableData appropriateData, string filename)
         {
             var data = XDocument.Load(filename);
-            var mainNode = data.Element("SchedulerInput");
+            var mainNode = data.Element("TimeTable");
 
-            var roomsQuery = from e in mainNode.Element("Rooms").Elements()
-                             let room = new Room()
-                             {
-                                 Id = int.Parse(e.Attribute("id").Value) - 1,//check room id needs t obe specified in the input file
-                                 Type = ParseHelper.ParseEnum<RoomType>(e.Attribute("type").Value),
-                                 Housing = e.Attribute("house_n").Value,
-                                 RoomNumber = e.Attribute("class_n").Value,
-                                 TimeConstraints = GetTimeConstrains(e)
-                             }
-                             orderby room.Id
-                             select room;
+            var id = mainNode.Attribute("time_table_id").Value;
+            if (id != appropriateData.Id)
+            {
+                throw new IdMismatchException();
+            }
 
-            var lecturersQuery = from e in mainNode.Element("Lecturers").Elements()
-                                 select new Lecturer()
-                                 {
-                                     Id = int.Parse(e.Attribute("id").Value),
-                                     Name = e.Attribute("name").Value,
-                                     TimeConstraints = GetTimeConstrains(e)
-                                 };
+            var infoQuery = from e in mainNode.Elements("Event")
+                            select new
+                            {
+                                Event = appropriateData.Events
+                                            .FirstOrDefault(ev => ev.Id == int.Parse(e.Attribute("id").Value)),
 
-            var groupsQuery = from courseElement in mainNode.Element("Groups").Elements()
-                              let courseNumber = int.Parse(courseElement.Attribute("number").Value)
-                              from groupElement in courseElement.Elements()
-                              let gr = new Group()
-                              {
-                                  Id = int.Parse(groupElement.Attribute("id").Value),
-                                  Name = groupElement.Attribute("name").Value,
-                                  Course = courseNumber
-                              }
-                              orderby gr.Id
-                              select gr;
+                                Room = appropriateData.Rooms
+                                            .FirstOrDefault(r => r.Id == int.Parse(e.Attribute("room").Value)),
+                                Day = int.Parse(e.Attribute("day").Value),
+                                Slot = int.Parse(e.Attribute("slot").Value)
+                            };
 
-            var subjectsQuery = from e in mainNode.Element("Subjects").Elements()
-                                select new Subject()
-                                {
-                                    Id = int.Parse(e.Attribute("id").Value),
-                                    LecturerId = GetLecturerId(e),
-                                    Name = e.Attribute("name").Value
-                                };
-
-            var eventsQuery = from subjectElement in mainNode.Element("Subjects").Elements()
-                              let subjectId = int.Parse(subjectElement.Attribute("id").Value)
-                              let subjectLecturer = GetLecturerId(subjectElement)
-                              from eventElement in subjectElement.Elements()
-                              select new Event()
-                              {
-                                  Id = int.Parse(eventElement.Attribute("id").Value),
-                                  HardAssignedRoom = GetHardAssignedRoom(eventElement),
-                                  SubjectId = subjectId,
-                                  LecturerId = (GetLecturerId(eventElement) ?? subjectLecturer).Value,
-                                  RoomType = ParseHelper.ParseEnum<RoomType>(eventElement.Attribute("type").Value),
-                                  Groups = Event.ParseGroups(eventElement.Attribute("groups").Value)
-                              };
-            
-             return new TimeTable()
-             {
-                 Id = mainNode.Attribute("id").Value,
-                 Days = int.Parse(mainNode.Attribute("days").Value),
-                 SlotsPerDay = int.Parse(mainNode.Attribute("slots_per_day").Value),
-                 Rooms = roomsQuery.ToArray(),
-                 Lecturers = lecturersQuery.ToArray(),
-                 Groups = groupsQuery.ToArray(),
-                 Subjects = subjectsQuery.ToArray(),
-                 Events = eventsQuery.ToArray()
-             };
-
-            //timeTable.CalculateHelpers();
-
-            //return timeTable;
+            return new TimeTable(appropriateData)
+            {
+                Name = mainNode.Attribute("name").Value,
+                assignments = infoQuery.ToDictionary(info => info.Event, info => new EventAssignment(info.Event,
+                    info.Room,
+                    new TimeSlot(info.Day, info.Slot)
+                ))
+            };
         }
 
         public void SaveToXml(string filename)
         {
-            XElement root = new XElement("SchedulerInput",
-                new XAttribute("id", Id),
-                new XAttribute("days", Days),
-                new XAttribute("slots_per_day", SlotsPerDay),
-                new XElement("Rooms", 
-                             from r in Rooms 
-                             select new XElement("Room",
-                                                 new XAttribute("id", r.Id),
-                                                 new XAttribute("house_n", r.Housing),
-                                                 new XAttribute("class_n", r.RoomNumber),
-                                                 GetTimeConstrainsAttribute(r.TimeConstraints),
-                                                 new XAttribute("type", r.Type))),
-                new XElement("Groups", from g in Groups 
-                                       group g by g.Course into c 
-                                       select new XElement("Course",
-                                                           new XAttribute("number", c.Key), 
-                                                           from gc in c select 
-                                                           new XElement("Group",
-                                                                         new XAttribute("id", gc.Id), 
-                                                                         new XAttribute("name", gc.Name)))),
-                new XElement("Lecturers", 
-                             from l in Lecturers 
-                             select new XElement("Lecturer",
-                                                 new XAttribute("id", l.Id),
-                                                 new XAttribute("name", l.Name),
-                                                 GetTimeConstrainsAttribute(l.TimeConstraints))),
-                new XElement("Subjects", 
-                             from s in Subjects 
-                             select new XElement("Subject",
-                                                 new XAttribute("id", s.Id),
-                                                 new XAttribute("name", s.Name),
-                                                 new XAttribute("lecturer_id", s.LecturerId.HasValue ? s.LecturerId.ToString() : string.Empty),
-                                                 from e in Events 
-                                                 where e.SubjectId == s.Id
-                                                 select new XElement("Event",
-                                                                     new XAttribute("id", e.Id),
-                                                                     new XAttribute("type", e.RoomType), 
-                                                                     new XAttribute("groups", Event.GroupsToString(e.Groups)),
-                                                                     GetHardAssignedRoomAttribute(e.HardAssignedRoom),
-                                                                     new XAttribute("lecturer_id", e.LecturerId)))));
+            XElement root = new XElement("TimeTable",
+                new XAttribute("time_table_id", Data.Id),
+                new XAttribute("name", Name),
+                from pair in assignments
+                select new XElement("Event",
+                                    new XAttribute("id", pair.Key.Id),
+                                    new XAttribute("room", pair.Value.Room.Id),
+                                    new XAttribute("day", pair.Value.TimeSlot.Day),
+                                    new XAttribute("slot", pair.Value.TimeSlot.Slot)));
             root.Save(filename);
-        }
-
-        public void PrepareHelpers()
-        {
-            TotalTimeSlots = Days * SlotsPerDay;
-            // calculate groups events
-            groupEvents = new bool[Groups.Length, Events.Length];
-            for (int k = 0; k < Groups.Length; k++)
-                for (int j = 0; j < Events.Length; j++)
-                {
-                    groupEvents[k, j] = Events[j].Groups.Contains(Groups[k].Id);
-                }
-
-
-            // calculate events conflicts
-            eventConflicts = new bool[Events.Length, Events.Length];
-            for (int i = 0; i < Events.Length; i++)
-                for (int j = 0; j < Events.Length; j++)
-                    for (int k = 0; k < Groups.Length; k++)
-                        if (groupEvents[k, i] && groupEvents[k, j])
-                        {
-                            eventConflicts[i, j] = true;
-                            break;
-                        }
-        }
-
-        static int GetHardAssignedRoom(XElement element)
-        {
-            int res;
-            var attr = element.Attribute("hard_assigned_room");
-            if (attr != null && int.TryParse(attr.Value, out res))
-                return res;
-            return -1;
-        }
-
-        static XAttribute GetHardAssignedRoomAttribute(int hardAssignedRoom)
-        {
-            return hardAssignedRoom == -1 ? null : new XAttribute("hard_assigned_room", hardAssignedRoom);
-        }
-
-        static int? GetLecturerId(XElement element)
-        {
-            int res;
-            var attr = element.Attribute("lecturer_id");
-            if (attr != null && int.TryParse(attr.Value, out res))
-                return res;
-            return null;
-        }
-
-        static XAttribute GetTimeConstrainsAttribute(TimeConstraints constraints)
-        {
-            return constraints == null ? null : new XAttribute("time_constraints", constraints);
-        }
-
-        static TimeConstraints GetTimeConstrains(XElement element)
-        {
-            var attr = element.Attribute("time_constraints");
-            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
-            {
-                try
-                {
-                    return TimeConstraints.Parse(attr.Value);
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-            return null;            
         }
     }
 }

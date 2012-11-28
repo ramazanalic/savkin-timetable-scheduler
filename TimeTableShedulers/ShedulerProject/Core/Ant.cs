@@ -6,7 +6,7 @@ namespace SchedulerProject.Core
 {
     class Ant
     {
-        public Ant(TimeTable problemData, MMASData mmasData)
+        public Ant(TimeTableData problemData, MMASData mmasData)
         {
             // memeber variables initialization
             _data = problemData;
@@ -16,7 +16,7 @@ namespace SchedulerProject.Core
         }
 
         Solution _solution;
-        TimeTable _data;
+        TimeTableData _data;
         MMASData _mmasData;
         int _totalTimeSlots;
 

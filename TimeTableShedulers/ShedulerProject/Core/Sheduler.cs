@@ -13,13 +13,13 @@ namespace SchedulerProject.Core
         const double EVAPORATION = 0.1;
         const double MIN_PHERAMONE = 0.3;
 
-        static public Circullum Shedule(TimeTable inputTimeTable)
+        static public TimeTable Shedule(TimeTableData problemData)
         {
-            TimeTable timeTable = inputTimeTable;
+            TimeTableData timeTable = problemData;
             timeTable.PrepareHelpers();
             MMASData mmasData = new MMASData(timeTable, EVAPORATION, MIN_PHERAMONE);
             
-            Solution bestSoFarSolution = new Solution(inputTimeTable);
+            Solution bestSoFarSolution = new Solution(problemData);
 
             bestSoFarSolution.RandomInitialSolution();
             bestSoFarSolution.computeFeasibility();
@@ -68,18 +68,18 @@ namespace SchedulerProject.Core
             bestSoFarSolution.computeHcv();
             Console.WriteLine("----------------------");
             Console.WriteLine("HCV: " + bestSoFarSolution.hcv);
-            return MakeCircullum(timeTable, bestSoFarSolution.result);
+            return MakeTimeTable(timeTable, bestSoFarSolution.result);
         }
 
-        public static Circullum MakeCircullum(TimeTable timeTable, InternalEventAssignment[] assignments)
+        public static TimeTable MakeTimeTable(TimeTableData data, InternalEventAssignment[] assignments)
         {
-            var result = new Circullum(timeTable);
+            var result = new TimeTable(data);
             for (int i = 0; i < assignments.Length; i++)
             {
-                Event ev = timeTable.Events.FirstOrDefault(e => e.Id == timeTable.Events[i].Id);
-                Room room = timeTable.Rooms.FirstOrDefault(r => r.Id == assignments[i].RoomId);
+                Event ev = data.Events.First(e => e.Id == data.Events[i].Id);
+                Room room = data.Rooms.First(r => r.Id == assignments[i].RoomId);
                 TimeSlot slot = TimeSlot.FromId(assignments[i].TimeSlotId,
-                                                timeTable.Days, timeTable.SlotsPerDay);
+                                                data.Days, data.SlotsPerDay);
                 result.AddAssignment(ev, room, slot);
             }
 

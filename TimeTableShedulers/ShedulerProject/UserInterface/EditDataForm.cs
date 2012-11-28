@@ -347,7 +347,7 @@ namespace SchedulerProject.UserInterface
             Events
         }
 
-        public EditDataForm(TimeTable data)
+        public EditDataForm(TimeTableData data)
         {
             InitializeComponent();
             InitGrids();
@@ -382,7 +382,7 @@ namespace SchedulerProject.UserInterface
             InitLecturersGrid();
         }        
 
-        private void FillGrids(TimeTable data)
+        private void FillGrids(TimeTableData data)
         {
             gridGroups.FillGrid(data.Groups);
             gridLecturers.FillGrid(data.Lecturers);
@@ -720,7 +720,7 @@ namespace SchedulerProject.UserInterface
 
         public bool DataChanged { get { return NewData != null; } }
 
-        public TimeTable NewData { get; private set; }
+        public TimeTableData NewData { get; private set; }
 
         private bool ApplyChanges(bool showSuccessMessage)
         {
@@ -738,7 +738,7 @@ namespace SchedulerProject.UserInterface
 
             if (!conflictsGroups.Any())
             {
-                NewData = TimeTable.MakeEmpty();
+                NewData = TimeTableData.MakeEmpty();
                 NewData.Rooms = gridRooms.Items.ToArray();
                 NewData.Groups = gridGroups.Items.ToArray();
                 NewData.Subjects = gridSubjects.Items.ToArray();

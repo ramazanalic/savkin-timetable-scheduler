@@ -15,7 +15,7 @@ namespace SchedulerProject.Core
     {
         public InternalEventAssignment[] result; // vector of (timeslot, room) assigned for each event (index is an event number)
         public Dictionary<int, List<int>> timeslot_events = new Dictionary<int, List<int>>(); // for each timeslot a vector of events taking place in it
-        public TimeTable data; // a pointer to the problem data
+        public TimeTableData data; // a pointer to the problem data
         public Random rg = new Random();
 
         public bool feasible;
@@ -49,7 +49,7 @@ namespace SchedulerProject.Core
         /// <summary>
         /// Constructor with pointers to the problem data and to the random object.
         /// </summary>
-        public Solution(TimeTable problemData)
+        public Solution(TimeTableData problemData)
         {
             data = problemData;
             rg = new Random();

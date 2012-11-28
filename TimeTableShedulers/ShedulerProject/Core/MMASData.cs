@@ -17,7 +17,7 @@ namespace SchedulerProject.Core
         int _eventesNumber;
         int _timeslotsNumber;
 
-        public MMASData(TimeTable data, double evaporation, double minPher)
+        public MMASData(TimeTableData data, double evaporation, double minPher)
         {
             //member variables initialization
             _eventesNumber = data.Events.Length;

@@ -11,25 +11,30 @@ using SchedulerProject.Core;
 
 namespace SchedulerProject.UserInterface
 {
+    public delegate void PropertyChangedEventHandler<T, C>(C sender, T oldValue, T newValue)
+        where C : TimeSlotControl<C>;
+
     public class TimeSlotControl<T> : Control
         where T : TimeSlotControl<T>
     {
-        protected TimeSlot currentSlot;
-        public TimeSlot CurrentTimeSlot
+        protected TimeSlot timeSlot;
+        public TimeSlot TimeSlot
         {
-            get { return currentSlot; }
+            get { return timeSlot; }
             set
             {
                 var owningGrid = OwningGrid;
                 if (owningGrid != null)
                 {
-                    owningGrid.RemoveControlFromSlot(currentSlot);
+                    owningGrid.RemoveControlFromSlot(timeSlot);
                 }
-                currentSlot = value;
+                TimeSlot prevValue = timeSlot;
+                timeSlot = value;
                 if (owningGrid != null)
                 {
                     owningGrid.AddControlToSlot(this as T);
                 }
+                OnTimeSlotChanged(prevValue, value);
             }
         }
 
@@ -41,6 +46,14 @@ namespace SchedulerProject.UserInterface
                 value.AddControlToSlot(this as T);
             }
         }
+
+        protected virtual void OnTimeSlotChanged(TimeSlot oldValue, TimeSlot newValue)
+        {
+            if (TimeSlotChanged != null)
+                TimeSlotChanged(this as T, oldValue, newValue);
+        }
+
+        public event PropertyChangedEventHandler<TimeSlot, T> TimeSlotChanged;
     }
 
     public class TimeSlotsGrid<ControlType> : UserControl
@@ -132,7 +145,7 @@ namespace SchedulerProject.UserInterface
 
         public void AddControlToSlot(ControlType control)
         {
-            TimeSlot timeSlot = control.CurrentTimeSlot;
+            TimeSlot timeSlot = control.TimeSlot;
             if (timeSlot.CompareTo(minTimeSlot) >= 0 && 
                 timeSlot.CompareTo(maxTimeSlot) <= 0 &&
                 !Controls.Contains(control))
@@ -151,6 +164,15 @@ namespace SchedulerProject.UserInterface
             {
                 Controls.Remove(control);
                 timeSlotControls.Remove(slot);
+            }
+        }
+
+        public void ClearAllTimeSlots()
+        {
+            var timeSlots = timeSlotControls.Keys.ToArray();
+            foreach (var timeSlot in timeSlots)
+            {
+                RemoveControlFromSlot(timeSlot);
             }
         }
 
