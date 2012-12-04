@@ -104,10 +104,13 @@ namespace SchedulerProject.UserInterface
 
         void ValidateWholeData()
         {
-            DataValid = true;
-            foreach (var r in Rows.OfType<DataGridViewRow>())
+            if (ValidateData)
             {
-                ValidateRowData(r);
+                DataValid = true;
+                foreach (var r in Rows.OfType<DataGridViewRow>())
+                {
+                    ValidateRowData(r);
+                }
             }
         }
 
@@ -139,6 +142,7 @@ namespace SchedulerProject.UserInterface
 
         public void FillGrid(IEnumerable<PrimitiveType> source)
         {
+            ValidateData = false;
             Rows.Clear();
             ClearChangesCollections();
             foreach (PrimitiveType elem in source)
@@ -152,6 +156,7 @@ namespace SchedulerProject.UserInterface
                 elem.CopyTo(associatedPrimitives[newRow]);
                 latestChangedRows[newRow] = elem.ToString();
             }
+            ValidateData = true;
             AutoResizeColumns();
             bool valid = RefreshLinkedObjectsData();
             HighlightParentText(valid);
@@ -293,6 +298,8 @@ namespace SchedulerProject.UserInterface
         }
 
         #region Overrides
+
+        public bool ValidateData { get; set; }
 
         protected override void OnRowsAdded(DataGridViewRowsAddedEventArgs e)
         {

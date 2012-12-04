@@ -77,7 +77,8 @@ namespace SchedulerProject.Core
             for (int i = 0; i < assignments.Length; i++)
             {
                 Event ev = data.Events.First(e => e.Id == data.Events[i].Id);
-                Room room = data.Rooms.First(r => r.Id == assignments[i].RoomId);
+                //Room room = data.Rooms.First(r => r.Id == assignments[i].RoomId);
+                Room room = data.Rooms[assignments[i].RoomId];
                 TimeSlot slot = TimeSlot.FromId(assignments[i].TimeSlotId,
                                                 data.Days, data.SlotsPerDay);
                 result.AddAssignment(ev, room, slot);
