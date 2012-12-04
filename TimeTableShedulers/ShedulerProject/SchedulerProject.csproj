@@ -109,9 +109,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app_icon.ico" />
-    <Content Include="time_table_input.xml">
+    <Content Include="time_table_input_example.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="time_table_input_real.xml" />
     <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

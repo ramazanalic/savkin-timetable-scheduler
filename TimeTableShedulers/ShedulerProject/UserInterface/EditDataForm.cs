@@ -141,7 +141,7 @@ namespace SchedulerProject.UserInterface
             cbxSubjectFilter.FormattingEnabled = true;
             cbxSubjectFilter.Location = new Point(117, 6);
             cbxSubjectFilter.Name = "cbxSubjectFilter";
-            cbxSubjectFilter.Size = new Size(218, 21);
+            cbxSubjectFilter.Size = new Size(300, 21);
             cbxSubjectFilter.TabIndex = 3;
             cbxSubjectFilter.SelectedValue = EditDataForm.UNDEFINED_COMBOBOX_VALUE;
             // 
@@ -659,7 +659,8 @@ namespace SchedulerProject.UserInterface
                 FormBorderStyle = FormBorderStyle.FixedToolWindow,
                 MaximizeBox = false,
                 MinimizeBox = false,
-                KeyPreview = true
+                KeyPreview = true,
+                StartPosition = FormStartPosition.CenterParent
             };
             form.Controls.Add(content);
             form.KeyDown += (s, e) =>
@@ -682,6 +683,10 @@ namespace SchedulerProject.UserInterface
             {
                 var groupNames = (cell.Value as string).Split(',').Select(s => s.Trim());
                 groupsControl.SelectedGroups = groupsControl.AvailableGroups.Where(gr => groupNames.Contains(gr.Name));
+            }
+            else
+            {
+                groupsControl.SelectedGroups = Enumerable.Empty<Group>();
             }
             var form = MakePopupForm(cell, "Выбор групп", groupsControl, cont =>
             {

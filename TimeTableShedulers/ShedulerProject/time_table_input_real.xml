@@ -1,0 +1,561 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SchedulerInput id="F2-89-6E-AC-36-76-77-24-1A-A" days="6" slots_per_day="5">
+  <Rooms>
+    <Room id="7" house_n="19" class_n="340" type="Lecture" />
+    <Room id="1" house_n="15" class_n="015/2" type="Lecture" />
+    <Room id="2" house_n="14" class_n="76" type="Practice" />
+    <Room id="3" house_n="15" class_n="117/2" type="Laboratory" />
+    <Room id="4" house_n="15" class_n="97" type="Lecture" />
+    <Room id="5" house_n="15" class_n="94" type="Practice" />
+    <Room id="6" house_n="15" class_n="95" type="Practice" />
+    <Room id="8" house_n="15" class_n="116" type="Laboratory" />
+    <Room id="9" house_n="14" class_n="67" type="Practice" />
+    <Room id="10" house_n="15" class_n="92" type="Practice" />
+    <Room id="11" house_n="15" class_n="93" type="Practice" />
+    <Room id="12" house_n="19" class_n="344" type="Practice" />
+    <Room id="13" house_n="15" class_n="96" type="Practice" />
+    <Room id="14" house_n="19" class_n="516" type="Practice" />
+    <Room id="15" house_n="18" class_n="203" type="Practice" />
+    <Room id="16" house_n="13" class_n="06" type="Practice" />
+    <Room id="17" house_n="15" class_n="107" type="Laboratory" />
+    <Room id="18" house_n="16" class_n="125" type="Laboratory" />
+    <Room id="19" house_n="19" class_n="339" type="Lecture" />
+    <Room id="21" house_n="14" class_n="64" type="Practice" />
+    <Room id="20" house_n="14" class_n="72" type="Practice" />
+  </Rooms>
+  <Groups>
+    <Course number="4">
+      <Group id="0" name="КП-91" />
+      <Group id="4" name="КМ-91" />
+      <Group id="5" name="КМ-92" />
+      <Group id="18" name="КВ-93" />
+      <Group id="19" name="КВ-92" />
+      <Group id="20" name="КВ-91" />
+    </Course>
+    <Course number="1">
+      <Group id="1" name="КП-21" />
+      <Group id="11" name="КМ-23" />
+      <Group id="12" name="КМ-22" />
+      <Group id="13" name="КМ-21" />
+      <Group id="29" name="КВ-21" />
+      <Group id="30" name="КВ-22" />
+      <Group id="31" name="КВ-23" />
+    </Course>
+    <Course number="2">
+      <Group id="2" name="КП-11" />
+      <Group id="14" name="КМ-12" />
+      <Group id="15" name="КМ-11" />
+      <Group id="32" name="КВ-11" />
+      <Group id="33" name="КВ-12" />
+      <Group id="34" name="КВ-13" />
+    </Course>
+    <Course number="3">
+      <Group id="3" name="КП-01" />
+      <Group id="16" name="КМ-01" />
+      <Group id="17" name="КМ-02" />
+      <Group id="35" name="КВ-01" />
+      <Group id="36" name="КВ-02" />
+      <Group id="37" name="КВ-03" />
+    </Course>
+    <Course number="5">
+      <Group id="6" name="КМ-83" />
+      <Group id="7" name="КМ-82" />
+      <Group id="8" name="КМ-81" />
+      <Group id="9" name="КМ-81м" />
+      <Group id="21" name="КВ-81" />
+      <Group id="22" name="КВ-82" />
+      <Group id="23" name="КВ-83" />
+      <Group id="24" name="КВ-84" />
+      <Group id="25" name="КВ-85" />
+    </Course>
+    <Course number="6">
+      <Group id="10" name="КМ-71" />
+      <Group id="26" name="КВ-71" />
+      <Group id="27" name="КВ-73" />
+      <Group id="28" name="КВ-74" />
+    </Course>
+  </Groups>
+  <Lecturers>
+    <Lecturer id="0" name="Абакумов" />
+    <Lecturer id="1" name="Архипська" />
+    <Lecturer id="2" name="Бабич" />
+    <Lecturer id="3" name="Бакалінський" />
+    <Lecturer id="4" name="Балабух" />
+    <Lecturer id="5" name="Бенатов Данило" />
+    <Lecturer id="6" name="Бережна Галина" />
+    <Lecturer id="7" name="Березовський Костянтин" />
+    <Lecturer id="8" name="Білостоцький Анатолій" />
+    <Lecturer id="9" name="Блохіна І." />
+    <Lecturer id="10" name="Блохіна І" />
+    <Lecturer id="11" name="Богданенко" />
+    <Lecturer id="12" name="Богомазов" />
+    <Lecturer id="13" name="Божко Борис" />
+    <Lecturer id="14" name="Бохонов Юрій" />
+    <Lecturer id="15" name="Бохонова" />
+    <Lecturer id="16" name="Бухтіяров" />
+    <Lecturer id="17" name="Бухтіяров Юрій" />
+    <Lecturer id="18" name="Валуйський В’ячеслав" />
+    <Lecturer id="19" name="Васильцова" />
+    <Lecturer id="20" name="Вах" />
+    <Lecturer id="21" name="Вембер" />
+    <Lecturer id="22" name="Верба Ірина" />
+    <Lecturer id="24" name="Веселка" />
+    <Lecturer id="25" name="Власюк" />
+    <Lecturer id="26" name="Войтко" />
+    <Lecturer id="27" name="Волянюк Н." />
+    <Lecturer id="28" name="Галушко Михайло" />
+    <Lecturer id="30" name="Герасимчук" />
+    <Lecturer id="31" name="Головенкін Владислав" />
+    <Lecturer id="32" name="Голуб Олександра" />
+    <Lecturer id="33" name="Григоренко" />
+    <Lecturer id="34" name="Грицанчук Олена" />
+    <Lecturer id="35" name="Грищенко Яна" />
+    <Lecturer id="36" name="Гроль Володимир" />
+    <Lecturer id="37" name="Громова Вікторія" />
+    <Lecturer id="38" name="Гуцол Світлана" />
+    <Lecturer id="39" name="Гущина Тетяна" />
+    <Lecturer id="40" name="Девтеров" />
+    <Lecturer id="41" name="Джигирей" />
+    <Lecturer id="42" name="Дирда О" />
+    <Lecturer id="43" name="Дичка Іван" />
+    <Lecturer id="44" name="Дідковська М" />
+    <Lecturer id="45" name="Дімарова" />
+    <Lecturer id="46" name="Довженко" />
+    <Lecturer id="47" name="Драник" />
+    <Lecturer id="48" name="Дробишев Юрій" />
+    <Lecturer id="49" name="Дробязко Ірина" />
+    <Lecturer id="50" name="Дрозденко Олександр" />
+    <Lecturer id="51" name="Дроздинський" />
+    <Lecturer id="52" name="Дубенюк Лідія" />
+    <Lecturer id="53" name="Єфремова Анна" />
+    <Lecturer id="54" name="Жабін В. І." />
+    <Lecturer id="55" name="Жабіна Валентина" />
+    <Lecturer id="56" name="Жигалкевич Жанна" />
+    <Lecturer id="57" name="Заболотня Тетяна" />
+    <Lecturer id="58" name="Зайцев Володимир" />
+    <Lecturer id="59" name="Замятін Д." />
+    <Lecturer id="60" name="Замятін Денис" />
+    <Lecturer id="61" name="Землянська Олена" />
+    <Lecturer id="62" name="Зливков" />
+    <Lecturer id="63" name="Зорін Юрій" />
+    <Lecturer id="65" name="Іваницька" />
+    <Lecturer id="66" name="Іванов" />
+    <Lecturer id="67" name="Іванова Ірина" />
+    <Lecturer id="68" name="Калита" />
+    <Lecturer id="69" name="Калюжний" />
+    <Lecturer id="70" name="Капустіна" />
+    <Lecturer id="71" name="Карбовська" />
+    <Lecturer id="72" name="Карпінська Н" />
+    <Lecturer id="73" name="Картохіна" />
+    <Lecturer id="74" name="Кауфман Л." />
+    <Lecturer id="75" name="Клятченко Я." />
+    <Lecturer id="76" name="Клятченко" />
+    <Lecturer id="77" name="Ковальчук Людмила" />
+    <Lecturer id="78" name="Козьяков" />
+    <Lecturer id="79" name="Козьякова" />
+    <Lecturer id="80" name="Колінько Рита" />
+    <Lecturer id="81" name="Коломієць" />
+    <Lecturer id="82" name="Коляда Костянтин" />
+    <Lecturer id="83" name="Комар Володимир" />
+    <Lecturer id="84" name="Комісар Дмитро" />
+    <Lecturer id="85" name="Кондратьєва" />
+    <Lecturer id="86" name="Копичко Сергій" />
+    <Lecturer id="87" name="Корницька Юлія" />
+    <Lecturer id="88" name="Корнієнко" />
+    <Lecturer id="89" name="Корольова" />
+    <Lecturer id="90" name="Косіцина Ірина" />
+    <Lecturer id="91" name="Костенко Катерина" />
+    <Lecturer id="92" name="Крамський" />
+    <Lecturer id="93" name="Красовська" />
+    <Lecturer id="94" name="Крейдич І.М." />
+    <Lecturer id="95" name="Кривец" />
+    <Lecturer id="96" name="Крівцов" />
+    <Lecturer id="97" name="Кузнецов" />
+    <Lecturer id="98" name="Ладогубець Тетяна" />
+    <Lecturer id="99" name="Лєбєдєв Ігор" />
+    <Lecturer id="100" name="Лєбєдєва Ольга" />
+    <Lecturer id="101" name="Лінчевський Ігор" />
+    <Lecturer id="102" name="Лободзинська" />
+    <Lecturer id="103" name="Лук'янець" />
+    <Lecturer id="104" name="Лук'янчук" />
+    <Lecturer id="105" name="Луц Т." />
+    <Lecturer id="106" name="Луценко" />
+    <Lecturer id="107" name="Любашенко Н.Д." />
+    <Lecturer id="108" name="Любашенко" />
+    <Lecturer id="109" name="Люшенко Л" />
+    <Lecturer id="110" name="Макєєва" />
+    <Lecturer id="111" name="Мальчиков Володимир" />
+    <Lecturer id="112" name="Марченко Олександр" />
+    <Lecturer id="113" name="Маслов Євген" />
+    <Lecturer id="114" name="Маслянко П." />
+    <Lecturer id="115" name="Маслянко Павло" />
+    <Lecturer id="116" name="Махомет Інна" />
+    <Lecturer id="117" name="Мейтарчан" />
+    <Lecturer id="118" name="Мельничук Неля" />
+    <Lecturer id="119" name="Мирвода" />
+    <Lecturer id="120" name="Миргородська" />
+    <Lecturer id="121" name="Мислович" />
+    <Lecturer id="122" name="Михайленко В'ячеслав" />
+    <Lecturer id="123" name="Михайлюк Антон" />
+    <Lecturer id="124" name="Мінарченко О" />
+    <Lecturer id="125" name="Молчанов Олександр" />
+    <Lecturer id="126" name="Муратова" />
+    <Lecturer id="127" name="Муханова О" />
+    <Lecturer id="128" name="Наливайчук Микола" />
+    <Lecturer id="129" name="Незвиська" />
+    <Lecturer id="130" name="Носенко" />
+    <Lecturer id="131" name="Овсянкіна Вікторія" />
+    <Lecturer id="132" name="Олефір Олександр" />
+    <Lecturer id="133" name="Олійник" />
+    <Lecturer id="134" name="Онай Микола" />
+    <Lecturer id="135" name="Орлова Марія" />
+    <Lecturer id="136" name="Остапенко" />
+    <Lecturer id="137" name="Павловський Володимир" />
+    <Lecturer id="138" name="Пагурець Олена" />
+    <Lecturer id="139" name="Панченко" />
+    <Lecturer id="140" name="Петрашенко Андрій" />
+    <Lecturer id="142" name="Петряєв С" />
+    <Lecturer id="143" name="Пилипчук" />
+    <Lecturer id="144" name="Писаренко" />
+    <Lecturer id="145" name="Плакіда Г" />
+    <Lecturer id="146" name="Плахотний Микола" />
+    <Lecturer id="147" name="Подколзін" />
+    <Lecturer id="148" name="Покорська" />
+    <Lecturer id="149" name="Полукаров Юрій" />
+    <Lecturer id="150" name="Поршакова Наталя" />
+    <Lecturer id="151" name="Потапова Катерина" />
+    <Lecturer id="152" name="Процко" />
+    <Lecturer id="153" name="Прухницька Ольга" />
+    <Lecturer id="154" name="Радий" />
+    <Lecturer id="155" name="Романкевич Олексій" />
+    <Lecturer id="156" name="Романкевич Віталій" />
+    <Lecturer id="157" name="Россошинський Дмитро" />
+    <Lecturer id="158" name="Рубанець Олександра" />
+    <Lecturer id="159" name="Рубанець" />
+    <Lecturer id="160" name="Сапегін Анатолій" />
+    <Lecturer id="161" name="Сапсай Тетяна" />
+    <Lecturer id="162" name="Сарієва" />
+    <Lecturer id="163" name="Свідло Тетяна" />
+    <Lecturer id="164" name="Святовець Павло" />
+    <Lecturer id="165" name="Северинчик" />
+    <Lecturer id="166" name="Симоненко Валерій" />
+    <Lecturer id="167" name="Симоненко Світлана" />
+    <Lecturer id="168" name="Синьков" />
+    <Lecturer id="169" name="Сирота С" />
+    <Lecturer id="170" name="Ситник" />
+    <Lecturer id="171" name="Сірик Сергій" />
+    <Lecturer id="172" name="Слєпушкіна Алла" />
+    <Lecturer id="173" name="Снарський Андрій" />
+    <Lecturer id="174" name="Соколова Надія" />
+    <Lecturer id="175" name="Сокотун Ганна" />
+    <Lecturer id="176" name="Статюха" />
+    <Lecturer id="177" name="Стіренко" />
+    <Lecturer id="178" name="Столяров Володимир" />
+    <Lecturer id="179" name="Сторожик М" />
+    <Lecturer id="180" name="Стрілковська" />
+    <Lecturer id="181" name="Сулема Євгенія" />
+    <Lecturer id="182" name="Сущук-Слюсаренко" />
+    <Lecturer id="183" name="Тарасенко Оксана" />
+    <Lecturer id="184" name="Тарасенко Володимир" />
+    <Lecturer id="185" name="Тарасенко-Клятченко Оксана" />
+    <Lecturer id="186" name="Темнікова Олена" />
+    <Lecturer id="187" name="Терейковський Ігор" />
+    <Lecturer id="188" name="Терещенко І" />
+    <Lecturer id="189" name="Терещенко Людмила" />
+    <Lecturer id="190" name="Тесленко Олександр" />
+    <Lecturer id="191" name="Титаренко" />
+    <Lecturer id="192" name="Тишко Ірина" />
+    <Lecturer id="193" name="Тітаренко" />
+    <Lecturer id="194" name="Трофименко" />
+    <Lecturer id="195" name="Тюлін" />
+    <Lecturer id="196" name="Удовицька" />
+    <Lecturer id="197" name="Усик" />
+    <Lecturer id="198" name="Федорова Ірина" />
+    <Lecturer id="199" name="Федотов В" />
+    <Lecturer id="200" name="Федченко" />
+    <Lecturer id="201" name="Френзе Юрій" />
+    <Lecturer id="202" name="Хайнаков" />
+    <Lecturer id="203" name="Цареградская" />
+    <Lecturer id="204" name="Царьова Т" />
+    <Lecturer id="205" name="Цвинтарна" />
+    <Lecturer id="206" name="Цешковський" />
+    <Lecturer id="207" name="Цихоцький Віктор" />
+    <Lecturer id="208" name="Чаповський" />
+    <Lecturer id="209" name="Чеботарева" />
+    <Lecturer id="210" name="Черкасов" />
+    <Lecturer id="211" name="Чернушак" />
+    <Lecturer id="212" name="Чертов Олег" />
+    <Lecturer id="213" name="Шабан" />
+    <Lecturer id="214" name="Шафоростов Микола" />
+    <Lecturer id="215" name="Шевченко Микола" />
+    <Lecturer id="216" name="Шепелєва Олена" />
+    <Lecturer id="217" name="Шимкова" />
+    <Lecturer id="218" name="Широчин" />
+    <Lecturer id="219" name="Шубенкова І" />
+    <Lecturer id="220" name="Юрченко Ірина" />
+    <Lecturer id="221" name="Юрчишин В" />
+    <Lecturer id="222" name="Юшко Андрій" />
+    <Lecturer id="223" name="Ягодинський" />
+    <Lecturer id="224" name="Язвинська Надія" />
+    <Lecturer id="225" name="Якут Лідія" />
+    <Lecturer id="226" name="Яловий" />
+    <Lecturer id="227" name="Яценко Віталій" />
+  </Lecturers>
+  <Subjects>
+    <Subject id="0" name="3D моделювання та візуалізація" lecturer_id="">
+      <Event id="0" type="Lecture" groups="25" lecturer_id="181" />
+      <Event id="1" type="Practice" groups="25" lecturer_id="55" />
+    </Subject>
+    <Subject id="1" name="Web-дизайн" lecturer_id="">
+      <Event id="2" type="Lecture" groups="35,36,37" lecturer_id="140" />
+      <Event id="3" type="Laboratory" groups="35" lecturer_id="128" />
+      <Event id="4" type="Laboratory" groups="36" lecturer_id="128" />
+      <Event id="5" type="Laboratory" groups="37" lecturer_id="128" />
+    </Subject>
+    <Subject id="2" name="Web-програм. та Web-сервіси" lecturer_id="" />
+    <Subject id="3" name="Автоматизоване проектування комп'ютерних систем" lecturer_id="" />
+    <Subject id="4" name="Алгебра" lecturer_id="" />
+    <Subject id="5" name="Алгебра і геометрія" lecturer_id="">
+      <Event id="6" type="Lecture" groups="12,13,11" lecturer_id="32" />
+      <Event id="7" type="Practice" groups="13" lecturer_id="32" />
+      <Event id="8" type="Practice" groups="12" lecturer_id="169" />
+      <Event id="9" type="Practice" groups="11" lecturer_id="169" />
+    </Subject>
+    <Subject id="6" name="Алгоритми та методи обчислень" lecturer_id="">
+      <Event id="10" type="Lecture" groups="35,36,37" lecturer_id="63" />
+      <Event id="11" type="Laboratory" groups="35" lecturer_id="49" />
+      <Event id="12" type="Laboratory" groups="36" lecturer_id="49" />
+      <Event id="13" type="Laboratory" groups="37" lecturer_id="49" />
+    </Subject>
+    <Subject id="7" name="Алгоритми та методи обчислювальних систем штучного інтелекту" lecturer_id="" />
+    <Subject id="8" name="Аналіз вимог" lecturer_id="">
+      <Event id="14" type="Practice" groups="3" lecturer_id="192" />
+      <Event id="15" type="Practice" groups="3" lecturer_id="192" />
+    </Subject>
+    <Subject id="9" name="Англійська мова" lecturer_id="" />
+    <Subject id="10" name="Архітектура і проектування комп'ютерних систем" lecturer_id="" />
+    <Subject id="11" name="Архітектура комп'ютерів" lecturer_id="">
+      <Event id="16" type="Lecture" groups="18,19,20" lecturer_id="155" />
+      <Event id="17" type="Lecture" groups="3" lecturer_id="54" />
+      <Event id="18" type="Practice" groups="20" lecturer_id="155" />
+      <Event id="19" type="Practice" groups="19" lecturer_id="155" />
+      <Event id="20" type="Practice" groups="18" lecturer_id="155" />
+      <Event id="21" type="Practice" groups="3" lecturer_id="54" />
+      <Event id="22" type="Practice" groups="3" lecturer_id="54" />
+    </Subject>
+    <Subject id="12" name="Архітектура ОС" lecturer_id="">
+      <Event id="23" type="Practice" groups="13" lecturer_id="86" />
+      <Event id="24" type="Practice" groups="13" lecturer_id="86" />
+      <Event id="25" type="Practice" groups="12" lecturer_id="86" />
+      <Event id="26" type="Practice" groups="12" lecturer_id="86" />
+      <Event id="27" type="Practice" groups="11" lecturer_id="86" />
+      <Event id="28" type="Practice" groups="11" lecturer_id="86" />
+      <Event id="29" type="Lecture" groups="11,12,13" lecturer_id="86" />
+    </Subject>
+    <Subject id="13" name="Архітектура та Проектування ПЗ" lecturer_id="" />
+    <Subject id="14" name="Бази даних та інформаційні системи" lecturer_id="" />
+    <Subject id="15" name="Безпека життєдіяльності" lecturer_id="" />
+    <Subject id="16" name="Безпека Програмування" lecturer_id="" />
+    <Subject id="17" name="Бортові та навігаційні ЕОМ" lecturer_id="" />
+    <Subject id="18" name="Вимірювання в комп'ютерних системах" lecturer_id="" />
+    <Subject id="19" name="Випадкові процеси" lecturer_id="" />
+    <Subject id="20" name="Високопродуктивні КС" lecturer_id="" />
+    <Subject id="21" name="Військова підготовка" lecturer_id="" />
+    <Subject id="22" name="Вступ до комп'ютерних систем" lecturer_id="" />
+    <Subject id="23" name="Вступ до програмної інженерії" lecturer_id="" />
+    <Subject id="24" name="Вступ до програмування" lecturer_id="" />
+    <Subject id="25" name="Вступ до функціонального програмування" lecturer_id="" />
+    <Subject id="27" name="Групова динаміка та комунікації" lecturer_id="" />
+    <Subject id="28" name="Дискретна математика" lecturer_id="" />
+    <Subject id="29" name="Дискретні структури" lecturer_id="" />
+    <Subject id="30" name="Дистанційні платформи та технології навчання" lecturer_id="" />
+    <Subject id="31" name="Диференційні рівняння" lecturer_id="" />
+    <Subject id="32" name="Дослідження операцій" lecturer_id="" />
+    <Subject id="33" name="Екологія" lecturer_id="" />
+    <Subject id="34" name="Економіка виробництва" lecturer_id="" />
+    <Subject id="35" name="Економіка та організація виробництва" lecturer_id="" />
+    <Subject id="36" name="Економічна теорія" lecturer_id="" />
+    <Subject id="37" name="Експертні системи" lecturer_id="" />
+    <Subject id="38" name="Експертно-навчальні системи" lecturer_id="" />
+    <Subject id="39" name="Емпірічні методи програмної інженерії" lecturer_id="" />
+    <Subject id="40" name="Засоби захисту інформації" lecturer_id="" />
+    <Subject id="41" name="Захист інформації" lecturer_id="" />
+    <Subject id="42" name="Захист інформації в комп’ютерних системах" lecturer_id="" />
+    <Subject id="43" name="Інженерна графіка" lecturer_id="" />
+    <Subject id="44" name="Інженерні Задачі" lecturer_id="" />
+    <Subject id="45" name="Іноземна мова" lecturer_id="" />
+    <Subject id="46" name="Інтелектуальна власність" lecturer_id="" />
+    <Subject id="47" name="Інформаційна стійкість комп'ютерних технологій" lecturer_id="" />
+    <Subject id="48" name="Інформаційна стійкість комп'ютерних технологій та мереж" lecturer_id="" />
+    <Subject id="49" name="Історія науки і техніки" lecturer_id="" />
+    <Subject id="50" name="Історія України" lecturer_id="" />
+    <Subject id="51" name="Історія української культури" lecturer_id="" />
+    <Subject id="52" name="Комп'ютерна алгебра" lecturer_id="" />
+    <Subject id="53" name="Комп'ютерна арифметика" lecturer_id="" />
+    <Subject id="54" name="Комп'ютерна графіка" lecturer_id="" />
+    <Subject id="55" name="Комп'ютерна дискретна математика" lecturer_id="" />
+    <Subject id="56" name="Комп'ютерна криптографія" lecturer_id="" />
+    <Subject id="57" name="Комп'ютерна логіка" lecturer_id="" />
+    <Subject id="58" name="Комп'ютерна схемотехніка" lecturer_id="" />
+    <Subject id="59" name="Комп'ютерні системи штучного інтелекту" lecturer_id="" />
+    <Subject id="60" name="Комп’ютерна електроніка" lecturer_id="" />
+    <Subject id="61" name="Комп’ютерне забезпечення телекомунікацій" lecturer_id="" />
+    <Subject id="62" name="Комп’ютерні мережі" lecturer_id="" />
+    <Subject id="63" name="Комп’ютерні системи" lecturer_id="" />
+    <Subject id="64" name="Комп’ютерні системи автоматичної ідентифікації" lecturer_id="" />
+    <Subject id="65" name="Конструювання програмного забезпечення" lecturer_id="" />
+    <Subject id="66" name="Культорологія" lecturer_id="" />
+    <Subject id="67" name="Лінійна алгебра" lecturer_id="" />
+    <Subject id="68" name="Лінійна алгебра та аналітична геометрія" lecturer_id="" />
+    <Subject id="69" name="Логічне програмування" lecturer_id="" />
+    <Subject id="70" name="Локальні мережі" lecturer_id="" />
+    <Subject id="71" name="Людинно-машинна взаємодія" lecturer_id="" />
+    <Subject id="73" name="людинно-машинний інтерфейс" lecturer_id="" />
+    <Subject id="74" name="Маркетинг" lecturer_id="" />
+    <Subject id="75" name="Математична логіка" lecturer_id="" />
+    <Subject id="76" name="Математичне моделювання" lecturer_id="" />
+    <Subject id="77" name="Математичне моделювання систем та процесів" lecturer_id="" />
+    <Subject id="78" name="Математичне моделювання та системний аналіз" lecturer_id="" />
+    <Subject id="79" name="Математичний аналіз" lecturer_id="" />
+    <Subject id="80" name="Математичні методи оптимізації" lecturer_id="" />
+    <Subject id="81" name="Математичні моделі" lecturer_id="" />
+    <Subject id="82" name="Менеджмент" lecturer_id="" />
+    <Subject id="83" name="Менеджмент Проектів" lecturer_id="" />
+    <Subject id="84" name="Менеджмент проектів ПЗ" lecturer_id="" />
+    <Subject id="85" name="Мережі ЕОМ" lecturer_id="" />
+    <Subject id="86" name="Мережні інформаційні технології" lecturer_id="" />
+    <Subject id="87" name="Методи оптимізації" lecturer_id="" />
+    <Subject id="88" name="Методи теорії надійності та ризику" lecturer_id="" />
+    <Subject id="89" name="Мікропроцесорні системи" lecturer_id="" />
+    <Subject id="90" name="ММС" lecturer_id="" />
+    <Subject id="91" name="Мови програмування" lecturer_id="" />
+    <Subject id="92" name="Мови та системи подання знань" lecturer_id="" />
+    <Subject id="93" name="Моделювання" lecturer_id="" />
+    <Subject id="94" name="Моделювання і проектування інформаційних систем" lecturer_id="" />
+    <Subject id="95" name="Моделювання програмного забезпечення" lecturer_id="" />
+    <Subject id="96" name="Моделювання складних систем" lecturer_id="" />
+    <Subject id="97" name="Моделювання та аналіз ПЗ" lecturer_id="" />
+    <Subject id="98" name="Мультимедійні засоби" lecturer_id="" />
+    <Subject id="99" name="Мультимедійні засоби в комп'ютерних системах" lecturer_id="" />
+    <Subject id="100" name="Мультимедійні засоби комп’ютерної техніки" lecturer_id="" />
+    <Subject id="101" name="Надійність програмного забезпечення" lecturer_id="" />
+    <Subject id="102" name="Напр. досл. і розв. СП" lecturer_id="" />
+    <Subject id="103" name="Напрямки дослідження та розвитку КСМ" lecturer_id="" />
+    <Subject id="104" name="Напрямки дослідження та розвитку СКС" lecturer_id="" />
+    <Subject id="105" name="Науково-дослідна діяльність в комп'ютерній інженерії" lecturer_id="" />
+    <Subject id="106" name="Нежорсткі методи теорії" lecturer_id="" />
+    <Subject id="107" name="Нежорсткі методи теорії обчислення" lecturer_id="" />
+    <Subject id="108" name="Об'єктно-орієнтований аналіз і проектування інформаційних систем" lecturer_id="" />
+    <Subject id="109" name="Об‘єктно-орієнтоване програмування" lecturer_id="" />
+    <Subject id="110" name="Обчислювальні системи" lecturer_id="" />
+    <Subject id="111" name="Операційні системи" lecturer_id="" />
+    <Subject id="112" name="Операційні системи та системне програмування" lecturer_id="" />
+    <Subject id="113" name="Організація баз даних" lecturer_id="" />
+    <Subject id="114" name="ОС та СП" lecturer_id="" />
+    <Subject id="115" name="Основи банківської діяльності" lecturer_id="" />
+    <Subject id="116" name="Основи електричних кіл" lecturer_id="" />
+    <Subject id="117" name="Основи електротехніки" lecturer_id="" />
+    <Subject id="118" name="Основи менеджменту" lecturer_id="" />
+    <Subject id="119" name="Основи наукових досліджень" lecturer_id="" />
+    <Subject id="120" name="Основи охорони праці" lecturer_id="" />
+    <Subject id="121" name="Основи підприємництва" lecturer_id="" />
+    <Subject id="122" name="Основи програмної інженерії" lecturer_id="" />
+    <Subject id="123" name="Основи програмування" lecturer_id="" />
+    <Subject id="124" name="Основи проектування трансляторів" lecturer_id="" />
+    <Subject id="125" name="Основи системного аналізу" lecturer_id="" />
+    <Subject id="126" name="Основи сталого розвитку суспільства" lecturer_id="" />
+    <Subject id="127" name="Охорона Праці" lecturer_id="" />
+    <Subject id="128" name="Охорона праці в галузі" lecturer_id="" />
+    <Subject id="129" name="Паралельні та розподілені обчислення" lecturer_id="" />
+    <Subject id="130" name="Паралельні та розподілені процеси" lecturer_id="" />
+    <Subject id="131" name="Патентознавство" lecturer_id="" />
+    <Subject id="132" name="Патентознавство та авторське право" lecturer_id="" />
+    <Subject id="133" name="Педагогіка вищої школи" lecturer_id="" />
+    <Subject id="134" name="Периферійні пристрої" lecturer_id="" />
+    <Subject id="135" name="ПЗ обчислювальних систем" lecturer_id="" />
+    <Subject id="136" name="Політологія" lecturer_id="" />
+    <Subject id="137" name="Правознавство" lecturer_id="" />
+    <Subject id="138" name="Прийняття рішень в конфліктних ситуаціях" lecturer_id="" />
+    <Subject id="139" name="Прикладна алгебра" lecturer_id="" />
+    <Subject id="140" name="Прикладна теорія цифрових автоматів" lecturer_id="" />
+    <Subject id="141" name="Прикладні задачі ПІ" lecturer_id="" />
+    <Subject id="142" name="Програмне забезпечення ВКС" lecturer_id="" />
+    <Subject id="143" name="Програмне забезпечення ЕОМ" lecturer_id="" />
+    <Subject id="144" name="Програмне забезпечення ОС" lecturer_id="" />
+    <Subject id="145" name="Програмне забезпечення СКС" lecturer_id="" />
+    <Subject id="146" name="Програмування" lecturer_id="" />
+    <Subject id="147" name="Програмування вбудованих КС" lecturer_id="" />
+    <Subject id="148" name="Програмування інтерфейсу користувача" lecturer_id="" />
+    <Subject id="149" name="Програмування комп'ютерних мереж" lecturer_id="" />
+    <Subject id="150" name="Програмування пристроїв зв'язку" lecturer_id="" />
+    <Subject id="151" name="Програмування систем штучного інтелекту" lecturer_id="" />
+    <Subject id="152" name="Програмування та обчислювальна техніка" lecturer_id="" />
+    <Subject id="153" name="Проектний практикум" lecturer_id="" />
+    <Subject id="154" name="Проектування web-додатків" lecturer_id="" />
+    <Subject id="155" name="Проектування автоматизованих систем" lecturer_id="" />
+    <Subject id="156" name="Проектування вбудованих КС" lecturer_id="" />
+    <Subject id="157" name="Проектування корпоративних інформаційних систем" lecturer_id="" />
+    <Subject id="158" name="Проектування КСМ" lecturer_id="" />
+    <Subject id="159" name="Проектування систем з розподіленими БД" lecturer_id="" />
+    <Subject id="160" name="Проектування СКС на ПЛІС" lecturer_id="" />
+    <Subject id="161" name="Проф. практ." lecturer_id="" />
+    <Subject id="162" name="Професійна практика програмної інженерії" lecturer_id="" />
+    <Subject id="163" name="Психологія" lecturer_id="" />
+    <Subject id="164" name="Релігієзнавство" lecturer_id="" />
+    <Subject id="165" name="Рівняння математичної фізики" lecturer_id="" />
+    <Subject id="166" name="Сертифікація, стандартизація" lecturer_id="" />
+    <Subject id="167" name="Системи автоматизованого проектування" lecturer_id="" />
+    <Subject id="168" name="Системи передачі даних" lecturer_id="" />
+    <Subject id="169" name="Системи підтримки прийняття рішень" lecturer_id="" />
+    <Subject id="170" name="Системи програмування" lecturer_id="" />
+    <Subject id="171" name="Системи штучного інтелекту" lecturer_id="" />
+    <Subject id="172" name="Системне програмне забезпечення" lecturer_id="" />
+    <Subject id="173" name="Системне програмування" lecturer_id="" />
+    <Subject id="174" name="Соціальна психологія" lecturer_id="" />
+    <Subject id="175" name="Соціологія" lecturer_id="" />
+    <Subject id="176" name="Спеціалізовані СОД" lecturer_id="" />
+    <Subject id="177" name="Спеціальні мови програмування" lecturer_id="" />
+    <Subject id="178" name="Структури даних" lecturer_id="" />
+    <Subject id="179" name="Структури даних та алгоритми" lecturer_id="" />
+    <Subject id="180" name="Сучасні інформаційні технології" lecturer_id="" />
+    <Subject id="181" name="Сучасні операційні системи" lecturer_id="" />
+    <Subject id="182" name="Теорія електричних кіл" lecturer_id="" />
+    <Subject id="183" name="Теорія і проектування КСМ" lecturer_id="" />
+    <Subject id="184" name="Теорія і проектування СКС" lecturer_id="" />
+    <Subject id="185" name="Теорія інформації та кодування" lecturer_id="" />
+    <Subject id="186" name="Теорія ймовірностей та математична статистика" lecturer_id="" />
+    <Subject id="187" name="Теорія керування" lecturer_id="" />
+    <Subject id="188" name="Теорія програмування" lecturer_id="" />
+    <Subject id="189" name="Теорія управління в технічних системах" lecturer_id="" />
+    <Subject id="190" name="Теорія формальних мов та компіляція" lecturer_id="" />
+    <Subject id="191" name="Тестування, надійність, контроль" lecturer_id="" />
+    <Subject id="192" name="Тестування, надійність, контроль ЕОМ" lecturer_id="" />
+    <Subject id="193" name="Тестування, надійність, контроль та діагностика комп'ютерних систем" lecturer_id="" />
+    <Subject id="194" name="Техн. проект. прогр. сист." lecturer_id="" />
+    <Subject id="195" name="Технології прикладного програмування" lecturer_id="" />
+    <Subject id="196" name="Технологія Прикладного Програмування" lecturer_id="" />
+    <Subject id="197" name="Технологія програмування" lecturer_id="" />
+    <Subject id="198" name="Технологія програмування Web-додатків" lecturer_id="" />
+    <Subject id="199" name="Технологія Проектного Програмування" lecturer_id="" />
+    <Subject id="200" name="Технологія проектування комп'ютерних систем" lecturer_id="" />
+    <Subject id="201" name="Технологія проектування ОС" lecturer_id="" />
+    <Subject id="202" name="Технологія проектування СОД" lecturer_id="" />
+    <Subject id="203" name="Технологія розробки Web-додатків" lecturer_id="" />
+    <Subject id="204" name="Українська мова" lecturer_id="" />
+    <Subject id="205" name="Фіз.-мат. задачі" lecturer_id="" />
+    <Subject id="206" name="Фізика" lecturer_id="" />
+    <Subject id="207" name="Фізико-мат. практикум" lecturer_id="" />
+    <Subject id="208" name="Фізична підготовка" lecturer_id="" />
+    <Subject id="209" name="Фізичне виховання" lecturer_id="" />
+    <Subject id="210" name="Філософія" lecturer_id="" />
+    <Subject id="211" name="Філософські проблеми наукового пізнання" lecturer_id="" />
+    <Subject id="212" name="Функціональний аналіз" lecturer_id="" />
+    <Subject id="213" name="Цивільний захист" lecturer_id="" />
+    <Subject id="214" name="Цифрова обробка інформації" lecturer_id="" />
+    <Subject id="215" name="Цифрова обробка сигналів та зображень" lecturer_id="" />
+    <Subject id="216" name="Чисельні методи" lecturer_id="" />
+    <Subject id="217" name="Чисельні методи математичної фізики" lecturer_id="" />
+    <Subject id="218" name="Чисельно-аналітичне моделювання нелінійних об'єктів" lecturer_id="" />
+    <Subject id="219" name="Якість ПЗ" lecturer_id="" />
+  </Subjects>
+</SchedulerInput>
