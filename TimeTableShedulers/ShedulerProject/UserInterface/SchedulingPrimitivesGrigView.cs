@@ -11,8 +11,7 @@ namespace SchedulerProject.UserInterface
     {
         NoConstraints = 0,
         NotEmpty = 1,
-        //UniqueValues = 2,
-        UniqueValuesGroupMember = 3
+        UniqueValuesGroupMember = 2
     }
 
     public class SchedulingPrimitivesGrigView<PrimitiveType> : DataGridView
@@ -31,7 +30,6 @@ namespace SchedulerProject.UserInterface
 
         // stores changed rows with their pre-changed/added/removed values
         Dictionary<DataGridViewRow, string> latestChangedRows = new Dictionary<DataGridViewRow, string>(),
-                                            //latestAddedRows = new Dictionary<DataGridViewRow, string>(),
                                             latestRemovedRows = new Dictionary<DataGridViewRow, string>();
 
         Dictionary<DataGridViewRow, PrimitiveType> associatedPrimitives =
@@ -121,10 +119,6 @@ namespace SchedulerProject.UserInterface
             {
                 case ColumnConstraintsType.NotEmpty:
                     return !string.IsNullOrWhiteSpace(val) && val != EditDataForm.UNDEFINED_COMBOBOX_VALUE;
-                //case ColumnConstraintsType.UniqueValues:
-                //    return Rows.OfType<DataGridViewRow>()
-                //                .Where(r => r.Visible && r != cell.OwningRow)
-                //                .All(r => r.Cells[cell.OwningColumn.Name].Value as string != val);
                 case ColumnConstraintsType.UniqueValuesGroupMember:
                     var uniqueGroup = columnsConstraints
                                               .Where(p => p.Value == ColumnConstraintsType.UniqueValuesGroupMember)
@@ -218,7 +212,6 @@ namespace SchedulerProject.UserInterface
         {
             latestRemovedRows.Clear();
             latestChangedRows.Clear();
-            //latestAddedRows.Clear();
         }
 
         void RefreshLinkedComboboxData(ComboBox cbx)
@@ -268,12 +261,6 @@ namespace SchedulerProject.UserInterface
                     col.Items.Add(newValue);
                 }
             }
-
-            //foreach (var pair in latestAddedRows.Where(r => !r.Key.IsNewRow))
-            //{
-            //    var newValue = pair.Value;
-            //    col.Items.Add(newValue);
-            //}
         }
 
         void HighlinghtCell(DataGridViewCell cell, bool valid)
@@ -318,28 +305,19 @@ namespace SchedulerProject.UserInterface
                 // add an empty primitive for each new row
                 var elem = new PrimitiveType();
                 associatedPrimitives.Add(row, elem);
-                //latestAddedRows.Add(row, elem.ToString());
 
                 ValidateWholeData();
-                //ValidateRowData(row);
             }
             base.OnRowsAdded(e);
         }
 
-        protected override void OnUserDeletingRow(DataGridViewRowCancelEventArgs e)
-        {             
+        protected override void OnUserDeletedRow(DataGridViewRowEventArgs e)
+        {
             var row = e.Row;
             if (latestChangedRows.ContainsKey(row))
                 latestChangedRows.Remove(row);
-            //if (latestAddedRows.ContainsKey(row))
-            //    latestAddedRows.Remove(row);
             latestRemovedRows.Add(row, associatedPrimitives[row].ToString());
             associatedPrimitives.Remove(row);
-            base.OnUserDeletingRow(e);
-        }
-
-        protected override void OnUserDeletedRow(DataGridViewRowEventArgs e)
-        {
             ValidateWholeData();
             base.OnUserDeletedRow(e);
         }
@@ -355,26 +333,18 @@ namespace SchedulerProject.UserInterface
             var row = Rows[e.RowIndex];
             var cell = row.Cells[e.ColumnIndex];
 
-            if (cell is DataGridViewCheckBoxCell)
-            {
-                cell.Value = cell.Value.ToString();
-            }
-
             if (associatedPrimitives[row].Id == -1)
             {
                 var ids = associatedPrimitives.Values.Select(p => p.Id);
                 associatedPrimitives[row].Id = ids.Any() ? ids.Max() + 1 : 0;
             }
 
-            //if (latestAddedRows.ContainsKey(row))
-            //    latestAddedRows.Remove(row);
-
             if (!latestChangedRows.ContainsKey(row))
                 latestChangedRows.Add(row, associatedPrimitives[row].ToString());
 
             var parseRule = parseRules[Columns[e.ColumnIndex]];
-            var val = cell.Value as string;
-            if (val != EditDataForm.UNDEFINED_COMBOBOX_VALUE)
+            var val = cell.Value != null ? cell.Value.ToString() : null;
+            if (val != null && val != EditDataForm.UNDEFINED_COMBOBOX_VALUE)
                 parseRule(val, associatedPrimitives[row]);
 
             var isValid = IsCellValueValid(cell);
@@ -383,7 +353,6 @@ namespace SchedulerProject.UserInterface
                 DataValid = false;
             }
             ValidateWholeData();
-            //HighlinghtCell(cell, isValid);
         }
 
         protected override void OnDataError(bool displayErrorDialogIfNoHandler, DataGridViewDataErrorEventArgs e)

@@ -93,6 +93,7 @@ namespace SchedulerProject.Core
         {
             destination.Id = Id;
             destination.Name = Name;
+            destination.TimeConstraints = TimeConstraints.DeepCopy(TimeConstraints);
         }
 
         protected override string StringRepresentation()
@@ -148,6 +149,7 @@ namespace SchedulerProject.Core
             destination.Housing = Housing;
             destination.RoomNumber = RoomNumber;
             destination.Type = Type;
+            destination.TimeConstraints = TimeConstraints.DeepCopy(TimeConstraints);
         }
 
         protected override string StringRepresentation()
@@ -187,6 +189,7 @@ namespace SchedulerProject.Core
             destination.SubjectId = SubjectId;
             destination.RoomType = RoomType;
             destination.Groups = Groups.AsEnumerable().ToArray();
+            destination.OnceInTwoWeeks = OnceInTwoWeeks;
         }
 
         protected override string StringRepresentation()
