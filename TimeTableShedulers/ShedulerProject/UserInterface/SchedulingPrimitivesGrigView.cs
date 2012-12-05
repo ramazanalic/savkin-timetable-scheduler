@@ -355,6 +355,11 @@ namespace SchedulerProject.UserInterface
             var row = Rows[e.RowIndex];
             var cell = row.Cells[e.ColumnIndex];
 
+            if (cell is DataGridViewCheckBoxCell)
+            {
+                cell.Value = cell.Value.ToString();
+            }
+
             if (associatedPrimitives[row].Id == -1)
             {
                 var ids = associatedPrimitives.Values.Select(p => p.Id);

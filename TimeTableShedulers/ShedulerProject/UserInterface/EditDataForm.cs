@@ -44,6 +44,7 @@ namespace SchedulerProject.UserInterface
        DataGridViewComboBoxColumn colEventLecturer = new DataGridViewComboBoxColumn();
        DataGridViewComboBoxColumn colEventType = new DataGridViewComboBoxColumn();
        DataGridViewComboBoxColumn colEventHardAssignedRoom = new DataGridViewComboBoxColumn();
+       DataGridViewCheckBoxColumn colEventOnceInTwoWeeks = new DataGridViewCheckBoxColumn();
        DataGridViewButtonColumn colEventGroups = new DataGridViewButtonColumn();
        DataGridViewTextBoxColumn colLecturerName = new DataGridViewTextBoxColumn();
        DataGridViewButtonColumn colLecturerTimeConstraints = new DataGridViewButtonColumn();
@@ -243,6 +244,11 @@ namespace SchedulerProject.UserInterface
             colEventHardAssignedRoom.Items.AddRange(EditDataForm.UNDEFINED_COMBOBOX_VALUE);
             colEventHardAssignedRoom.AutoComplete = true;
             colEventHardAssignedRoom.FlatStyle = FlatStyle.Flat;
+            //
+            // colEventOnceInTwoWeeks
+            //
+            colEventOnceInTwoWeeks.HeaderText = "Раз в две недели";
+            colEventOnceInTwoWeeks.Name = "colEventOnceInTwoWeeks";
             // 
             // menuStrip1
             // 
@@ -426,7 +432,8 @@ namespace SchedulerProject.UserInterface
                 {colEventLecturer, ColumnConstraintsType.NotEmpty},
                 {colEventType, ColumnConstraintsType.NotEmpty},
                 {colEventGroups, ColumnConstraintsType.NotEmpty},
-                {colEventHardAssignedRoom, ColumnConstraintsType.NoConstraints}
+                {colEventHardAssignedRoom, ColumnConstraintsType.NoConstraints},
+                {colEventOnceInTwoWeeks, ColumnConstraintsType.NoConstraints}
             };
 
             var fillEventsRules = new Dictionary<DataGridViewColumn, Func<Event, string>>()
@@ -464,7 +471,8 @@ namespace SchedulerProject.UserInterface
                         return room.ToString();
                     }
                     else return UNDEFINED_COMBOBOX_VALUE;
-                }}                                                                  
+                }} ,
+                {colEventOnceInTwoWeeks, e => e.OnceInTwoWeeks.ToString()}                                                                 
             };
 
             var parseEventsRules = new Dictionary<DataGridViewColumn, Action<string, Event>>()
@@ -495,7 +503,8 @@ namespace SchedulerProject.UserInterface
                             e.HardAssignedRoom = room.Id;
                         }
                     }
-                }}   
+                }},                
+                {colEventOnceInTwoWeeks, (val, e) => e.OnceInTwoWeeks = bool.Parse(val)},
             };
 
             gridEvents = new SchedulingPrimitivesGrigView<Event>(
