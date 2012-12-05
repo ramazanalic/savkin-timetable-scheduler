@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SchedulerInput id="F2-89-6E-AC-36-76-77-24-1A-A" days="6" slots_per_day="5">
+<SchedulerInput id="EC-EC-4A-C9-17-6D-E1-5A-D-66" days="6" slots_per_day="5">
   <Rooms>
-    <Room id="7" house_n="19" class_n="340" type="Lecture" />
     <Room id="1" house_n="15" class_n="015/2" type="Lecture" />
     <Room id="2" house_n="14" class_n="76" type="Practice" />
     <Room id="3" house_n="15" class_n="117/2" type="Laboratory" />
     <Room id="4" house_n="15" class_n="97" type="Lecture" />
     <Room id="5" house_n="15" class_n="94" type="Practice" />
     <Room id="6" house_n="15" class_n="95" type="Practice" />
+    <Room id="7" house_n="19" class_n="340" type="Lecture" />
     <Room id="8" house_n="15" class_n="116" type="Laboratory" />
     <Room id="9" house_n="14" class_n="67" type="Practice" />
     <Room id="10" house_n="15" class_n="92" type="Practice" />
@@ -20,8 +20,17 @@
     <Room id="17" house_n="15" class_n="107" type="Laboratory" />
     <Room id="18" house_n="16" class_n="125" type="Laboratory" />
     <Room id="19" house_n="19" class_n="339" type="Lecture" />
-    <Room id="21" house_n="14" class_n="64" type="Practice" />
     <Room id="20" house_n="14" class_n="72" type="Practice" />
+    <Room id="21" house_n="14" class_n="64" type="Laboratory" />
+    <Room id="22" house_n="14" class_n="63" type="Practice" />
+    <Room id="23" house_n="19" class_n="517" type="Practice" />
+    <Room id="24" house_n="18" class_n="204" type="Lecture" />
+    <Room id="25" house_n="30" class_n="военка-3-курс" type="Special" />
+    <Room id="26" house_n="30" class_n="военка-4-курс" type="Special" />
+    <Room id="27" house_n="18" class_n="209А" type="Lecture" />
+    <Room id="28" house_n="19" class_n="342" type="Lecture" />
+    <Room id="29" house_n="1" class_n="262/4" type="Lecture" />
+    <Room id="30" house_n="19" class_n="524" type="Practice" />
   </Rooms>
   <Groups>
     <Course number="4">
@@ -76,6 +85,7 @@
     </Course>
   </Groups>
   <Lecturers>
+    <Lecturer id="228" name="Военка-3-курс" />
     <Lecturer id="0" name="Абакумов" />
     <Lecturer id="1" name="Архипська" />
     <Lecturer id="2" name="Бабич" />
@@ -300,6 +310,7 @@
     <Lecturer id="225" name="Якут Лідія" />
     <Lecturer id="226" name="Яловий" />
     <Lecturer id="227" name="Яценко Віталій" />
+    <Lecturer id="229" name="Военка-4-курс" />
   </Lecturers>
   <Subjects>
     <Subject id="0" name="3D моделювання та візуалізація" lecturer_id="">
@@ -308,9 +319,9 @@
     </Subject>
     <Subject id="1" name="Web-дизайн" lecturer_id="">
       <Event id="2" type="Lecture" groups="35,36,37" lecturer_id="140" />
-      <Event id="3" type="Laboratory" groups="35" lecturer_id="128" />
-      <Event id="4" type="Laboratory" groups="36" lecturer_id="128" />
-      <Event id="5" type="Laboratory" groups="37" lecturer_id="128" />
+      <Event id="3" type="Laboratory" groups="35" once_in_two_weeks="true" lecturer_id="128" />
+      <Event id="4" type="Laboratory" groups="36" once_in_two_weeks="true" lecturer_id="128" />
+      <Event id="5" type="Laboratory" groups="37" once_in_two_weeks="true" lecturer_id="128" />
     </Subject>
     <Subject id="2" name="Web-програм. та Web-сервіси" lecturer_id="" />
     <Subject id="3" name="Автоматизоване проектування комп'ютерних систем" lecturer_id="" />
@@ -323,55 +334,101 @@
     </Subject>
     <Subject id="6" name="Алгоритми та методи обчислень" lecturer_id="">
       <Event id="10" type="Lecture" groups="35,36,37" lecturer_id="63" />
-      <Event id="11" type="Laboratory" groups="35" lecturer_id="49" />
-      <Event id="12" type="Laboratory" groups="36" lecturer_id="49" />
-      <Event id="13" type="Laboratory" groups="37" lecturer_id="49" />
+      <Event id="11" type="Laboratory" groups="35" once_in_two_weeks="true" lecturer_id="49" />
+      <Event id="12" type="Laboratory" groups="36" once_in_two_weeks="true" lecturer_id="49" />
+      <Event id="13" type="Laboratory" groups="37" once_in_two_weeks="true" lecturer_id="49" />
     </Subject>
     <Subject id="7" name="Алгоритми та методи обчислювальних систем штучного інтелекту" lecturer_id="" />
     <Subject id="8" name="Аналіз вимог" lecturer_id="">
-      <Event id="14" type="Practice" groups="3" lecturer_id="192" />
-      <Event id="15" type="Practice" groups="3" lecturer_id="192" />
+      <Event id="14" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="192" />
+      <Event id="15" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="192" />
     </Subject>
     <Subject id="9" name="Англійська мова" lecturer_id="" />
     <Subject id="10" name="Архітектура і проектування комп'ютерних систем" lecturer_id="" />
     <Subject id="11" name="Архітектура комп'ютерів" lecturer_id="">
       <Event id="16" type="Lecture" groups="18,19,20" lecturer_id="155" />
-      <Event id="17" type="Lecture" groups="3" lecturer_id="54" />
-      <Event id="18" type="Practice" groups="20" lecturer_id="155" />
-      <Event id="19" type="Practice" groups="19" lecturer_id="155" />
-      <Event id="20" type="Practice" groups="18" lecturer_id="155" />
-      <Event id="21" type="Practice" groups="3" lecturer_id="54" />
-      <Event id="22" type="Practice" groups="3" lecturer_id="54" />
+      <Event id="17" type="Lecture" groups="3" once_in_two_weeks="true" lecturer_id="54" />
+      <Event id="18" type="Practice" groups="20" once_in_two_weeks="true" lecturer_id="155" />
+      <Event id="19" type="Practice" groups="19" once_in_two_weeks="true" lecturer_id="155" />
+      <Event id="20" type="Practice" groups="18" once_in_two_weeks="true" lecturer_id="155" />
+      <Event id="21" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="54" />
+      <Event id="22" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="54" />
     </Subject>
     <Subject id="12" name="Архітектура ОС" lecturer_id="">
-      <Event id="23" type="Practice" groups="13" lecturer_id="86" />
-      <Event id="24" type="Practice" groups="13" lecturer_id="86" />
-      <Event id="25" type="Practice" groups="12" lecturer_id="86" />
-      <Event id="26" type="Practice" groups="12" lecturer_id="86" />
-      <Event id="27" type="Practice" groups="11" lecturer_id="86" />
-      <Event id="28" type="Practice" groups="11" lecturer_id="86" />
+      <Event id="23" type="Laboratory" groups="13" once_in_two_weeks="true" lecturer_id="86" />
+      <Event id="24" type="Practice" groups="13" once_in_two_weeks="true" lecturer_id="86" />
+      <Event id="25" type="Laboratory" groups="12" once_in_two_weeks="true" lecturer_id="86" />
+      <Event id="26" type="Practice" groups="12" once_in_two_weeks="true" lecturer_id="86" />
+      <Event id="27" type="Laboratory" groups="11" once_in_two_weeks="true" lecturer_id="86" />
+      <Event id="28" type="Practice" groups="11" once_in_two_weeks="true" lecturer_id="86" />
       <Event id="29" type="Lecture" groups="11,12,13" lecturer_id="86" />
     </Subject>
     <Subject id="13" name="Архітектура та Проектування ПЗ" lecturer_id="" />
-    <Subject id="14" name="Бази даних та інформаційні системи" lecturer_id="" />
+    <Subject id="14" name="Бази даних та інформаційні системи" lecturer_id="">
+      <Event id="30" type="Lecture" groups="4,5" lecturer_id="188" />
+      <Event id="31" type="Practice" groups="4" once_in_two_weeks="true" lecturer_id="188" />
+      <Event id="32" type="Practice" groups="5" once_in_two_weeks="true" lecturer_id="188" />
+      <Event id="33" type="Laboratory" groups="4,5" lecturer_id="77" />
+    </Subject>
     <Subject id="15" name="Безпека життєдіяльності" lecturer_id="" />
     <Subject id="16" name="Безпека Програмування" lecturer_id="" />
     <Subject id="17" name="Бортові та навігаційні ЕОМ" lecturer_id="" />
     <Subject id="18" name="Вимірювання в комп'ютерних системах" lecturer_id="" />
-    <Subject id="19" name="Випадкові процеси" lecturer_id="" />
+    <Subject id="19" name="Випадкові процеси" lecturer_id="">
+      <Event id="34" type="Lecture" groups="16,17" lecturer_id="48" />
+      <Event id="35" type="Laboratory" groups="16" once_in_two_weeks="true" lecturer_id="48" />
+      <Event id="36" type="Laboratory" groups="17" once_in_two_weeks="true" lecturer_id="48" />
+    </Subject>
     <Subject id="20" name="Високопродуктивні КС" lecturer_id="" />
-    <Subject id="21" name="Військова підготовка" lecturer_id="" />
+    <Subject id="21" name="Військова підготовка" lecturer_id="">
+      <Event id="37" type="Special" groups="16,3,17,35,36,37" lecturer_id="228" />
+      <Event id="38" type="Special" groups="0,4,5,19,18,20" lecturer_id="229" />
+    </Subject>
     <Subject id="22" name="Вступ до комп'ютерних систем" lecturer_id="" />
     <Subject id="23" name="Вступ до програмної інженерії" lecturer_id="" />
     <Subject id="24" name="Вступ до програмування" lecturer_id="" />
     <Subject id="25" name="Вступ до функціонального програмування" lecturer_id="" />
-    <Subject id="27" name="Групова динаміка та комунікації" lecturer_id="" />
-    <Subject id="28" name="Дискретна математика" lecturer_id="" />
-    <Subject id="29" name="Дискретні структури" lecturer_id="" />
-    <Subject id="30" name="Дистанційні платформи та технології навчання" lecturer_id="" />
-    <Subject id="31" name="Диференційні рівняння" lecturer_id="" />
-    <Subject id="32" name="Дослідження операцій" lecturer_id="" />
-    <Subject id="33" name="Екологія" lecturer_id="" />
+    <Subject id="27" name="Групова динаміка та комунікації" lecturer_id="">
+      <Event id="39" type="Practice" groups="2" lecturer_id="17" />
+    </Subject>
+    <Subject id="28" name="Дискретна математика" lecturer_id="">
+      <Event id="40" type="Lecture" groups="11,12,13" lecturer_id="186" />
+      <Event id="41" type="Practice" groups="13" lecturer_id="186" />
+      <Event id="42" type="Practice" groups="12" lecturer_id="186" />
+      <Event id="43" type="Practice" groups="11" lecturer_id="186" />
+      <Event id="44" type="Special" groups="15" once_in_two_weeks="true" lecturer_id="186" />
+      <Event id="45" type="Special" groups="14" once_in_two_weeks="true" lecturer_id="186" />
+      <Event id="46" type="Lecture" groups="29,30,31" once_in_two_weeks="true" lecturer_id="156" />
+      <Event id="47" type="Special" groups="29" once_in_two_weeks="true" lecturer_id="156" />
+      <Event id="48" type="Special" groups="30" once_in_two_weeks="true" lecturer_id="156" />
+      <Event id="49" type="Special" groups="31" once_in_two_weeks="true" lecturer_id="156" />
+    </Subject>
+    <Subject id="29" name="Дискретні структури" lecturer_id="">
+      <Event id="50" type="Lecture" groups="2" lecturer_id="55" />
+      <Event id="51" type="Practice" groups="2" once_in_two_weeks="true" lecturer_id="55" />
+    </Subject>
+    <Subject id="30" name="Дистанційні платформи та технології навчання" lecturer_id="">
+      <Event id="52" type="Lecture" groups="26,27" lecturer_id="18" />
+      <Event id="53" type="Lecture" groups="26,27" lecturer_id="18" />
+    </Subject>
+    <Subject id="31" name="Диференційні рівняння" lecturer_id="">
+      <Event id="54" type="Lecture" groups="16,17" lecturer_id="111" />
+      <Event id="55" type="Special" groups="16" once_in_two_weeks="true" lecturer_id="111" />
+      <Event id="56" type="Special" groups="17" once_in_two_weeks="true" lecturer_id="111" />
+    </Subject>
+    <Subject id="32" name="Дослідження операцій" lecturer_id="">
+      <Event id="57" type="Lecture" groups="28" lecturer_id="134" />
+      <Event id="58" type="Practice" groups="28" once_in_two_weeks="true" lecturer_id="134" />
+    </Subject>
+    <Subject id="33" name="Екологія" lecturer_id="">
+      <Event id="59" type="Special" groups="2,14,15,32,33,34" once_in_two_weeks="true" lecturer_id="5" />
+      <Event id="60" type="Special" groups="32" once_in_two_weeks="true" lecturer_id="5" />
+      <Event id="61" type="Special" groups="33" once_in_two_weeks="true" lecturer_id="5" />
+      <Event id="62" type="Special" groups="34" once_in_two_weeks="true" lecturer_id="5" />
+      <Event id="63" type="Special" groups="14" once_in_two_weeks="true" lecturer_id="5" />
+      <Event id="64" type="Special" groups="15" once_in_two_weeks="true" lecturer_id="5" />
+      <Event id="65" type="Special" groups="2" once_in_two_weeks="true" lecturer_id="5" />
+    </Subject>
     <Subject id="34" name="Економіка виробництва" lecturer_id="" />
     <Subject id="35" name="Економіка та організація виробництва" lecturer_id="" />
     <Subject id="36" name="Економічна теорія" lecturer_id="" />
