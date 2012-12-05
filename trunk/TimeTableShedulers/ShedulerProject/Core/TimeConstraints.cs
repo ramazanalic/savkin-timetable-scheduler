@@ -177,6 +177,12 @@ namespace SchedulerProject.Core
             };
         }
 
+        public static TimeConstraints DeepCopy(TimeConstraints value)
+        {
+            // quick and dirty
+            return value == null ? null : TimeConstraints.Parse(value.ToString());
+        }
+
         public IEnumerable<TimeConstraintsSet> EnumerateConstraintsSets()
         {
             if (desiribleTimeSlots != null)

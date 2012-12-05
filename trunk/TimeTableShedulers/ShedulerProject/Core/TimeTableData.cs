@@ -226,7 +226,7 @@ namespace SchedulerProject.Core
 
         static XAttribute GetOnceInTwoWeeksAttribute(bool onceInTwoWeeks)
         {
-            return !onceInTwoWeeks ? null : new XAttribute("once_in_two_weeks", onceInTwoWeeks);
+            return onceInTwoWeeks ? new XAttribute("once_in_two_weeks", true) : null;
         }
 
         static bool GetOnceInTwoWeeks(XElement element)
