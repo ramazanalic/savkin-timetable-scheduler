@@ -107,6 +107,7 @@ namespace SchedulerProject.Core
                               {
                                   Id = int.Parse(eventElement.Attribute("id").Value),
                                   HardAssignedRoom = GetHardAssignedRoom(eventElement),
+                                  OnceInTwoWeeks = GetOnceInTwoWeeks(eventElement),
                                   SubjectId = subjectId,
                                   LecturerId = (GetLecturerId(eventElement) ?? subjectLecturer).Value,
                                   RoomType = ParseHelper.ParseEnum<RoomType>(eventElement.Attribute("type").Value),
@@ -171,6 +172,7 @@ namespace SchedulerProject.Core
                                                                      new XAttribute("type", e.RoomType), 
                                                                      new XAttribute("groups", Event.GroupsToString(e.Groups)),
                                                                      GetHardAssignedRoomAttribute(e.HardAssignedRoom),
+                                                                     GetOnceInTwoWeeksAttribute(e.OnceInTwoWeeks),
                                                                      new XAttribute("lecturer_id", e.LecturerId)))));
             root.Save(filename);
         }
@@ -220,6 +222,28 @@ namespace SchedulerProject.Core
             if (attr != null && int.TryParse(attr.Value, out res))
                 return res;
             return null;
+        }
+
+        static XAttribute GetOnceInTwoWeeksAttribute(bool onceInTwoWeeks)
+        {
+            return !onceInTwoWeeks ? null : new XAttribute("once_in_two_weeks", onceInTwoWeeks);
+        }
+
+        static bool GetOnceInTwoWeeks(XElement element)
+        {
+            var attr = element.Attribute("once_in_two_weeks");
+            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
+            {
+                try
+                {
+                    return bool.Parse(attr.Value);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            return false;     
         }
 
         static XAttribute GetTimeConstrainsAttribute(TimeConstraints constraints)

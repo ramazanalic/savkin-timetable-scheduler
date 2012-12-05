@@ -158,6 +158,7 @@ namespace SchedulerProject.Core
 
     public class Event : AbstractPrimitive<Event>
     {
+        public bool OnceInTwoWeeks;
         public int LecturerId;
         public int SubjectId;
         public int[] Groups;
