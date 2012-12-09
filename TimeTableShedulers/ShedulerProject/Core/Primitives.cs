@@ -45,7 +45,7 @@ namespace SchedulerProject.Core
 
     public enum RoomType
     {
-        Special,
+        Assigned,
         Laboratory,
         Lecture,
         Practice

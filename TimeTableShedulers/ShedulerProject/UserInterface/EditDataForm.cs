@@ -226,7 +226,7 @@ namespace SchedulerProject.UserInterface
                 RoomType.Laboratory.ToString(),
                 RoomType.Lecture.ToString(),
                 RoomType.Practice.ToString(),
-                RoomType.Special.ToString());
+                RoomType.Assigned.ToString());
             colEventType.AutoComplete = true;
             colEventType.FlatStyle = FlatStyle.Flat;
             // 
@@ -296,7 +296,7 @@ namespace SchedulerProject.UserInterface
                 RoomType.Laboratory.ToString(), 
                 RoomType.Lecture.ToString(), 
                 RoomType.Practice.ToString(), 
-                RoomType.Special.ToString());
+                RoomType.Assigned.ToString());
             colRoomType.Resizable = DataGridViewTriState.True;
             colRoomType.SortMode = DataGridViewColumnSortMode.Automatic;
             colRoomType.AutoComplete = true;
