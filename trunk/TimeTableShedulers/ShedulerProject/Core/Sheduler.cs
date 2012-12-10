@@ -9,17 +9,25 @@ namespace SchedulerProject.Core
     {
         const int ANTS_NUMBER = 5;
         const int DEFAULT_MAX_STEPS = 100;
-        const int MAX_ITER = 50;
+        const int MAX_ITER = 500;
         const double EVAPORATION = 0.1;
         const double MIN_PHERAMONE = 0.3;
 
         static public TimeTable Shedule(TimeTableData problemData)
         {
+            Solution firstWeekSolution = Shedule(problemData, 1);
+            // try to partially apply the first week solution to the second one
+            Solution secondWeekSolution = Shedule(problemData, 2);
+            return MakeTimeTable(problemData, firstWeekSolution.result, secondWeekSolution.result);
+        }
+
+        static Solution Shedule(TimeTableData problemData, int week)
+        {
             TimeTableData timeTable = problemData;
             timeTable.PrepareHelpers();
-            MMASData mmasData = new MMASData(timeTable, EVAPORATION, MIN_PHERAMONE);
+            MMASData mmasData = new MMASData(timeTable, week, EVAPORATION, MIN_PHERAMONE);
             
-            Solution bestSoFarSolution = new Solution(problemData);
+            Solution bestSoFarSolution = new Solution(problemData, week);
 
             bestSoFarSolution.RandomInitialSolution();
             bestSoFarSolution.computeFeasibility();
@@ -29,7 +37,7 @@ namespace SchedulerProject.Core
             {
                 Solution bestIterSolution = Enumerable.Range(0, ANTS_NUMBER)
                                                       //.AsParallel()
-                                                      .Select(_ => new Ant(timeTable, mmasData).GetSolution())
+                                                      .Select(_ => new Ant(timeTable, mmasData, week).GetSolution())
                                                       .Min();
 
                 // apply local search until local optimum is reached or a time limit reached
@@ -68,20 +76,28 @@ namespace SchedulerProject.Core
             bestSoFarSolution.computeHcv();
             Console.WriteLine("----------------------");
             Console.WriteLine("HCV: " + bestSoFarSolution.hcv);
-            return MakeTimeTable(timeTable, bestSoFarSolution.result);
+            return bestSoFarSolution;
         }
 
-        public static TimeTable MakeTimeTable(TimeTableData data, InternalEventAssignment[] assignments)
+        static TimeTable MakeTimeTable(TimeTableData data, 
+                                       InternalEventAssignment[] firtsWeekAssignments, 
+                                       InternalEventAssignment[] secondWeekAssignments)
         {
             var result = new TimeTable(data);
-            for (int i = 0; i < assignments.Length; i++)
+            int week = 0;
+            foreach (var assignments in new[] { firtsWeekAssignments, secondWeekAssignments })
             {
-                Event ev = data.Events.First(e => e.Id == data.Events[i].Id);
-                //Room room = data.Rooms.First(r => r.Id == assignments[i].RoomId);
-                Room room = data.Rooms[assignments[i].RoomId];
-                TimeSlot slot = TimeSlot.FromId(assignments[i].TimeSlotId,
-                                                data.Days, data.SlotsPerDay);
-                result.AddAssignment(ev, room, slot);
+                week++;
+                for (int i = 0; i < assignments.Length; i++)
+                {
+                    Event ev = data.Events.First(e => e.Id == data.GetWeekEvents(week)[i].Id);
+                    Room room = data.Rooms.First(r => r.Id == assignments[i].RoomId);
+                    //Room room = data.Rooms[assignments[i].RoomId];
+                    TimeSlot slot = TimeSlot.FromId(assignments[i].TimeSlotId,
+                                                    data.Days, data.SlotsPerDay);
+
+                    result.AddAssignment(ev, room, slot, week);
+                }
             }
 
             return result;

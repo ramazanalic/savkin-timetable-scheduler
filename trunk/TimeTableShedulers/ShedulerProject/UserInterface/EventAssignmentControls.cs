@@ -13,93 +13,57 @@ namespace SchedulerProject.UserInterface
 {
     public class EventAssignmentControl : TimeSlotControl<EventAssignmentControl>
     {
-        public EventAssignmentControl(TimeTableData data, EventAssignment assignment)
+        public EventAssignmentControl(TimeTableData data, 
+                                      WeeklyEventAssignment firstWeekAssignment,
+                                      WeeklyEventAssignment secondWeekAssignment)
         {
             _data = data;
-            SelectedEventAssignment = assignment;
+            SelectedFirstWeekAssignment = firstWeekAssignment;
+            SelectedSecondWeekAssignment = secondWeekAssignment;
             BackColor = Color.LightBlue;
+            TimeSlot = (firstWeekAssignment ?? secondWeekAssignment).TimeSlot;
         }
-
-        public event PropertyChangedEventHandler<Event, EventAssignmentControl> EventChanged;
-        public event PropertyChangedEventHandler<Room, EventAssignmentControl> RoomChanged;
 
         TimeTableData _data;
-        Subject _subject;
-        Lecturer _lecturer;
-        Event _event;
-        Room _room;
-
-        public Event Event
+        
+        public WeeklyEventAssignment SelectedFirstWeekAssignment
         {
-            get
-            {
-                return _event;
-            }
-            set
-            {
-                var oldEvent = _event;
-                _event = value;
-                OnEventChanged(oldEvent, value);
-            }
+            get;
+            set;
         }
 
-        public Room Room
+        public WeeklyEventAssignment SelectedSecondWeekAssignment
         {
-            get
-            {
-                return _room;
-            }
-            set
-            {
-                var oldRoom = _room;
-                _room = value;
-                OnRoomChanged(oldRoom, value);
-            }
+            get;
+            set;
         }
 
-        public EventAssignment SelectedEventAssignment
+        void DrawAssignment(WeeklyEventAssignment assignment, Graphics g, Rectangle rect)
         {
-            get
+            using (var brush = new SolidBrush(ForeColor))
             {
-                return new EventAssignment(Event, Room, TimeSlot);
+                var subject = _data.Subjects.First(s => s.Id == assignment.Event.SubjectId);
+                var lecturer = _data.Lecturers.First(l => l.Id == assignment.Event.LecturerId);
+                var room = assignment.Room;
+                g.DrawString(subject + "\n" + lecturer + "\n" + room,
+                            Font, brush,
+                            rect,
+                            new StringFormat()
+                            {
+                                Alignment = StringAlignment.Center,
+                                LineAlignment = StringAlignment.Center
+                            });
             }
-            set
-            {
-                TimeSlot = value.TimeSlot;
-                Event = value.Event;
-                Room = value.Room;
-            }
-        }
-      
-        protected virtual void OnRoomChanged(Room oldValue, Room newValue)
-        {
-            if (RoomChanged != null)
-                RoomChanged(this, oldValue, newValue);
-            Refresh();
-        }
-
-        protected virtual void OnEventChanged(Event oldValue, Event newValue)
-        {
-            _subject = _data.Subjects.First(s => s.Id == newValue.SubjectId);
-            _lecturer = _data.Lecturers.First(l => l.Id == newValue.LecturerId);
-            if (EventChanged != null)
-                EventChanged(this, oldValue, newValue);
-            Refresh();
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            using (var brush = new SolidBrush(ForeColor))
-            {
-                e.Graphics.DrawString(_subject + "\n" + _lecturer+ "\n" + _room,
-                                      Font, brush, 
-                                      new Rectangle(Point.Empty, Size),
-                                      new StringFormat()
-                                      {
-                                          Alignment = StringAlignment.Center,
-                                          LineAlignment = StringAlignment.Center
-                                      });
-            }
+            //TODO: join areas if needed
+            if (SelectedFirstWeekAssignment != null)
+                DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height / 2));
+            e.Graphics.DrawLine(Pens.White, 0, Height / 2, Width, Height / 2);
+            if (SelectedSecondWeekAssignment != null)
+                DrawAssignment(SelectedSecondWeekAssignment, e.Graphics, new Rectangle(0, Height / 2, Width, Height / 2));
             base.OnPaint(e);
         }
     }
@@ -143,11 +107,20 @@ namespace SchedulerProject.UserInterface
             ClearAllTimeSlots();
             if (eventsFilter != null && timeTable != null)
             {
-                foreach (var assignment in timeTable.Assignments.Where(a => eventsFilter(a.Event)))
-                {
-                    AddControlToSlot(new EventAssignmentControl(timeTable.Data, assignment)
+                foreach (var assignment in timeTable.Assignments
+                    .Where(a => eventsFilter(a.Event))
+                    .SelectMany(a => new[] { a.FirstWeekAssignment, a.SecondWeekAssignment })
+                    .Where(wa => wa != null)
+                    .GroupBy(wa => wa.TimeSlot)
+                    .Select(wa => new
                     {
-                        Size = TimeSlotControlSize 
+                        First = wa.FirstOrDefault(w => w.Week == 1),
+                        Second = wa.FirstOrDefault(w => w.Week == 2)
+                    }))
+                {
+                    AddControlToSlot(new EventAssignmentControl(timeTable.Data, assignment.First, assignment.Second)
+                    {
+                        Size = TimeSlotControlSize
                     });
                 }
             }

@@ -43,7 +43,7 @@ namespace SchedulerProject.UserInterface
 
         TimeTableView MakeTimeTableView()
         {
-            return new TimeTableView(new Size(120, 120)) { Location = new Point(6, 28) };
+            return new TimeTableView(new Size(140, 140)) { Location = new Point(6, 28) };
         }
 
         void ValidateTimeTablesList()
@@ -261,14 +261,23 @@ namespace SchedulerProject.UserInterface
 
         private void ShowEditDataForm(EditDataForm.Tab startTab)
         {
-            _editDataForm = new EditDataForm(OpenedData);
-            _editDataForm.SetActiveTab(startTab);
-            _editDataForm.ShowDialog(this);
-            if (_editDataForm.DataChanged)
+            try
             {
-                OpenedDataChanged = true;
-                OpenedData = _editDataForm.NewData;
+                _editDataForm = new EditDataForm(OpenedData);
+                _editDataForm.SetActiveTab(startTab);
+                _editDataForm.ShowDialog(this);
+                if (_editDataForm.DataChanged)
+                {
+                    OpenedDataChanged = true;
+                    OpenedData = _editDataForm.NewData;
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + ":\n" + ex.StackTrace, "Ошибка при работе с данными",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
 
         void AddTimeTable(TimeTable timeTable)
@@ -280,9 +289,11 @@ namespace SchedulerProject.UserInterface
 
         private void miShedule_Click(object sender, EventArgs e)
         {
+            Cursor = Cursors.WaitCursor;
             var timeTable = Scheduler.Shedule(OpenedData);
             timeTable.Name = "Безымянное расписание";
             AddTimeTable(timeTable);
+            Cursor = Cursors.Arrow;
         }
 
         private void timeTablesList_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)

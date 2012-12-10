@@ -6,18 +6,31 @@ using System.Text;
 
 namespace SchedulerProject.Core
 {
-    public class EventAssignment //: IEquatable<EventAssignment> ??
+    public class WeeklyEventAssignment //: IEquatable<EventAssignment> ??
     {
-        public EventAssignment(Event e, Room r, TimeSlot slot)
+        public WeeklyEventAssignment(Event e, Room r, TimeSlot slot, int week)
         {
             Event = e;
             Room = r; 
             TimeSlot = slot;
+            Week = week;
         }
+
         public Event Event { get; private set; }
         public Room Room { get; private set; }
         public TimeSlot TimeSlot { get; private set; }
+        public int Week { get; private set; }
+    }
 
+    public class EventAssignment
+    {
+        public EventAssignment(Event e)
+        {
+            Event = e;
+        }
+        public Event Event { get; private set; }
+        public WeeklyEventAssignment FirstWeekAssignment {get; set;}
+        public WeeklyEventAssignment SecondWeekAssignment { get; set; }
     }
 
     public class IdMismatchException : Exception { };
@@ -34,9 +47,21 @@ namespace SchedulerProject.Core
 
         Dictionary<Event, EventAssignment> assignments = new Dictionary<Event, EventAssignment>();
 
-        public void AddAssignment(Event e, Room r, TimeSlot slot)
+        public void AddAssignment(Event e, Room r, TimeSlot slot, int week)
         {
-            assignments.Add(e, new EventAssignment(e, r, slot));
+            EventAssignment current;
+            if (!assignments.TryGetValue(e, out current))
+            {
+                current = new EventAssignment(e);
+                assignments.Add(e, current);
+            }
+
+            var assignment = new WeeklyEventAssignment(e, r, slot, week);
+
+            if (week == 1)
+                current.FirstWeekAssignment = assignment;
+            else
+                current.SecondWeekAssignment = assignment;
         }
 
         public bool RemoveAssignment(Event e)
@@ -67,25 +92,32 @@ namespace SchedulerProject.Core
             }
 
             var infoQuery = from e in mainNode.Elements("Event")
-                            select new
+                            let ev = appropriateData.Events
+                                            .FirstOrDefault(ev => ev.Id == int.Parse(e.Attribute("id").Value))
+                            select new EventAssignment(ev)
                             {
-                                Event = appropriateData.Events
-                                            .FirstOrDefault(ev => ev.Id == int.Parse(e.Attribute("id").Value)),
-
-                                Room = appropriateData.Rooms
-                                            .FirstOrDefault(r => r.Id == int.Parse(e.Attribute("room").Value)),
-                                Day = int.Parse(e.Attribute("day").Value),
-                                Slot = int.Parse(e.Attribute("slot").Value)
+                                FirstWeekAssignment = ParseWeeklyAssignment(appropriateData, e.Elements("FirstWeek").FirstOrDefault(), ev, 1),
+                                SecondWeekAssignment = ParseWeeklyAssignment(appropriateData, e.Elements("SecondWeek").FirstOrDefault(), ev, 2),
                             };
 
             return new TimeTable(appropriateData)
             {
                 Name = mainNode.Attribute("name").Value,
-                assignments = infoQuery.ToDictionary(info => info.Event, info => new EventAssignment(info.Event,
-                    info.Room,
-                    new TimeSlot(info.Day, info.Slot)
-                ))
+                assignments = infoQuery.ToDictionary(a => a.Event, a => a)
             };
+        }
+
+        private static WeeklyEventAssignment ParseWeeklyAssignment(TimeTableData appropriateData, XElement elem, Event ev, int week)
+        {
+            if (elem != null)
+            {
+                var room = appropriateData.Rooms.FirstOrDefault(r => r.Id == int.Parse(elem.Attribute("room").Value));
+                var timeSlot = new TimeSlot(int.Parse(elem.Attribute("day").Value),
+                                            int.Parse(elem.Attribute("slot").Value));
+
+                return new WeeklyEventAssignment(ev, room, timeSlot, week);
+            }
+            return null;
         }
 
         public void SaveToXml(string filename)
@@ -96,9 +128,14 @@ namespace SchedulerProject.Core
                 from pair in assignments
                 select new XElement("Event",
                                     new XAttribute("id", pair.Key.Id),
-                                    new XAttribute("room", pair.Value.Room.Id),
-                                    new XAttribute("day", pair.Value.TimeSlot.Day),
-                                    new XAttribute("slot", pair.Value.TimeSlot.Slot)));
+                                    new XElement("FirstWeek", 
+                                        new XAttribute("room", pair.Value.FirstWeekAssignment.Room.Id),
+                                        new XAttribute("day", pair.Value.FirstWeekAssignment.TimeSlot.Day),
+                                        new XAttribute("slot", pair.Value.FirstWeekAssignment.TimeSlot.Slot)),
+                                    new XElement("SecondWeek", 
+                                        new XAttribute("room", pair.Value.SecondWeekAssignment.Room.Id),
+                                        new XAttribute("day", pair.Value.SecondWeekAssignment.TimeSlot.Day),
+                                        new XAttribute("slot", pair.Value.SecondWeekAssignment.TimeSlot.Slot))));
             root.Save(filename);
         }
     }
