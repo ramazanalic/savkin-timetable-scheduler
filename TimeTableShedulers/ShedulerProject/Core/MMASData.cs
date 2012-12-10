@@ -10,17 +10,18 @@ namespace SchedulerProject.Core
         public double evap;
         public double phe_max;
         public double phe_min;
-        public double alpha;
+        //public double alpha;
         public double[,] event_timeslot_pheromone;	// matrix keeping pheromone between events and timeslots
         public int[] sorted_event_list;			// vector keeping sorted lists of events
 
         int _eventesNumber;
         int _timeslotsNumber;
 
-        public MMASData(TimeTableData data, double evaporation, double minPher)
+        public MMASData(TimeTableData data, int week, double evaporation, double minPher)
         {
             //member variables initialization
-            _eventesNumber = data.Events.Length;
+            var events = data.GetWeekEvents(week);
+            _eventesNumber = events.Length;
             _timeslotsNumber = data.TotalTimeSlots;
             event_timeslot_pheromone = new double[_eventesNumber, _timeslotsNumber];
             evap = evaporation;
@@ -44,7 +45,7 @@ namespace SchedulerProject.Core
                 event_correlation[i] = 0;
                 for (int j = 0; j < _eventesNumber; j++)
                 {
-                    if (data.eventConflicts[i, j])
+                    if (data.ConflictingEvents(events[i].Id, events[j].Id))
                         event_correlation[i] += 1;
                 }
             }

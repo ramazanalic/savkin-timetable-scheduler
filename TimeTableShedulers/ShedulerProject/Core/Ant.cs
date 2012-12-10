@@ -6,11 +6,12 @@ namespace SchedulerProject.Core
 {
     class Ant
     {
-        public Ant(TimeTableData problemData, MMASData mmasData)
+        public Ant(TimeTableData problemData, MMASData mmasData, int week)
         {
             // memeber variables initialization
             _data = problemData;
-            _solution = new Solution(problemData);
+            _solution = new Solution(problemData, week);
+            _eventsCount = _data.GetWeekEvents(week).Length;
             _mmasData = mmasData;
             _totalTimeSlots = _data.TotalTimeSlots;
         }
@@ -19,11 +20,12 @@ namespace SchedulerProject.Core
         TimeTableData _data;
         MMASData _mmasData;
         int _totalTimeSlots;
+        int _eventsCount;
 
         public Solution GetSolution()
         {
             // itarate through all the events to complete the path
-            for (int i = 0; i < _data.Events.Length; i++)
+            for (int i = 0; i < _eventsCount; i++)
             {
                 // chose next event from the list
                 int e = _mmasData.sorted_event_list[i];

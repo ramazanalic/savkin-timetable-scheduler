@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -32,9 +33,12 @@ namespace SchedulerProject.Core
         public Group[] Groups;
         public Lecturer[] Lecturers;
 
+        public Event[] FirstWeekEvents;
+        public Event[] SecondWeekEvents;
+
         // helpers 
-        public bool[,] eventConflicts;
-        public bool[,] groupEvents;
+        Dictionary<int, HashSet<int>> eventConflicts;
+        Dictionary<int, HashSet<int>> groupEvents;
 
         public static TimeTableData MakeEmpty()
         {
@@ -177,28 +181,102 @@ namespace SchedulerProject.Core
             root.Save(filename);
         }
 
+        void PrepareWeeklyPartition()
+        {
+            var r = new Random();
+
+            var partition = from e in Events
+                            where e.OnceInTwoWeeks
+                            group e by e.SubjectId into gr
+                            let events = gr.Shuffle(r)
+                            select new
+                            {
+                                First = events.Take(gr.Count() / 2),
+                                Second = events.Skip(gr.Count() / 2)
+                            };
+
+            var onlyFirstWeekEvents = new List<Event>();
+            var onlySecondWeekEvents = new List<Event>();
+
+            foreach (var group in partition)
+            {
+                var biggerGroup = group.Second;
+                var smallerGroup = group.First;
+
+                if (group.First.Count() > group.Second.Count())
+                {
+                    biggerGroup = group.First;
+                    smallerGroup = group.Second;
+                }
+
+                if (onlyFirstWeekEvents.Count > onlySecondWeekEvents.Count)
+                {
+                    onlyFirstWeekEvents.AddRange(smallerGroup);
+                    onlySecondWeekEvents.AddRange(biggerGroup);
+                }
+                else
+                {
+                    onlyFirstWeekEvents.AddRange(biggerGroup);
+                    onlySecondWeekEvents.AddRange(smallerGroup);
+                }
+            }
+            FirstWeekEvents = Events.Except(onlySecondWeekEvents).ToArray();
+            SecondWeekEvents = Events.Except(onlyFirstWeekEvents).ToArray();
+        }
+
+        public Event[] GetWeekEvents(int week)
+        {
+            switch (week)
+            {
+                case 1: return FirstWeekEvents;
+                case 2: return SecondWeekEvents;
+                default: throw new ArgumentException("week");
+            }
+        }
+
+        public bool GroupHasEvent(int groupId, int eventId)
+        {
+            return groupEvents[groupId].Contains(eventId);
+        }
+
+        public bool ConflictingEvents(int firstEventId, int secondEventId)
+        {
+            return eventConflicts[firstEventId].Contains(secondEventId);
+        }
+
         public void PrepareHelpers()
         {
             TotalTimeSlots = Days * SlotsPerDay;
-            // calculate groups events
-            groupEvents = new bool[Groups.Length, Events.Length];
-            for (int k = 0; k < Groups.Length; k++)
-                for (int j = 0; j < Events.Length; j++)
-                {
-                    groupEvents[k, j] = Events[j].Groups.Contains(Groups[k].Id);
-                }
 
+            PrepareWeeklyPartition();
+
+            // calculate groups events
+            groupEvents = new Dictionary<int, HashSet<int>>(Groups.Length); //new bool[Groups.Length, Events.Length];
+            for (var k = 0; k < Groups.Length; k++)
+            {
+                var grId = Groups[k].Id;
+                groupEvents[grId] = new HashSet<int>();
+                for (var j = 0; j < Events.Length; j++)
+                {
+                    if (Events[j].Groups.Contains(grId))
+                        groupEvents[grId].Add(Events[j].Id);
+                }
+            }
 
             // calculate events conflicts
-            eventConflicts = new bool[Events.Length, Events.Length];
+            eventConflicts = new Dictionary<int, HashSet<int>>(Events.Length); //new bool[Events.Length, Events.Length];
             for (int i = 0; i < Events.Length; i++)
+            {
+                eventConflicts[Events[i].Id] = new HashSet<int>();
                 for (int j = 0; j < Events.Length; j++)
                     for (int k = 0; k < Groups.Length; k++)
-                        if (groupEvents[k, i] && groupEvents[k, j])
+                        if (GroupHasEvent(Groups[k].Id, Events[i].Id) &&
+                            GroupHasEvent(Groups[k].Id, Events[j].Id))
                         {
-                            eventConflicts[i, j] = true;
+                            eventConflicts[Events[i].Id].Add(Events[j].Id);
                             break;
                         }
+            }
         }
 
         static int GetHardAssignedRoom(XElement element)

@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Ant.cs" />
+    <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\TimeTable.cs" />
     <Compile Include="Core\MMASData.cs" />
     <Compile Include="Core\Sheduler.cs" />
@@ -112,7 +113,9 @@
     <Content Include="time_table_input_example.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="time_table_input_real.xml" />
+    <Content Include="time_table_input_real.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
