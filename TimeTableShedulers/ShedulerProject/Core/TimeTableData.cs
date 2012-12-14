@@ -7,14 +7,11 @@ namespace SchedulerProject.Core
 {
     public class TimeTableData
     {
-        private TimeTableData()
-        {
-        }
+        #region Internal data and construction
 
         public string Id;
         public int Days;
         public int SlotsPerDay;
-        public int TotalTimeSlots;
 
         //Monday, ... Saturday
         //First = 1, Second = 2, ... Sixth = 6.
@@ -33,12 +30,9 @@ namespace SchedulerProject.Core
         public Group[] Groups;
         public Lecturer[] Lecturers;
 
-        public Event[] FirstWeekEvents;
-        public Event[] SecondWeekEvents;
-
-        // helpers 
-        Dictionary<int, HashSet<int>> eventConflicts;
-        Dictionary<int, HashSet<int>> groupEvents;
+        private TimeTableData()
+        {
+        }
 
         public static TimeTableData MakeEmpty()
         {
@@ -57,6 +51,210 @@ namespace SchedulerProject.Core
                 Events = new Event[0]
             };
         }
+
+        #endregion
+
+        #region Solution helpers
+
+        public int TotalTimeSlots;
+        public Event[] FirstWeekEvents;
+        public Event[] SecondWeekEvents;
+
+        // TODO: optimize data structures for speed-up
+        Dictionary<int, HashSet<int>> eventConflicts;
+        Dictionary<int, HashSet<int>> groupEvents;
+
+        Dictionary<int, bool[]> suitableTimeSlots;
+        Dictionary<int, HashSet<int>> suitableRooms;
+
+        public Event[] GetWeekEvents(int week)
+        {
+            switch (week)
+            {
+                case 1: return FirstWeekEvents;
+                case 2: return SecondWeekEvents;
+                default: throw new ArgumentException("week");
+            }
+        }
+
+        public bool GroupHasEvent(int groupId, int eventId)
+        {
+            return groupEvents[groupId].Contains(eventId);
+        }
+
+        public bool ConflictingEvents(int firstEventId, int secondEventId)
+        {
+            return eventConflicts[firstEventId].Contains(secondEventId);
+        }
+
+        public bool SuitableRoom(int eventId, int roomId)
+        {
+            return suitableRooms[eventId].Contains(roomId);
+        }
+
+        public bool SuitableTimeSlot(int eventId, int slotId)
+        {
+            return suitableTimeSlots[eventId][slotId];
+        }
+
+        void PrepareWeeklyPartition()
+        {
+            var r = new Random();
+
+            var partition = from e in Events
+                            where e.OnceInTwoWeeks
+                            group e by e.SubjectId into gr
+                            let events = gr.Shuffle(r)
+                            select new
+                            {
+                                First = events.Take(gr.Count() / 2),
+                                Second = events.Skip(gr.Count() / 2)
+                            };
+
+            var onlyFirstWeekEvents = new List<Event>();
+            var onlySecondWeekEvents = new List<Event>();
+
+            foreach (var group in partition)
+            {
+                var biggerGroup = group.Second;
+                var smallerGroup = group.First;
+
+                if (group.First.Count() > group.Second.Count())
+                {
+                    biggerGroup = group.First;
+                    smallerGroup = group.Second;
+                }
+
+                if (onlyFirstWeekEvents.Count > onlySecondWeekEvents.Count)
+                {
+                    onlyFirstWeekEvents.AddRange(smallerGroup);
+                    onlySecondWeekEvents.AddRange(biggerGroup);
+                }
+                else
+                {
+                    onlyFirstWeekEvents.AddRange(biggerGroup);
+                    onlySecondWeekEvents.AddRange(smallerGroup);
+                }
+            }
+            FirstWeekEvents = Events.Except(onlySecondWeekEvents).ToArray();
+            SecondWeekEvents = Events.Except(onlyFirstWeekEvents).ToArray();
+        }
+
+        void PrepareGroupEvents()
+        {
+            groupEvents = new Dictionary<int, HashSet<int>>(Groups.Length); //new bool[Groups.Length, Events.Length];
+            for (var k = 0; k < Groups.Length; k++)
+            {
+                var grId = Groups[k].Id;
+                groupEvents[grId] = new HashSet<int>();
+                for (var j = 0; j < Events.Length; j++)
+                {
+                    if (Events[j].Groups.Contains(grId))
+                        groupEvents[grId].Add(Events[j].Id);
+                }
+            }
+        }
+
+        void PrepareEventConflicts()
+        {
+            eventConflicts = new Dictionary<int, HashSet<int>>(Events.Length); //new bool[Events.Length, Events.Length];
+            for (var i = 0; i < Events.Length; i++)
+            {
+                eventConflicts[Events[i].Id] = new HashSet<int>();
+                for (var j = 0; j < Events.Length; j++)
+                    for (var k = 0; k < Groups.Length; k++)
+                        if (GroupHasEvent(Groups[k].Id, Events[i].Id) &&
+                            GroupHasEvent(Groups[k].Id, Events[j].Id))
+                        {
+                            eventConflicts[Events[i].Id].Add(Events[j].Id);
+                            break;
+                        }
+            }
+        }
+
+        void PrepareSuitableTimeSlots()
+        {
+            suitableTimeSlots = new Dictionary<int, bool[]>();
+            foreach (var e in Events)
+            {
+                suitableTimeSlots.Add(e.Id, new bool[TotalTimeSlots]);
+                var slotId = 0;
+
+                TimeConstraints roomConstraints = null;
+                if (e.HardAssignedRoom != -1)
+                {
+                    roomConstraints = Rooms.First(r => r.Id == e.HardAssignedRoom).TimeConstraints;
+                }
+
+                var lecturerConstraints = Lecturers.First(r => r.Id == e.LecturerId).TimeConstraints;
+
+                foreach (var timeSlot in TimeSlot.EnumerateAll(Days, SlotsPerDay))
+                {
+                    var suitable = true;
+                    if (roomConstraints != null && 
+                        (roomConstraints[TimeConstraintType.Impossible].Contains(timeSlot) ||
+                         !roomConstraints[TimeConstraintType.Necessary].Contains(timeSlot)))
+                        suitable = false;
+
+                    if (lecturerConstraints != null && 
+                        (lecturerConstraints[TimeConstraintType.Impossible].Contains(timeSlot) ||
+                         !lecturerConstraints[TimeConstraintType.Necessary].Contains(timeSlot)))
+                        suitable = false;
+
+                    suitableTimeSlots[e.Id][slotId++] = suitable;
+                }
+            }
+        }
+
+        void PrepareSuitableRooms()
+        {
+            suitableRooms = new Dictionary<int, HashSet<int>>();
+            foreach (var e in Events)
+            {
+                suitableRooms.Add(e.Id, new HashSet<int>());
+                foreach (var room in Rooms)
+                {
+                    if (SuitableRoom(e, room))
+                        suitableRooms[e.Id].Add(room.Id);
+                }
+            }
+        }
+
+        public void PrepareHelpers()
+        {
+            TotalTimeSlots = Days * SlotsPerDay;
+
+            PrepareWeeklyPartition();
+
+            PrepareGroupEvents();
+
+            PrepareEventConflicts();
+
+            PrepareSuitableTimeSlots();
+
+            PrepareSuitableRooms();
+        }
+        
+        bool SuitableRoom(Event e, Room r)
+        {
+            switch (e.RoomType)
+            {
+                case RoomType.Assigned:
+                    return e.HardAssignedRoom == r.Id;
+                case RoomType.Laboratory:
+                    return r.Type == RoomType.Laboratory;
+                case RoomType.Lecture:
+                    return e.Groups.Length < 3 && r.Type == RoomType.Practice || r.Type == RoomType.Lecture;
+                case RoomType.Practice:
+                    return r.Type == RoomType.Practice;// || r.Type == RoomType.Laboratory;
+                default:
+                    return false;
+            }
+        }
+
+        #endregion
+
+        #region Load from XML
 
         public static TimeTableData LoadFromXml(string filename)
         {
@@ -135,6 +333,62 @@ namespace SchedulerProject.Core
             //return timeTable;
         }
 
+        static int? GetLecturerId(XElement element)
+        {
+            int res;
+            var attr = element.Attribute("lecturer_id");
+            if (attr != null && int.TryParse(attr.Value, out res))
+                return res;
+            return null;
+        }
+
+        static int GetHardAssignedRoom(XElement element)
+        {
+            int res;
+            var attr = element.Attribute("hard_assigned_room");
+            if (attr != null && int.TryParse(attr.Value, out res))
+                return res;
+            return -1;
+        }
+
+        static bool GetOnceInTwoWeeks(XElement element)
+        {
+            var attr = element.Attribute("once_in_two_weeks");
+            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
+            {
+                try
+                {
+                    return bool.Parse(attr.Value);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            return false;     
+        }
+
+        static TimeConstraints GetTimeConstrains(XElement element)
+        {
+            var attr = element.Attribute("time_constraints");
+            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
+            {
+                try
+                {
+                    return TimeConstraints.Parse(attr.Value);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            return null;            
+        }
+
+        #endregion
+
+        #region Save to XML
+
         public void SaveToXml(string filename)
         {
             XElement root = new XElement("SchedulerInput",
@@ -181,125 +435,9 @@ namespace SchedulerProject.Core
             root.Save(filename);
         }
 
-        void PrepareWeeklyPartition()
-        {
-            var r = new Random();
-
-            var partition = from e in Events
-                            where e.OnceInTwoWeeks
-                            group e by e.SubjectId into gr
-                            let events = gr.Shuffle(r)
-                            select new
-                            {
-                                First = events.Take(gr.Count() / 2),
-                                Second = events.Skip(gr.Count() / 2)
-                            };
-
-            var onlyFirstWeekEvents = new List<Event>();
-            var onlySecondWeekEvents = new List<Event>();
-
-            foreach (var group in partition)
-            {
-                var biggerGroup = group.Second;
-                var smallerGroup = group.First;
-
-                if (group.First.Count() > group.Second.Count())
-                {
-                    biggerGroup = group.First;
-                    smallerGroup = group.Second;
-                }
-
-                if (onlyFirstWeekEvents.Count > onlySecondWeekEvents.Count)
-                {
-                    onlyFirstWeekEvents.AddRange(smallerGroup);
-                    onlySecondWeekEvents.AddRange(biggerGroup);
-                }
-                else
-                {
-                    onlyFirstWeekEvents.AddRange(biggerGroup);
-                    onlySecondWeekEvents.AddRange(smallerGroup);
-                }
-            }
-            FirstWeekEvents = Events.Except(onlySecondWeekEvents).ToArray();
-            SecondWeekEvents = Events.Except(onlyFirstWeekEvents).ToArray();
-        }
-
-        public Event[] GetWeekEvents(int week)
-        {
-            switch (week)
-            {
-                case 1: return FirstWeekEvents;
-                case 2: return SecondWeekEvents;
-                default: throw new ArgumentException("week");
-            }
-        }
-
-        public bool GroupHasEvent(int groupId, int eventId)
-        {
-            return groupEvents[groupId].Contains(eventId);
-        }
-
-        public bool ConflictingEvents(int firstEventId, int secondEventId)
-        {
-            return eventConflicts[firstEventId].Contains(secondEventId);
-        }
-
-        public void PrepareHelpers()
-        {
-            TotalTimeSlots = Days * SlotsPerDay;
-
-            PrepareWeeklyPartition();
-
-            // calculate groups events
-            groupEvents = new Dictionary<int, HashSet<int>>(Groups.Length); //new bool[Groups.Length, Events.Length];
-            for (var k = 0; k < Groups.Length; k++)
-            {
-                var grId = Groups[k].Id;
-                groupEvents[grId] = new HashSet<int>();
-                for (var j = 0; j < Events.Length; j++)
-                {
-                    if (Events[j].Groups.Contains(grId))
-                        groupEvents[grId].Add(Events[j].Id);
-                }
-            }
-
-            // calculate events conflicts
-            eventConflicts = new Dictionary<int, HashSet<int>>(Events.Length); //new bool[Events.Length, Events.Length];
-            for (int i = 0; i < Events.Length; i++)
-            {
-                eventConflicts[Events[i].Id] = new HashSet<int>();
-                for (int j = 0; j < Events.Length; j++)
-                    for (int k = 0; k < Groups.Length; k++)
-                        if (GroupHasEvent(Groups[k].Id, Events[i].Id) &&
-                            GroupHasEvent(Groups[k].Id, Events[j].Id))
-                        {
-                            eventConflicts[Events[i].Id].Add(Events[j].Id);
-                            break;
-                        }
-            }
-        }
-
-        static int GetHardAssignedRoom(XElement element)
-        {
-            int res;
-            var attr = element.Attribute("hard_assigned_room");
-            if (attr != null && int.TryParse(attr.Value, out res))
-                return res;
-            return -1;
-        }
-
         static XAttribute GetHardAssignedRoomAttribute(int hardAssignedRoom)
         {
             return hardAssignedRoom == -1 ? null : new XAttribute("hard_assigned_room", hardAssignedRoom);
-        }
-
-        static int? GetLecturerId(XElement element)
-        {
-            int res;
-            var attr = element.Attribute("lecturer_id");
-            if (attr != null && int.TryParse(attr.Value, out res))
-                return res;
-            return null;
         }
 
         static XAttribute GetOnceInTwoWeeksAttribute(bool onceInTwoWeeks)
@@ -307,43 +445,11 @@ namespace SchedulerProject.Core
             return onceInTwoWeeks ? new XAttribute("once_in_two_weeks", true) : null;
         }
 
-        static bool GetOnceInTwoWeeks(XElement element)
-        {
-            var attr = element.Attribute("once_in_two_weeks");
-            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
-            {
-                try
-                {
-                    return bool.Parse(attr.Value);
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            return false;     
-        }
-
         static XAttribute GetTimeConstrainsAttribute(TimeConstraints constraints)
         {
             return constraints == null ? null : new XAttribute("time_constraints", constraints);
         }
 
-        static TimeConstraints GetTimeConstrains(XElement element)
-        {
-            var attr = element.Attribute("time_constraints");
-            if (attr != null && !string.IsNullOrWhiteSpace(attr.Value))
-            {
-                try
-                {
-                    return TimeConstraints.Parse(attr.Value);
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-            return null;            
-        }
+        #endregion
     }
 }

@@ -7,7 +7,7 @@ namespace SchedulerProject.Core
 {
     static class Scheduler
     {
-        const int ANTS_NUMBER = 5;
+        const int ANTS_NUMBER = 10;
         const int DEFAULT_MAX_STEPS = 100;
         const int MAX_ITER = 500;
         const double EVAPORATION = 0.1;
@@ -15,16 +15,24 @@ namespace SchedulerProject.Core
 
         static public TimeTable Shedule(TimeTableData problemData)
         {
+            problemData.PrepareHelpers();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             Solution firstWeekSolution = Shedule(problemData, 1);
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedMilliseconds + " ms");
+
+            sw.Start();
             // try to partially apply the first week solution to the second one
             Solution secondWeekSolution = Shedule(problemData, 2);
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedMilliseconds + " ms");
+
             return MakeTimeTable(problemData, firstWeekSolution.result, secondWeekSolution.result);
         }
 
         static Solution Shedule(TimeTableData problemData, int week)
         {
             TimeTableData timeTable = problemData;
-            timeTable.PrepareHelpers();
             MMASData mmasData = new MMASData(timeTable, week, EVAPORATION, MIN_PHERAMONE);
             
             Solution bestSoFarSolution = new Solution(problemData, week);
@@ -71,11 +79,10 @@ namespace SchedulerProject.Core
                 mmasData.EvaporatePheromone();
                 mmasData.SetPheromoneLimits();
                 mmasData.DepositPheromone(bestSoFarSolution);
+                bestSoFarSolution.computeHcv();
+                Console.WriteLine("iter: " + i + ", HCV: " + bestSoFarSolution.hcv);
             }
 
-            bestSoFarSolution.computeHcv();
-            Console.WriteLine("----------------------");
-            Console.WriteLine("HCV: " + bestSoFarSolution.hcv);
             return bestSoFarSolution;
         }
 
@@ -92,7 +99,6 @@ namespace SchedulerProject.Core
                 {
                     Event ev = data.Events.First(e => e.Id == data.GetWeekEvents(week)[i].Id);
                     Room room = data.Rooms.First(r => r.Id == assignments[i].RoomId);
-                    //Room room = data.Rooms[assignments[i].RoomId];
                     TimeSlot slot = TimeSlot.FromId(assignments[i].TimeSlotId,
                                                     data.Days, data.SlotsPerDay);
 

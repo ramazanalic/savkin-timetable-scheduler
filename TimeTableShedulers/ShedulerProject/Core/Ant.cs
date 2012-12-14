@@ -11,7 +11,8 @@ namespace SchedulerProject.Core
             // memeber variables initialization
             _data = problemData;
             _solution = new Solution(problemData, week);
-            _eventsCount = _data.GetWeekEvents(week).Length;
+            _events = _data.GetWeekEvents(week);
+            _eventsCount = _events.Length;
             _mmasData = mmasData;
             _totalTimeSlots = _data.TotalTimeSlots;
         }
@@ -19,6 +20,7 @@ namespace SchedulerProject.Core
         Solution _solution;
         TimeTableData _data;
         MMASData _mmasData;
+        Event[] _events;
         int _totalTimeSlots;
         int _eventsCount;
 
@@ -50,6 +52,8 @@ namespace SchedulerProject.Core
                     total += _mmasData.event_timeslot_pheromone[e, j];
                     if (total >= rnd)
                     {
+                        while (!_data.SuitableTimeSlot(_events[e].Id, j))
+                            j = (j + 1) % _totalTimeSlots;
                         timeslot = j;
                         break;
                     }
