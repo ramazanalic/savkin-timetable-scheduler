@@ -77,11 +77,14 @@ namespace SchedulerProject.Core
         public void RandomInitialSolution()
         {
             // assign a random timeslot to each event
-            for (int i = 0; i < eventsCount; i++)
+            for (int e = 0; e < eventsCount; e++)
             {
                 int t = (int)(rg.NextDouble() * data.TotalTimeSlots);
-                result[i].TimeSlotId = t;
-                timeslot_events[t].Add(i);
+                while (!data.SuitableTimeSlot(events[e].Id, t))
+                    t = (t + 1) % data.TotalTimeSlots;
+
+                result[e].TimeSlotId = t;
+                timeslot_events[t].Add(e);
             }
 
             var notEmptySlots = from p in timeslot_events
@@ -129,7 +132,7 @@ namespace SchedulerProject.Core
                     }
                 }
 
-                if (!SuitableRoom(events[i], data.Rooms.First(r => r.Id == result[i].RoomId)))
+                if(!data.SuitableRoom(events[i].Id, result[i].RoomId))
                 {
                     if (stopOnFirst) return 1;
                     //Console.WriteLine("Room type conflict");
@@ -307,6 +310,9 @@ namespace SchedulerProject.Core
         /// </summary>
         void Move1(int e, int t)
         {
+            if (!data.SuitableTimeSlot(events[e].Id, t))
+                return;
+
 	        //move event e to timeslot t
 	        int prevSlot = result[e].TimeSlotId;
 	        result[e].TimeSlotId = t;
@@ -336,6 +342,10 @@ namespace SchedulerProject.Core
             int t1 = result[e1].TimeSlotId,
                 t2 = result[e2].TimeSlotId;
 
+            if (!data.SuitableTimeSlot(events[e1].Id, t2) ||
+                !data.SuitableTimeSlot(events[e2].Id, t1))
+                return;
+
 	        result[e1].TimeSlotId = t2;
 	        result[e2].TimeSlotId = t1;
 
@@ -356,6 +366,11 @@ namespace SchedulerProject.Core
             int t1 = result[e1].TimeSlotId,
                 t2 = result[e2].TimeSlotId,
                 t3 = result[e3].TimeSlotId;
+
+            if (!data.SuitableTimeSlot(events[e1].Id, t2) ||
+                !data.SuitableTimeSlot(events[e2].Id, t3) ||
+                !data.SuitableTimeSlot(events[e3].Id, t1))
+                return;
 
 	        result[e1].TimeSlotId = t2;
 	        result[e2].TimeSlotId = t3;
@@ -381,7 +396,7 @@ namespace SchedulerProject.Core
         /// Apply local search with the given parameters.
         /// </summary>
         public void localSearch(int maxSteps, double LS_limit = 999999,
-                                double prob1 = 1.0, double prob2 = 0.5, double prob3 = 0.1)
+                                double prob1 = 1.0, double prob2 = 0.9, double prob3 = 0.1)
         {
             // TODO: Refactoring needed
 
@@ -981,7 +996,7 @@ namespace SchedulerProject.Core
                 Event ev = events[timeslot_events[timeslot][e]];
                 for (int r = 0; r < data.Rooms.Length; r++)
                 {
-                    res[e, eventsCount + r] = res[eventsCount + r, e] = SuitableRoom(ev, data.Rooms[r]);
+                    res[e, eventsCount + r] = res[eventsCount + r, e] = data.SuitableRoom(ev.Id, data.Rooms[r].Id);
                     //if (eventType == data.Rooms[r].Type)
                     //{
                     //    res[e, eventsCount + r] = res[eventsCount + r, e] = true;
@@ -992,22 +1007,5 @@ namespace SchedulerProject.Core
         }
 
         #endregion
-
-        bool SuitableRoom(Event e, Room r)
-        {
-            switch (e.RoomType)
-            {
-                case RoomType.Assigned:
-                    return e.HardAssignedRoom == r.Id;
-                case RoomType.Laboratory:
-                    return r.Type == RoomType.Laboratory;
-                case RoomType.Lecture:
-                    return e.Groups.Length < 3 && r.Type == RoomType.Practice || r.Type == RoomType.Lecture;
-                case RoomType.Practice:
-                    return r.Type == RoomType.Practice;// || r.Type == RoomType.Laboratory;
-                default: 
-                    return false;
-            }
-        }
     }
 }
