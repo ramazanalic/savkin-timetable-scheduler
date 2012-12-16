@@ -20,6 +20,16 @@ namespace SchedulerProject.Core
         public Room Room { get; private set; }
         public TimeSlot TimeSlot { get; private set; }
         public int Week { get; private set; }
+
+        public string ToString(TimeTableData data)
+        {            
+            var subject = data.Subjects.First(s => s.Id == Event.SubjectId).ToString();
+            // TODO: add an event property indicating such way of displaying
+            if (subject == "Військова підготовка" || subject == "Фізична підготовка" || subject == "Фізичне виховання")
+                return subject;
+            var lecturer = data.Lecturers.First(l => l.Id == Event.LecturerId);
+            return subject + "\n" + lecturer + "\n" + Room;
+        }
     }
 
     public class EventAssignment

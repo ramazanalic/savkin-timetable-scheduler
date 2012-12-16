@@ -53,9 +53,6 @@ namespace SchedulerProject.Core
 
         private Solution() { }
 
-        /// <summary>
-        /// Constructor with pointers to the problem data and to the random object.
-        /// </summary>
         public Solution(TimeTableData problemData, int week)
         {
             data = problemData;

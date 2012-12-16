@@ -42,10 +42,7 @@ namespace SchedulerProject.UserInterface
         {
             using (var brush = new SolidBrush(ForeColor))
             {
-                var subject = _data.Subjects.First(s => s.Id == assignment.Event.SubjectId);
-                var lecturer = _data.Lecturers.First(l => l.Id == assignment.Event.LecturerId);
-                var room = assignment.Room;
-                g.DrawString(subject + "\n" + lecturer + "\n" + room,
+                g.DrawString(assignment.ToString(_data),
                             Font, brush,
                             rect,
                             new StringFormat()
@@ -58,12 +55,17 @@ namespace SchedulerProject.UserInterface
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            //TODO: join areas if needed
-            if (SelectedFirstWeekAssignment != null)
-                DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height / 2));
-            e.Graphics.DrawLine(Pens.White, 0, Height / 2, Width, Height / 2);
-            if (SelectedSecondWeekAssignment != null)
-                DrawAssignment(SelectedSecondWeekAssignment, e.Graphics, new Rectangle(0, Height / 2, Width, Height / 2));
+            if (SelectedFirstWeekAssignment != null && SelectedSecondWeekAssignment != null && 
+                SelectedFirstWeekAssignment.ToString(_data) == SelectedSecondWeekAssignment.ToString(_data))
+                DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height));
+            else
+            {
+                if (SelectedFirstWeekAssignment != null)
+                    DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height / 2));
+                e.Graphics.DrawLine(Pens.White, 0, Height / 2, Width, Height / 2);
+                if (SelectedSecondWeekAssignment != null)
+                    DrawAssignment(SelectedSecondWeekAssignment, e.Graphics, new Rectangle(0, Height / 2, Width, Height / 2));
+            }
             base.OnPaint(e);
         }
     }
