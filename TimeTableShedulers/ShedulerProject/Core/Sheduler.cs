@@ -8,8 +8,8 @@ namespace SchedulerProject.Core
     static class Scheduler
     {
         const int ANTS_NUMBER = 10;
-        const int DEFAULT_MAX_STEPS = 100;
-        const int MAX_ITER = 500;
+        const int DEFAULT_MAX_STEPS = 250;
+        const int MAX_ITER = 30;
         const double EVAPORATION = 0.1;
         const double MIN_PHERAMONE = 0.3;
 

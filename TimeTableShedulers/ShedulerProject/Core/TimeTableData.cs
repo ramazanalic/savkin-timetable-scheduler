@@ -104,11 +104,11 @@ namespace SchedulerProject.Core
             var partition = from e in Events
                             where e.OnceInTwoWeeks
                             group e by e.SubjectId into gr
-                            let events = gr.Shuffle(r)
+                            let events = gr.Shuffle(r).ToArray()
                             select new
                             {
-                                First = events.Take(gr.Count() / 2),
-                                Second = events.Skip(gr.Count() / 2)
+                                First = events.Take(events.Length / 2),
+                                Second = events.Skip(events.Length / 2)
                             };
 
             var onlyFirstWeekEvents = new List<Event>();
@@ -172,36 +172,50 @@ namespace SchedulerProject.Core
             }
         }
 
+        IEnumerable<TimeConstraints> EventConstraints(Event e)
+        {
+            return new [] 
+            { 
+                e.HardAssignedRoom == -1 ? null : Rooms.First(r => r.Id == e.HardAssignedRoom).TimeConstraints,
+                Lecturers.First(r => r.Id == e.LecturerId).TimeConstraints
+            }
+            .Where(c => c != null);
+        }
+
         void PrepareSuitableTimeSlots()
         {
             suitableTimeSlots = new Dictionary<int, bool[]>();
             foreach (var e in Events)
             {
                 suitableTimeSlots.Add(e.Id, new bool[TotalTimeSlots]);
+
+                var events = Events.Where(ev => ev.SubjectId != e.SubjectId && 
+                                                ev.LecturerId != e.LecturerId)
+                                   .ToArray();
+
+                var groupsConstraintsQuery = from gid in e.Groups
+                                             from eid in groupEvents[gid]
+                                             let ev = events.FirstOrDefault(ev => ev.Id == eid)
+                                             from constraints in ev == null ? Enumerable.Empty<TimeConstraints>() : EventConstraints(ev)
+                                             select constraints;
+
+                var groupsConstraints = groupsConstraintsQuery.ToArray();
+                var eventConstraints = EventConstraints(e).ToArray();
+
+                
                 var slotId = 0;
-
-                TimeConstraints roomConstraints = null;
-                if (e.HardAssignedRoom != -1)
-                {
-                    roomConstraints = Rooms.First(r => r.Id == e.HardAssignedRoom).TimeConstraints;
-                }
-
-                var lecturerConstraints = Lecturers.First(r => r.Id == e.LecturerId).TimeConstraints;
-
+                // set direct impossible timeslots
                 foreach (var timeSlot in TimeSlot.EnumerateAll(Days, SlotsPerDay))
                 {
-                    var suitable = true;
-                    if (roomConstraints != null && 
-                        (roomConstraints[TimeConstraintType.Impossible].Contains(timeSlot) ||
-                         !roomConstraints[TimeConstraintType.Necessary].Contains(timeSlot)))
-                        suitable = false;
+                    var suitableForEvent = eventConstraints.All(c => !c[TimeConstraintType.Impossible].Contains(timeSlot) &&
+                                                                     (c[TimeConstraintType.Necessary].Count() == 0 ||
+                                                                      c[TimeConstraintType.Necessary].Contains(timeSlot)));
 
-                    if (lecturerConstraints != null && 
-                        (lecturerConstraints[TimeConstraintType.Impossible].Contains(timeSlot) ||
-                         !lecturerConstraints[TimeConstraintType.Necessary].Contains(timeSlot)))
-                        suitable = false;
+                    var suitableForGroups = groupsConstraints.All(c => c[TimeConstraintType.Necessary].Count() == 0 ||
+                                                                       !c[TimeConstraintType.Necessary].Contains(timeSlot));
 
-                    suitableTimeSlots[e.Id][slotId++] = suitable;
+
+                    suitableTimeSlots[e.Id][slotId++] = suitableForEvent && suitableForGroups;
                 }
             }
         }
