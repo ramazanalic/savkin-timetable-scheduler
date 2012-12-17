@@ -57,8 +57,9 @@ namespace SchedulerProject.Core
 
         Dictionary<Event, EventAssignment> assignments = new Dictionary<Event, EventAssignment>();
 
-        public void AddAssignment(Event e, Room r, TimeSlot slot, int week)
+        public void AddAssignment(WeeklyEventAssignment assignment)
         {
+            Event e = assignment.Event;
             EventAssignment current;
             if (!assignments.TryGetValue(e, out current))
             {
@@ -66,9 +67,7 @@ namespace SchedulerProject.Core
                 assignments.Add(e, current);
             }
 
-            var assignment = new WeeklyEventAssignment(e, r, slot, week);
-
-            if (week == 1)
+            if (assignment.Week == 1)
                 current.FirstWeekAssignment = assignment;
             else
                 current.SecondWeekAssignment = assignment;

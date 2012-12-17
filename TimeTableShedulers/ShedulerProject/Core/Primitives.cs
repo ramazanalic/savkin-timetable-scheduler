@@ -190,6 +190,7 @@ namespace SchedulerProject.Core
             destination.RoomType = RoomType;
             destination.Groups = Groups.AsEnumerable().ToArray();
             destination.OnceInTwoWeeks = OnceInTwoWeeks;
+            destination.HardAssignedRoom = HardAssignedRoom;
         }
 
         protected override string StringRepresentation()
