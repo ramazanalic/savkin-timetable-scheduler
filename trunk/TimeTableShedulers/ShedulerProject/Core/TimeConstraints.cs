@@ -17,6 +17,20 @@ namespace SchedulerProject.Core
             }
         }
 
+        public static int ToId(TimeSlot timeSlot, int daysCount, int slotsCount)
+        {
+            if (daysCount <= 0)
+                throw new ArgumentException("daysCount");
+            if (slotsCount <= 0)
+                throw new ArgumentException("slotsCount");
+
+            if (timeSlot.Day > daysCount || timeSlot.Slot > slotsCount)
+                throw new ArgumentException("timeSlot");
+
+            return (timeSlot.Day - 1) * slotsCount + (timeSlot.Slot - 1);
+        }
+
+
         public static TimeSlot FromId(int id, int daysCount, int slotsCount)
         {
             if (daysCount <= 0)

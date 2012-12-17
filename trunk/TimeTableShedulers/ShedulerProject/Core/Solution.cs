@@ -24,8 +24,12 @@ namespace SchedulerProject.Core
         public int scv;   // keeps the number of soft constraint violations (ComputeScv() has to be called)
         public int hcv;  // keeps the number of hard constraint violations (computeHcv() has to be called)
 
+
+        public bool DoHcvCheckBeforeRoomAssignment = false;
+
         Event[] events;
         int eventsCount;
+        int week;
 
         // CHECK CORRECTNESS AND PERFORMANCE !!!
         // 
@@ -37,7 +41,9 @@ namespace SchedulerProject.Core
             dest.hcv = this.hcv;
             dest.events = this.events;
             dest.eventsCount = this.eventsCount;
+            dest.week = week;
             dest.result = this.result.AsEnumerable().ToArray();
+            dest.DoHcvCheckBeforeRoomAssignment = this.DoHcvCheckBeforeRoomAssignment;
             dest.timeslot_events = this.timeslot_events
                                     .AsEnumerable()
                                     .ToDictionary(kvp => kvp.Key,
@@ -59,12 +65,29 @@ namespace SchedulerProject.Core
             rg = new Random();
             events = data.GetWeekEvents(week);
             eventsCount = events.Length;
+            this.week = week;
             result = new InternalEventAssignment[eventsCount];
             for (int t = 0; t < data.TotalTimeSlots; t++)
                 timeslot_events.Add(t, new List<int>());
             for (int i = 0; i < result.Length; i++)
             {
                 result[i].RoomId = result[i].TimeSlotId = -1;
+            }
+        }
+
+        public WeeklyEventAssignment[] ScheduledWeeklyAssignments
+        {
+            get
+            {
+                return result.Select((a, i) =>
+                {
+                    Event ev = data.Events.First(e => e.Id == data.GetWeekEvents(week)[i].Id);
+                    Room room = data.Rooms.First(r => r.Id == a.RoomId);
+                    TimeSlot slot = TimeSlot.FromId(a.TimeSlotId,
+                                                    data.Days, data.SlotsPerDay);
+
+                    return new WeeklyEventAssignment(ev, room, slot, week);
+                }).ToArray();
             }
         }
 
@@ -396,6 +419,9 @@ namespace SchedulerProject.Core
                                 double prob1 = 1.0, double prob2 = 0.9, double prob3 = 0.1)
         {
             // TODO: Refactoring needed
+            //int stries = 0, schanges = 0, rschanges = 0;
+            //int dtries = 0, dchanges = 0, rdchanges = 0;
+
 
             // perform local search with given time limit and probabilities for each type of move
             int[] eventList = new int[eventsCount]; // keep a list of events to go through
@@ -455,13 +481,22 @@ namespace SchedulerProject.Core
 
                             Solution neighbourSolution = new Solution();
                             this.CopyTo(neighbourSolution);
+                            //stries++;
 
                             neighbourSolution.Move1(eventList[i], t);
                             neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) + neighbourSolution.affectedRoomInTimeslotHcv(t_orig);
                             currentAffectedHcv = eventAffectedHcv(eventList[i]) + affectedRoomInTimeslotHcv(t);
                             if (neighbourAffectedHcv < currentAffectedHcv)
                             {
-                                 neighbourSolution.CopyTo(this);
+                                //computeHcv();
+                                //var tmp = hcv;
+                                neighbourSolution.CopyTo(this);
+                                //computeHcv();
+                                //if (tmp < hcv)
+                                //{
+                                    //rschanges++;
+                                //}
+                                //schanges++;
                                 evCount = 0;
                                 foundbetter = true;
                                 break;
@@ -490,6 +525,7 @@ namespace SchedulerProject.Core
 
                                 Solution neighbourSolution = new Solution();
                                 this.CopyTo(neighbourSolution);
+                                //dtries++;
                                 neighbourSolution.Move2(eventList[i], eventList[j]);
 
                                 neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) + 
@@ -497,7 +533,15 @@ namespace SchedulerProject.Core
                                 currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]);
                                 if (neighbourAffectedHcv < currentAffectedHcv)
                                 {
-                                     neighbourSolution.CopyTo(this);
+                                    computeHcv();
+                                    var tmp = hcv;
+                                    neighbourSolution.CopyTo(this);
+                                    computeHcv();
+                                    //if (tmp < hcv)
+                                    //{
+                                    //    rdchanges++;
+                                    //}
+                                    //dchanges++;
                                     evCount = 0;
                                     foundbetter = true;
                                     break;
@@ -602,6 +646,10 @@ namespace SchedulerProject.Core
                 }
             }
 
+            //Console.WriteLine("S - Tries: {0}, Changes: {1}, Succesfull: {1}, Percent: {2}", 
+            //    stries, schanges, rschanges, (float)schanges / stries);
+            //Console.WriteLine("D - Tries: {0}, Changes: {1}, Succesfull: {1}, Percent: {2}",
+            //    dtries, dchanges, rdchanges, (float)dchanges / dtries);
             computeFeasibility();
 
 #if FALSE // TODO: try to resolve soft constraits violations
@@ -848,21 +896,20 @@ namespace SchedulerProject.Core
         }
 
         int[] roomsAssignmentCounters;
+
         /// <summary>
         /// Assign rooms to events for timeslot t (first apply matching algorithm and then assign unplaced rooms).
         /// </summary>
         void assignRooms(int t)
         {
-            //// stupid random
-            //foreach (int e in timeslot_events[t])
-            //{
-            //    result[e].RoomId = (int)(rg.NextDouble() * data.Rooms.Length);
-            //}
+            if (DoHcvCheckBeforeRoomAssignment && affectedRoomInTimeslotHcv(t) == 0)
+                return;
+
             int eventsCount = timeslot_events[t].Count;            
             var x = HopcroftKarpMatching(MakeGraph(t), eventsCount);
 
             roomsAssignmentCounters = new int[data.Rooms.Length];
-            //roomsAssignmentCounters.Initialize();
+
             for (int e = 0; e < eventsCount; e++)
             {
                 if (x[e] != NIL_VERT_ID)

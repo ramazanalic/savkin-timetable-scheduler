@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SchedulerInput id="BE-DC-58-26-99-C7-C0-4F-7F-E3" days="6" slots_per_day="5">
+<SchedulerInput id="6F-52-3B-3B-3B-46-5C-43-55-16" days="6" slots_per_day="5">
   <Rooms>
-    <Room id="48" house_n="24" class_n="фп1" type="Assigned" />
     <Room id="1" house_n="15" class_n="015/2" type="Lecture" />
     <Room id="2" house_n="14" class_n="76" type="Practice" />
     <Room id="3" house_n="15" class_n="117/2" type="Laboratory" />
@@ -47,8 +46,9 @@
     <Room id="43" house_n="7" class_n="325" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [];&#xA;Necessary [(3 - 2),(3 - 3)];&#xA;]" type="Laboratory" />
     <Room id="44" house_n="7" class_n="238" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [];&#xA;Necessary [(5 - 2),(5 - 3)];&#xA;]" type="Laboratory" />
     <Room id="45" house_n="7" class_n="336" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [];&#xA;Necessary [(5 - 3)];&#xA;]" type="Laboratory" />
-    <Room id="49" house_n="24" class_n="фп2" type="Assigned" />
     <Room id="47" house_n="22" class_n="322" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [(1 - 1),(1 - 3),(1 - 5),(2 - 1),(2 - 2),(2 - 3),(2 - 4),(2 - 5),(3 - 1),(3 - 2),(3 - 3),(3 - 4),(3 - 5),(4 - 3),(4 - 4),(4 - 5),(5 - 1),(5 - 2),(5 - 3),(5 - 4),(5 - 5),(6 - 1),(6 - 2),(6 - 3),(6 - 4),(6 - 5)];&#xA;Necessary [];&#xA;]" type="Assigned" />
+    <Room id="48" house_n="24" class_n="фп1" type="Assigned" />
+    <Room id="49" house_n="24" class_n="фп2" type="Assigned" />
     <Room id="50" house_n="24" class_n="фп3" type="Assigned" />
     <Room id="51" house_n="24" class_n="фп4" type="Assigned" />
     <Room id="52" house_n="24" class_n="фп5" type="Assigned" />
@@ -78,7 +78,7 @@
     <Room id="76" house_n="30" class_n="военка-4-курс-4" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [];&#xA;Necessary [(1 - 4)];&#xA;]" type="Assigned" />
     <Room id="77" house_n="30" class_n="военка-3-курс-5" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [];&#xA;Necessary [(5 - 5)];&#xA;]" type="Assigned" />
     <Room id="78" house_n="30" class_n="военка-4-курс-5" time_constraints="[&#xA;Desirible [];&#xA;Undesirible [];&#xA;Impossible [];&#xA;Necessary [(1 - 5)];&#xA;]" type="Assigned" />
-
+    <Room id="79" house_n="19" class_n="515" type="Practice" />
   </Rooms>
   <Groups>
     <Course number="4">
@@ -406,7 +406,44 @@
       <Event id="14" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="192" />
       <Event id="15" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="192" />
     </Subject>
-    <Subject id="9" name="Англійська мова" lecturer_id="" />
+    <Subject id="9" name="Англійська мова" lecturer_id="">
+      <Event id="435" type="Practice" groups="15" lecturer_id="87" />
+      <Event id="436" type="Practice" groups="16" lecturer_id="87" />
+      <Event id="437" type="Practice" groups="13" lecturer_id="87" />
+      <Event id="438" type="Practice" groups="19" lecturer_id="87" />
+      <Event id="439" type="Practice" groups="5" lecturer_id="87" />
+      <Event id="440" type="Practice" groups="0" lecturer_id="87" />
+      <Event id="441" type="Practice" groups="29" lecturer_id="87" />
+      <Event id="442" type="Practice" groups="17" lecturer_id="87" />
+      <Event id="443" type="Practice" groups="14" lecturer_id="87" />
+      <Event id="444" type="Practice" groups="2" lecturer_id="87" />
+      <Event id="445" type="Practice" groups="12" lecturer_id="87" />
+      <Event id="446" type="Practice" groups="32" lecturer_id="175" />
+      <Event id="447" type="Practice" groups="18" lecturer_id="175" />
+      <Event id="448" type="Practice" groups="1" lecturer_id="175" />
+      <Event id="449" type="Practice" groups="11" lecturer_id="175" />
+      <Event id="450" type="Practice" groups="9" lecturer_id="216" />
+      <Event id="451" type="Practice" groups="21,24,25" lecturer_id="216" />
+      <Event id="452" type="Practice" groups="36" lecturer_id="216" />
+      <Event id="453" type="Practice" groups="20" lecturer_id="216" />
+      <Event id="454" type="Practice" groups="26" lecturer_id="216" />
+      <Event id="455" type="Practice" groups="8" lecturer_id="216" />
+      <Event id="456" type="Practice" groups="3" lecturer_id="216" />
+      <Event id="457" type="Practice" groups="10" lecturer_id="216" />
+      <Event id="458" type="Practice" groups="27,28" lecturer_id="216" />
+      <Event id="459" type="Practice" groups="26" lecturer_id="216" />
+      <Event id="460" type="Practice" groups="37" lecturer_id="127" />
+      <Event id="461" type="Practice" groups="22,23" lecturer_id="127" />
+      <Event id="462" type="Practice" groups="35" lecturer_id="127" />
+      <Event id="463" type="Practice" groups="33" lecturer_id="127" />
+      <Event id="464" type="Practice" groups="23" lecturer_id="127" />
+      <Event id="465" type="Practice" groups="4" lecturer_id="127" />
+      <Event id="466" type="Practice" groups="31" lecturer_id="127" />
+      <Event id="467" type="Practice" groups="31" lecturer_id="127" />
+      <Event id="468" type="Practice" groups="29,30,31" lecturer_id="127" />
+      <Event id="469" type="Practice" groups="33" lecturer_id="127" />
+      <Event id="470" type="Practice" groups="30" lecturer_id="127" />
+    </Subject>
     <Subject id="10" name="Архітектура і проектування комп'ютерних систем" lecturer_id="" />
     <Subject id="11" name="Архітектура комп'ютерів" lecturer_id="">
       <Event id="16" type="Lecture" groups="18,19,20" lecturer_id="155" />
@@ -659,7 +696,32 @@
       <Event id="153" type="Practice" groups="4" once_in_two_weeks="true" lecturer_id="98" />
       <Event id="154" type="Practice" groups="5" once_in_two_weeks="true" lecturer_id="98" />
     </Subject>
-    <Subject id="79" name="Математичний аналіз" lecturer_id="" />
+    <Subject id="79" name="Математичний аналіз" lecturer_id="">
+      <Event id="411" type="Lecture" groups="32,33" lecturer_id="14" />
+      <Event id="412" type="Practice" groups="32" lecturer_id="14" />
+      <Event id="413" type="Practice" groups="33" lecturer_id="14" />
+      <Event id="414" type="Practice" groups="2" lecturer_id="14" />
+      <Event id="415" type="Practice" groups="1" lecturer_id="14" />
+      <Event id="416" type="Practice" groups="1" once_in_two_weeks="true" lecturer_id="14" />
+      <Event id="417" type="Practice" groups="2" once_in_two_weeks="true" lecturer_id="14" />
+      <Event id="418" type="Lecture" groups="29,30,31" lecturer_id="124" />
+      <Event id="419" type="Practice" groups="29" lecturer_id="124" />
+      <Event id="420" type="Lecture" groups="2" lecturer_id="182" />
+      <Event id="421" type="Lecture" groups="1" lecturer_id="182" />
+      <Event id="422" type="Practice" groups="30" lecturer_id="205" />
+      <Event id="423" type="Practice" groups="31" lecturer_id="205" />
+      <Event id="424" type="Practice" groups="12" lecturer_id="171" />
+      <Event id="425" type="Practice" groups="11" lecturer_id="171" />
+      <Event id="426" type="Practice" groups="12" once_in_two_weeks="true" lecturer_id="171" />
+      <Event id="427" type="Practice" groups="11" once_in_two_weeks="true" lecturer_id="171" />
+      <Event id="428" type="Lecture" groups="13,12,11" lecturer_id="111" />
+      <Event id="429" type="Lecture" groups="11,12,13" once_in_two_weeks="true" lecturer_id="111" />
+      <Event id="430" type="Practice" groups="13" lecturer_id="111" />
+      <Event id="431" type="Practice" groups="13" once_in_two_weeks="true" lecturer_id="111" />
+      <Event id="432" type="Lecture" groups="15,14" lecturer_id="212" />
+      <Event id="433" type="Practice" groups="15" lecturer_id="212" />
+      <Event id="434" type="Practice" groups="14" lecturer_id="212" />
+    </Subject>
     <Subject id="80" name="Математичні методи оптимізації" lecturer_id="" />
     <Subject id="81" name="Математичні моделі" lecturer_id="" />
     <Subject id="82" name="Менеджмент" lecturer_id="" />
@@ -667,7 +729,7 @@
     <Subject id="84" name="Менеджмент проектів ПЗ" lecturer_id="">
       <Event id="155" type="Lecture" groups="3" lecturer_id="109" />
       <Event id="156" type="Practice" groups="3" once_in_two_weeks="true" lecturer_id="109" />
-      <Event id="157" type="Laboratory" groups="3" once_in_two_weeks="true" lecturer_id="17" />
+      <Event id="157" type="Laboratory" groups="3" once_in_two_weeks="true" lecturer_id="109" />
     </Subject>
     <Subject id="85" name="Мережі ЕОМ" lecturer_id="" />
     <Subject id="86" name="Мережні інформаційні технології" lecturer_id="" />
@@ -794,12 +856,12 @@
     </Subject>
     <Subject id="120" name="Основи охорони праці" lecturer_id="">
       <Event id="226" type="Lecture" groups="0,4,5,18,19,20" lecturer_id="105" />
-      <Event id="227" type="Assigned" groups="0" once_in_two_weeks="true" hard_assigned_room="41" lecturer_id="105" />
-      <Event id="228" type="Assigned" groups="4" once_in_two_weeks="true" hard_assigned_room="41" lecturer_id="105" />
-      <Event id="229" type="Assigned" groups="5" once_in_two_weeks="true" hard_assigned_room="41" lecturer_id="105" />
-      <Event id="230" type="Assigned" groups="18" once_in_two_weeks="true" hard_assigned_room="41" lecturer_id="105" />
-      <Event id="231" type="Assigned" groups="19" once_in_two_weeks="true" hard_assigned_room="41" lecturer_id="105" />
-      <Event id="232" type="Assigned" groups="20" once_in_two_weeks="true" hard_assigned_room="41" lecturer_id="105" />
+      <Event id="227" type="Assigned" groups="0" hard_assigned_room="41" once_in_two_weeks="true" lecturer_id="105" />
+      <Event id="228" type="Assigned" groups="4" hard_assigned_room="41" once_in_two_weeks="true" lecturer_id="105" />
+      <Event id="229" type="Assigned" groups="5" hard_assigned_room="41" once_in_two_weeks="true" lecturer_id="105" />
+      <Event id="230" type="Assigned" groups="18" hard_assigned_room="41" once_in_two_weeks="true" lecturer_id="105" />
+      <Event id="231" type="Assigned" groups="19" hard_assigned_room="41" once_in_two_weeks="true" lecturer_id="105" />
+      <Event id="232" type="Assigned" groups="20" hard_assigned_room="41" once_in_two_weeks="true" lecturer_id="105" />
     </Subject>
     <Subject id="121" name="Основи підприємництва" lecturer_id="" />
     <Subject id="122" name="Основи програмної інженерії" lecturer_id="">
