@@ -97,9 +97,21 @@ namespace SchedulerProject.Core
             return suitableTimeSlots[eventId][slotId];
         }
 
+        int[] orderedEveryWeekIds;
+
+        public bool IsEveryWeekEvent(int id)
+        {
+            return Array.BinarySearch(orderedEveryWeekIds, id) >= 0;
+        }
+
         void PrepareWeeklyPartition()
         {
             var r = new Random();
+
+            orderedEveryWeekIds = Events.Where(e => !e.OnceInTwoWeeks)
+                                        .Select(e => e.Id)
+                                        .OrderBy(id => id)
+                                        .ToArray();
 
             var partition = from e in Events
                             where e.OnceInTwoWeeks

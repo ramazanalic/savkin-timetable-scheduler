@@ -7,11 +7,10 @@ namespace SchedulerProject.Core
 {
     static class Scheduler
     {
-        const int ANTS_NUMBER = 10;
-        const int DEFAULT_MAX_STEPS = 250;
-        const int MAX_ITER = 30;
-        const double EVAPORATION = 0.05;
-        const double MIN_PHERAMONE = 0.3;
+        static int ANTS_NUMBER = 10;
+        static int DEFAULT_MAX_STEPS = 300;
+        static double EVAPORATION = 0.05;
+        static double MIN_PHERAMONE = 0.3;
 
         static public TimeTable Shedule(TimeTableData problemData)
         {
@@ -23,6 +22,8 @@ namespace SchedulerProject.Core
             Console.WriteLine(sw.ElapsedMilliseconds + " ms");
 
             var firstWeekAssignments = firstWeekSolution.ScheduledWeeklyAssignments;
+            
+            DEFAULT_MAX_STEPS = 600;
 
             sw.Start();
             // try to partially apply the first week solution to the second one
@@ -61,11 +62,11 @@ namespace SchedulerProject.Core
             bestSoFarSolution.computeHcv();
 
             int i = 0;
-
-            while (bestSoFarSolution.hcv > 0)
+            int lastImprIter = 0;
+            while (bestSoFarSolution.hcv != 0 && i - lastImprIter < 200)
             {
                 Solution bestIterSolution = Enumerable.Range(0, ANTS_NUMBER)
-                                                      //.AsParallel()
+                                                      .AsParallel()
                                                       .Select(_ => 
                                                       {
                                                           var ant = new Ant(timeTable, mmasData, week);
@@ -78,7 +79,9 @@ namespace SchedulerProject.Core
                 // apply local search until local optimum is reached or a time limit reached
                 //bestIterSolution.computeHcv();
                 //Console.WriteLine("before LS: " + bestIterSolution.hcv);
-                bestIterSolution.DoHcvCheckBeforeRoomAssignment = guidingAssignments != null;
+                bestIterSolution.ResolveSecondWeek = guidingAssignments != null;
+                if (bestIterSolution.ResolveSecondWeek)
+                    DEFAULT_MAX_STEPS = Math.Min(DEFAULT_MAX_STEPS + 100, 5000);
                 bestIterSolution.localSearch(DEFAULT_MAX_STEPS);
                 //bestIterSolution.computeHcv();
                 //Console.WriteLine("after LS: " + bestIterSolution.hcv);
@@ -100,10 +103,11 @@ namespace SchedulerProject.Core
                 else
                 {
                     bestIterSolution.computeHcv();
-                    if (bestIterSolution.hcv <= bestSoFarSolution.hcv)
+                    if (bestIterSolution.hcv < bestSoFarSolution.hcv)
                     {
                         bestIterSolution.CopyTo(bestSoFarSolution);
                         bestSoFarSolution.scv = int.MaxValue;
+                        lastImprIter = i;
                     }
                 }
 
@@ -111,11 +115,26 @@ namespace SchedulerProject.Core
                 mmasData.EvaporatePheromone();
                 mmasData.SetPheromoneLimits();
                 mmasData.DepositPheromone(bestSoFarSolution);
-                bestSoFarSolution.computeHcv();
-                Console.WriteLine("iter: " + i++ + ", HCV: " + bestSoFarSolution.hcv);
+                //bestSoFarSolution.computeHcv();
+                i++;
+                Console.WriteLine("iter: " + i + ", HCV: " + bestSoFarSolution.hcv);
             }
 
+            bestSoFarSolution.computeFeasibility();
+            if (!bestSoFarSolution.feasible)
+                TryResolveHcv(bestSoFarSolution);
+
+            bestSoFarSolution.computeHcv();
+            //System.Windows.Forms.MessageBox.Show(bestSoFarSolution.hcv.ToString());
+            //Console.WriteLine("HCV: " + bestSoFarSolution.hcv);
+
             return bestSoFarSolution;
+        }
+
+        static void TryResolveHcv(Solution solution)
+        {
+            solution.ResolveSecondWeek = true;
+            solution.localSearch(20000, 1.0, 1.0, 1.0);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace SchedulerProject.Core
         public int hcv;  // keeps the number of hard constraint violations (computeHcv() has to be called)
 
 
-        public bool DoHcvCheckBeforeRoomAssignment = false;
+        public bool ResolveSecondWeek = false;
 
         Event[] events;
         int eventsCount;
@@ -43,7 +43,7 @@ namespace SchedulerProject.Core
             dest.eventsCount = this.eventsCount;
             dest.week = week;
             dest.result = this.result.AsEnumerable().ToArray();
-            dest.DoHcvCheckBeforeRoomAssignment = this.DoHcvCheckBeforeRoomAssignment;
+            dest.ResolveSecondWeek = this.ResolveSecondWeek;
             dest.timeslot_events = this.timeslot_events
                                     .AsEnumerable()
                                     .ToDictionary(kvp => kvp.Key,
@@ -328,10 +328,13 @@ namespace SchedulerProject.Core
         /// <summary>
         /// Move event e to timeslot t (type 1 move).
         /// </summary>
-        void Move1(int e, int t)
+        bool Move1(int e, int t)
         {
+            if (ResolveSecondWeek && data.IsEveryWeekEvent(e))
+                return false;
+
             if (!data.SuitableTimeSlot(events[e].Id, t))
-                return;
+                return false;
 
 	        //move event e to timeslot t
 	        int prevSlot = result[e].TimeSlotId;
@@ -351,20 +354,25 @@ namespace SchedulerProject.Core
 	        {
 		        assignRooms(prevSlot);
 	        }
+
+            return true;
         }
 
         /// <summary>
         /// Swaps events e1 and e2 (type 2 move).
         /// </summary>
-        void Move2(int e1, int e2)
+        bool Move2(int e1, int e2)
         {
+            if (ResolveSecondWeek && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2)))
+                return false;
+
 	        //swap timeslots between event e1 and event e2
             int t1 = result[e1].TimeSlotId,
                 t2 = result[e2].TimeSlotId;
 
             if (!data.SuitableTimeSlot(events[e1].Id, t2) ||
                 !data.SuitableTimeSlot(events[e2].Id, t1))
-                return;
+                return false;
 
 	        result[e1].TimeSlotId = t2;
 	        result[e2].TimeSlotId = t1;
@@ -374,15 +382,20 @@ namespace SchedulerProject.Core
 
 	        assignRooms(result[e1].TimeSlotId);
 	        assignRooms(result[e2].TimeSlotId);
+
+            return true;
         }
 
         /// <summary>
         /// 3-cycle permutation of events e1, e2 and e3 (type 3 move).
         /// </summary>
-        void Move3(int e1, int e2, int e3)
+        bool Move3(int e1, int e2, int e3)
         {
 	        // permute event e1, e2, and e3 in a 3-cycle
             
+            if (ResolveSecondWeek && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2) || data.IsEveryWeekEvent(e3)))
+                return false;
+
             int t1 = result[e1].TimeSlotId,
                 t2 = result[e2].TimeSlotId,
                 t3 = result[e3].TimeSlotId;
@@ -390,7 +403,7 @@ namespace SchedulerProject.Core
             if (!data.SuitableTimeSlot(events[e1].Id, t2) ||
                 !data.SuitableTimeSlot(events[e2].Id, t3) ||
                 !data.SuitableTimeSlot(events[e3].Id, t1))
-                return;
+                return false;
 
 	        result[e1].TimeSlotId = t2;
 	        result[e2].TimeSlotId = t3;
@@ -403,6 +416,8 @@ namespace SchedulerProject.Core
 	        assignRooms(result[e1].TimeSlotId);
 	        assignRooms(result[e2].TimeSlotId);
 	        assignRooms(result[e3].TimeSlotId);
+
+            return true;
         }
 
         void ReplaceEvent(int timeSlot, int currEvent, int newEvent)
@@ -415,8 +430,7 @@ namespace SchedulerProject.Core
         /// <summary>
         /// Apply local search with the given parameters.
         /// </summary>
-        public void localSearch(int maxSteps, double LS_limit = 999999,
-                                double prob1 = 1.0, double prob2 = 0.9, double prob3 = 0.1)
+        public void localSearch(int maxSteps, double prob1 = 1.0, double prob2 = 0.9, double prob3 = 0.4)
         {
             // TODO: Refactoring needed
             //int stries = 0, schanges = 0, rschanges = 0;
@@ -476,30 +490,31 @@ namespace SchedulerProject.Core
                         }
 
                         if (rg.NextDouble() < prob1)
-                        {			// with given probability
-                            stepCount++;
-
+                        {
                             Solution neighbourSolution = new Solution();
                             this.CopyTo(neighbourSolution);
                             //stries++;
 
-                            neighbourSolution.Move1(eventList[i], t);
-                            neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) + neighbourSolution.affectedRoomInTimeslotHcv(t_orig);
-                            currentAffectedHcv = eventAffectedHcv(eventList[i]) + affectedRoomInTimeslotHcv(t);
-                            if (neighbourAffectedHcv < currentAffectedHcv)
+                            if (neighbourSolution.Move1(eventList[i], t))
                             {
-                                //computeHcv();
-                                //var tmp = hcv;
-                                neighbourSolution.CopyTo(this);
-                                //computeHcv();
-                                //if (tmp < hcv)
-                                //{
+                                stepCount++;
+                                neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) + neighbourSolution.affectedRoomInTimeslotHcv(t_orig);
+                                currentAffectedHcv = eventAffectedHcv(eventList[i]) + affectedRoomInTimeslotHcv(t);
+                                if (neighbourAffectedHcv < currentAffectedHcv)
+                                {
+                                    //computeHcv();
+                                    //var tmp = hcv;
+                                    neighbourSolution.CopyTo(this);
+                                    //computeHcv();
+                                    //if (tmp < hcv)
+                                    //{
                                     //rschanges++;
-                                //}
-                                //schanges++;
-                                evCount = 0;
-                                foundbetter = true;
-                                break;
+                                    //}
+                                    //schanges++;
+                                    evCount = 0;
+                                    foundbetter = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -520,31 +535,31 @@ namespace SchedulerProject.Core
                             }
 
                             if (rg.NextDouble() < prob2)
-                            {		// with given probability
-                                stepCount++;
-
+                            {
                                 Solution neighbourSolution = new Solution();
                                 this.CopyTo(neighbourSolution);
                                 //dtries++;
-                                neighbourSolution.Move2(eventList[i], eventList[j]);
-
-                                neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) + 
-                                                       neighbourSolution.eventAffectedHcv(eventList[j]);
-                                currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]);
-                                if (neighbourAffectedHcv < currentAffectedHcv)
+                                if (neighbourSolution.Move2(eventList[i], eventList[j]))
                                 {
-                                    computeHcv();
-                                    var tmp = hcv;
-                                    neighbourSolution.CopyTo(this);
-                                    computeHcv();
-                                    //if (tmp < hcv)
-                                    //{
-                                    //    rdchanges++;
-                                    //}
-                                    //dchanges++;
-                                    evCount = 0;
-                                    foundbetter = true;
-                                    break;
+                                    stepCount++;
+                                    neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) +
+                                                           neighbourSolution.eventAffectedHcv(eventList[j]);
+                                    currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]);
+                                    if (neighbourAffectedHcv < currentAffectedHcv)
+                                    {
+                                        computeHcv();
+                                        var tmp = hcv;
+                                        neighbourSolution.CopyTo(this);
+                                        computeHcv();
+                                        //if (tmp < hcv)
+                                        //{
+                                        //    rdchanges++;
+                                        //}
+                                        //dchanges++;
+                                        evCount = 0;
+                                        foundbetter = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -556,46 +571,45 @@ namespace SchedulerProject.Core
                         }
                     }
 
-#if FALSE // TODO: try to make Move3
                     if (prob3 != 0)
                     {
-                        for (int j = (i + 1) % data->n_of_events; j != i; j = (j + 1) % data->n_of_events)
+                        for (int j = (i + 1) % eventsCount; j != i; j = (j + 1) % eventsCount)
                         {			// try moves of type 3
                             if (stepCount > maxSteps)
                             {
                                 break;
                             }
 
-                            for (int k = (j + 1) % data->n_of_events; k != i; k = (k + 1) % data->n_of_events)
+                            for (int k = (j + 1) % eventsCount; k != i; k = (k + 1) % eventsCount)
                             {
                                 if (stepCount > maxSteps)
                                 {
                                     break;
                                 }
 
-                                if (rg->next() < prob3)
-                                {	// with given probability
-                                    stepCount++;
-                                    currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]) + eventAffectedHcv(eventList[k]);
-
-                                    Solution* neighbourSolution = new Solution(data, rg);
-                                    neighbourSolution->copy(this);
-                                    neighbourSolution->Move3(eventList[i], eventList[j], eventList[k]); //try one of the to possible 3-cycle
-
-                                    //cout<< "event " << eventList[i] << " second event " << eventList[j] << " third event "<< eventList[k] << endl;
-                                    neighbourAffectedHcv = neighbourSolution->eventAffectedHcv(eventList[i]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[j]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[k]);
-                                    if (neighbourAffectedHcv < currentAffectedHcv)
+                                if (rg.NextDouble() < prob3)
+                                {
+                                    Solution neighbourSolution = new Solution();
+                                    this.CopyTo(neighbourSolution);
+                                    if (neighbourSolution.Move3(eventList[i], eventList[j], eventList[k])) //try one of the to possible 3-cycle
                                     {
-                                        copy(neighbourSolution);
-                                        delete neighbourSolution;
-                                        evCount = 0;
-                                        foundbetter = true;
-                                        break;
-                                    }
+                                        stepCount++;
+                                        currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]) + eventAffectedHcv(eventList[k]);
 
-                                    delete neighbourSolution;
+                                        neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) +
+                                            neighbourSolution.eventAffectedHcv(eventList[j]) +
+                                            neighbourSolution.eventAffectedHcv(eventList[k]);
+                                        if (neighbourAffectedHcv < currentAffectedHcv)
+                                        {
+                                            computeHcv();
+                                            var tmp = hcv;
+                                            neighbourSolution.CopyTo(this);
+                                            computeHcv();
+                                            evCount = 0;
+                                            foundbetter = true;
+                                            break;
+                                        }
+                                    }
                                 }
 
                                 if (stepCount > maxSteps)
@@ -603,29 +617,29 @@ namespace SchedulerProject.Core
                                     break;
                                 }
 
-                                if (rg->next() < prob3)
-                                {	// with given probability
-                                    stepCount++;
-                                    currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[k]) + eventAffectedHcv(eventList[j]);
-
-                                    Solution* neighbourSolution = new Solution(data, rg);
-                                    neighbourSolution->copy(this);
-                                    neighbourSolution->Move3(eventList[i], eventList[k], eventList[j]); //try one of the to possible 3-cycle
-
-                                    //cout<< "event " << eventList[i] << " second event " << eventList[j] << " third event "<< eventList[k] << endl;
-                                    neighbourAffectedHcv = neighbourSolution->eventAffectedHcv(eventList[i]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[k]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[j]);
-                                    if (neighbourAffectedHcv < currentAffectedHcv)
+                                if (rg.NextDouble() < prob3)
+                                {
+                                    Solution neighbourSolution = new Solution();
+                                    this.CopyTo(neighbourSolution);
+                                    if (neighbourSolution.Move3(eventList[i], eventList[k], eventList[j])) //try one of the to possible 3-cycle
                                     {
-                                        copy(neighbourSolution);
-                                        delete neighbourSolution;
-                                        evCount = 0;
-                                        foundbetter = true;
-                                        break;
-                                    }
+                                        stepCount++;
+                                        currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[k]) + eventAffectedHcv(eventList[j]);
 
-                                    delete neighbourSolution;
+                                        neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) +
+                                            neighbourSolution.eventAffectedHcv(eventList[k]) +
+                                            neighbourSolution.eventAffectedHcv(eventList[j]);
+                                        if (neighbourAffectedHcv < currentAffectedHcv)
+                                        {
+                                            computeHcv();
+                                            var tmp = hcv;
+                                            neighbourSolution.CopyTo(this);
+                                            computeHcv();
+                                            evCount = 0;
+                                            foundbetter = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
 
@@ -641,7 +655,6 @@ namespace SchedulerProject.Core
                             continue;
                         }
                     }
-#endif
                     evCount++;
                 }
             }
@@ -902,11 +915,11 @@ namespace SchedulerProject.Core
         /// </summary>
         void assignRooms(int t)
         {
-            if (DoHcvCheckBeforeRoomAssignment && affectedRoomInTimeslotHcv(t) == 0)
+            if (ResolveSecondWeek && affectedRoomInTimeslotHcv(t) == 0)
                 return;
 
-            int eventsCount = timeslot_events[t].Count;            
-            var x = HopcroftKarpMatching(MakeGraph(t), eventsCount);
+            int eventsCount = timeslot_events[t].Count;
+            var x = HopcroftKarpMatching(ResolveSecondWeek ? MakeGraphForSecondWeek(t) : MakeGraph(t), eventsCount);
 
             roomsAssignmentCounters = new int[data.Rooms.Length];
 
@@ -1036,19 +1049,49 @@ namespace SchedulerProject.Core
             var res = new bool[eventsCount + data.Rooms.Length + 1, eventsCount + data.Rooms.Length + 1];
             for (int e = 0; e < eventsCount; e++)
             {
-                //RoomType eventType = events[timeslot_events[timeslot][e]].RoomType;
                 Event ev = events[timeslot_events[timeslot][e]];
                 for (int r = 0; r < data.Rooms.Length; r++)
                 {
                     res[e, eventsCount + r] = res[eventsCount + r, e] = data.SuitableRoom(ev.Id, data.Rooms[r].Id);
-                    //if (eventType == data.Rooms[r].Type)
-                    //{
-                    //    res[e, eventsCount + r] = res[eventsCount + r, e] = true;
-                    //}
                 }
             }
             return res;
         }
+
+        bool[,] MakeGraphForSecondWeek(int timeslot)
+        {
+            int eventsCount = timeslot_events[timeslot].Count;
+            //verts 0..evenstCount - 1 - events verts ids
+            //verts eventsCount..eventsCount + data.Rooms.Count - 1 - rooms verts ids
+            //vert eventsCount + data.Rooms.Count - NULL vert
+            var res = new bool[eventsCount + data.Rooms.Length + 1, eventsCount + data.Rooms.Length + 1];
+            List<int> busyRooms = new List<int>();
+            for (int e = 0; e < eventsCount; e++)
+            {
+                Event ev = events[timeslot_events[timeslot][e]];
+                if (data.IsEveryWeekEvent(ev.Id))
+                {
+                    int suitableRoom = result[timeslot_events[timeslot][e]].RoomId;
+                    int roomIndex = Array.FindIndex(data.Rooms, r => r.Id == suitableRoom);
+                    res[e, eventsCount + roomIndex] = res[eventsCount + roomIndex, e] = true;
+                    busyRooms.Add(roomIndex);
+                }
+            }
+            
+            for (int e = 0; e < eventsCount; e++)
+            {
+                Event ev = events[timeslot_events[timeslot][e]];
+                if (!data.IsEveryWeekEvent(ev.Id))
+                {
+                    for (int r = 0; r < data.Rooms.Length; r++)
+                    {
+                        res[e, eventsCount + r] = res[eventsCount + r, e] =
+                            data.SuitableRoom(ev.Id, data.Rooms[r].Id) && !busyRooms.Contains(data.Rooms[r].Id);
+                    }
+                }
+            }
+            return res;
+        } 
 
         #endregion
     }

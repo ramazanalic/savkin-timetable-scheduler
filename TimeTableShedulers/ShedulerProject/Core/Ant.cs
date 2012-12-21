@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
@@ -65,6 +66,16 @@ namespace SchedulerProject.Core
                 {
                     var timeslot = GetTimeSlotId(e);
                     _solution.result[e].TimeSlotId = timeslot;
+                    int[] assignedRooms = existingAssignments
+                        .Where(a => TimeSlot.ToId(a.TimeSlot, _data.Days, _data.SlotsPerDay) == timeslot)                                                             
+                        .Select(a => a.Room.Id)
+                        .ToArray();
+                    _solution.result[e].RoomId = _data.Rooms.Where(r => _data.SuitableRoom(_events[e].Id, r.Id) &&
+                                                                        !assignedRooms.Contains(r.Id))
+                                                            .Select(r => r.Id)
+                                                            .Shuffle(_solution.rg)
+                                                            .DefaultIfEmpty(_data.Rooms[_solution.rg.Next(_data.Rooms.Length)].Id)
+                                                            .First(); 
                     _solution.timeslot_events[timeslot].Add(e);
                 }
             }
