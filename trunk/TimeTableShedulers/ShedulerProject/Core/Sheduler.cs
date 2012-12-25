@@ -18,7 +18,6 @@ namespace SchedulerProject.Core
             var sw = System.Diagnostics.Stopwatch.StartNew();
             Solution firstWeekSolution = Shedule(problemData, 1);
             sw.Stop();
-            System.Windows.Forms.MessageBox.Show(sw.ElapsedMilliseconds + " ms");
             Console.WriteLine(sw.ElapsedMilliseconds + " ms");
 
             var firstWeekAssignments = firstWeekSolution.ScheduledWeeklyAssignments;
@@ -29,7 +28,6 @@ namespace SchedulerProject.Core
             // try to partially apply the first week solution to the second one
             Solution secondWeekSolution = Shedule(problemData, 2, firstWeekAssignments);
             sw.Stop();
-            System.Windows.Forms.MessageBox.Show(sw.ElapsedMilliseconds + " ms");
             Console.WriteLine(sw.ElapsedMilliseconds + " ms");
 
             var secondWeekAssignments = secondWeekSolution.ScheduledWeeklyAssignments;
@@ -50,91 +48,76 @@ namespace SchedulerProject.Core
         {
             TimeTableData timeTable = problemData;
             MMASData mmasData = new MMASData(timeTable, week, EVAPORATION, MIN_PHERAMONE);
-            if (guidingAssignments == null)
-                mmasData.ResetPheromone();
-            else 
+            bool secondWeek = guidingAssignments != null;
+
+            if (secondWeek)
                 mmasData.SetPheromoneFromExistingAssignments(guidingAssignments);
+            else 
+                mmasData.ResetPheromone();
             
             Solution bestSoFarSolution = new Solution(problemData, week);
 
             bestSoFarSolution.RandomInitialSolution();
-            bestSoFarSolution.computeFeasibility();
-            bestSoFarSolution.computeHcv();
+            bestSoFarSolution.ComputeFeasibility();
+            bestSoFarSolution.ComputeHcv();
 
-            int i = 0;
+            int currIter = 0;
             int lastImprIter = 0;
-            while (bestSoFarSolution.hcv != 0 && i - lastImprIter < 200)
+            while (currIter - lastImprIter < 200)
             {
                 Solution bestIterSolution = Enumerable.Range(0, ANTS_NUMBER)
                                                       .AsParallel()
                                                       .Select(_ => 
                                                       {
                                                           var ant = new Ant(timeTable, mmasData, week);
-                                                          return guidingAssignments == null ? 
+                                                          return !secondWeek ? 
                                                               ant.GetSolution() :
                                                               ant.GetSolution(guidingAssignments);
                                                       })
                                                       .Min();
 
                 // apply local search until local optimum is reached or a time limit reached
-                //bestIterSolution.computeHcv();
-                //Console.WriteLine("before LS: " + bestIterSolution.hcv);
-                bestIterSolution.ResolveSecondWeek = guidingAssignments != null;
-                if (bestIterSolution.ResolveSecondWeek)
-                    DEFAULT_MAX_STEPS = Math.Min(DEFAULT_MAX_STEPS + 100, 5000);
-                bestIterSolution.localSearch(DEFAULT_MAX_STEPS);
-                //bestIterSolution.computeHcv();
-                //Console.WriteLine("after LS: " + bestIterSolution.hcv);
-
-                // and see if the solution is feasible
-                bestIterSolution.computeFeasibility();
+                if (secondWeek)
+                {
+                    DEFAULT_MAX_STEPS = Math.Min(DEFAULT_MAX_STEPS + 50, 5000);
+                    bestIterSolution.ResolveSecondWeek = true;
+                }
+                bestIterSolution.LocalSearch(bestIterSolution.feasible ? 3000 : DEFAULT_MAX_STEPS);
 
                 // output the new best solution, if found
-                if (bestIterSolution.feasible)
+                if (bestIterSolution.CompareTo(bestSoFarSolution) < 0)
                 {
-
-                    bestIterSolution.computeScv();
-                    if (bestIterSolution.scv <= bestSoFarSolution.scv)
-                    {
-                        bestIterSolution.CopyTo(bestSoFarSolution);
-                        bestSoFarSolution.hcv = 0;
-                    }
-                }
-                else
-                {
-                    bestIterSolution.computeHcv();
-                    if (bestIterSolution.hcv < bestSoFarSolution.hcv)
-                    {
-                        bestIterSolution.CopyTo(bestSoFarSolution);
-                        bestSoFarSolution.scv = int.MaxValue;
-                        lastImprIter = i;
-                    }
+                    bestIterSolution.CopyTo(bestSoFarSolution);
+                    lastImprIter = currIter;
                 }
 
                 // update pheromones
                 mmasData.EvaporatePheromone();
                 mmasData.SetPheromoneLimits();
-                mmasData.DepositPheromone(bestSoFarSolution);
-                //bestSoFarSolution.computeHcv();
-                i++;
-                Console.WriteLine("iter: " + i + ", HCV: " + bestSoFarSolution.hcv);
+                if (bestIterSolution.ResolveSecondWeek)
+                    mmasData.DepositPheromone(bestIterSolution);
+                else
+                    mmasData.DepositPheromone(bestSoFarSolution);
+
+                currIter++;
+                Console.WriteLine("iter: {0}, HCV: {1}, SCV: {2}", currIter, bestSoFarSolution.hcv, bestSoFarSolution.scv);
             }
 
-            bestSoFarSolution.computeFeasibility();
+            bestSoFarSolution.ComputeFeasibility();
             if (!bestSoFarSolution.feasible)
-                TryResolveHcv(bestSoFarSolution);
+            {
+                bestSoFarSolution.TryResolveHcv();
+                bestSoFarSolution.ComputeFeasibility();
+                if (bestSoFarSolution.feasible)
+                {
+                    bestSoFarSolution.LocalSearch(10000, 1, 1); //try to resolve scv
+                }
+            }
 
-            bestSoFarSolution.computeHcv();
-            //System.Windows.Forms.MessageBox.Show(bestSoFarSolution.hcv.ToString());
-            //Console.WriteLine("HCV: " + bestSoFarSolution.hcv);
+            bestSoFarSolution.ComputeHcv();
+            Console.WriteLine("RESULT: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
 
             return bestSoFarSolution;
-        }
-
-        static void TryResolveHcv(Solution solution)
-        {
-            solution.ResolveSecondWeek = true;
-            solution.localSearch(20000, 1.0, 1.0, 1.0);
         }
     }
 }

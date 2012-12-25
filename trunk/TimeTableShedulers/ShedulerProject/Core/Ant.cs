@@ -52,7 +52,7 @@ namespace SchedulerProject.Core
                 {
                     var slotId = TimeSlot.ToId(assignment.TimeSlot, _data.Days, _data.SlotsPerDay);
                     _solution.result[eventIndex].TimeSlotId = slotId;
-                    _solution.result[eventIndex].RoomId = assignment.Room.Id;
+                    _solution.result[eventIndex].RoomId = assignment.RoomId;
                     _solution.timeslot_events[slotId].Add(eventIndex);
                 }
             }
@@ -68,7 +68,7 @@ namespace SchedulerProject.Core
                     _solution.result[e].TimeSlotId = timeslot;
                     int[] assignedRooms = existingAssignments
                         .Where(a => TimeSlot.ToId(a.TimeSlot, _data.Days, _data.SlotsPerDay) == timeslot)                                                             
-                        .Select(a => a.Room.Id)
+                        .Select(a => a.RoomId)
                         .ToArray();
                     _solution.result[e].RoomId = _data.Rooms.Where(r => _data.SuitableRoom(_events[e].Id, r.Id) &&
                                                                         !assignedRooms.Contains(r.Id))
