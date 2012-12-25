@@ -18,6 +18,10 @@ namespace SchedulerProject.Core
 
         public Event Event { get; private set; }
         public Room Room { get; private set; }
+        public int RoomId
+        {
+            get { return Room == null ? -1 : Room.Id; }
+        }
         public TimeSlot TimeSlot { get; private set; }
         public int Week { get; private set; }
 
@@ -28,7 +32,7 @@ namespace SchedulerProject.Core
             if (subject == "Військова підготовка" || subject == "Фізична підготовка" || subject == "Фізичне виховання")
                 return subject;
             var lecturer = data.Lecturers.First(l => l.Id == Event.LecturerId);
-            return subject + "\n" + lecturer + "\n" + Room;
+            return subject + "\n" + lecturer + "\n" + (Room == null ? "Комната не назначена" : Room.ToString());
         }
     }
 
@@ -135,16 +139,18 @@ namespace SchedulerProject.Core
                 new XAttribute("time_table_id", Data.Id),
                 new XAttribute("name", Name),
                 from pair in assignments
+                let fwa = pair.Value.FirstWeekAssignment ?? pair.Value.SecondWeekAssignment 
+                let swa = pair.Value.SecondWeekAssignment ?? pair.Value.FirstWeekAssignment
                 select new XElement("Event",
                                     new XAttribute("id", pair.Key.Id),
-                                    new XElement("FirstWeek", 
-                                        new XAttribute("room", pair.Value.FirstWeekAssignment.Room.Id),
-                                        new XAttribute("day", pair.Value.FirstWeekAssignment.TimeSlot.Day),
-                                        new XAttribute("slot", pair.Value.FirstWeekAssignment.TimeSlot.Slot)),
+                                    new XElement("FirstWeek",
+                                        new XAttribute("room", fwa.RoomId),
+                                        new XAttribute("day", fwa.TimeSlot.Day),
+                                        new XAttribute("slot", fwa.TimeSlot.Slot)),
                                     new XElement("SecondWeek", 
-                                        new XAttribute("room", pair.Value.SecondWeekAssignment.Room.Id),
-                                        new XAttribute("day", pair.Value.SecondWeekAssignment.TimeSlot.Day),
-                                        new XAttribute("slot", pair.Value.SecondWeekAssignment.TimeSlot.Slot))));
+                                        new XAttribute("room", swa.RoomId),
+                                        new XAttribute("day", swa.TimeSlot.Day),
+                                        new XAttribute("slot", swa.TimeSlot.Slot))));
             root.Save(filename);
         }
     }

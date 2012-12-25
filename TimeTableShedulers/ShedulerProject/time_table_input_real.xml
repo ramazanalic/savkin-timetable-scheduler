@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<SchedulerInput id="6F-52-3B-3B-3B-46-5C-43-55-16" days="6" slots_per_day="5">
+<SchedulerInput id="6F-52-3B-3B-3B-46-5C-43-55-16" days="6" slots_per_day="4">
   <Rooms>
     <Room id="1" house_n="15" class_n="015/2" type="Lecture" />
     <Room id="2" house_n="14" class_n="76" type="Practice" />
@@ -486,11 +486,11 @@
       <Event id="38" type="Assigned" groups="0,4,5,19,18,20" hard_assigned_room="26" lecturer_id="229" />
       <Event id="404" type="Assigned" groups="3,16,17,36,35,37" hard_assigned_room="73" lecturer_id="228" />
       <Event id="405" type="Assigned" groups="3,16,17,35,36,37" hard_assigned_room="75" lecturer_id="228" />
-      <Event id="406" type="Assigned" groups="3,16,17,35,36,37" hard_assigned_room="77" lecturer_id="228" />
+      <!--<Event id="406" type="Assigned" groups="3,16,17,35,36,37" hard_assigned_room="77" lecturer_id="228" />-->
       <Event id="407" type="Assigned" groups="0,4,5,18,19,20" hard_assigned_room="72" lecturer_id="229" />
       <Event id="408" type="Assigned" groups="0,4,5,18,19,20" hard_assigned_room="74" lecturer_id="229" />
       <Event id="409" type="Assigned" groups="0,4,5,18,19,20" hard_assigned_room="76" lecturer_id="229" />
-      <Event id="410" type="Assigned" groups="0,4,5,18,19,20" hard_assigned_room="78" lecturer_id="229" />
+      <!--<Event id="410" type="Assigned" groups="0,4,5,18,19,20" hard_assigned_room="78" lecturer_id="229" />-->
     </Subject>
     <Subject id="22" name="Вступ до комп'ютерних систем" lecturer_id="" />
     <Subject id="23" name="Вступ до програмної інженерії" lecturer_id="" />

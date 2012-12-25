@@ -43,7 +43,7 @@ namespace SchedulerProject.Core
             {
                 Id = string.Join("-", bytes.Select(b => b.ToString("X"))),
                 Days = 6,
-                SlotsPerDay = 5,
+                SlotsPerDay = 4,
                 Rooms = new Room[0],
                 Lecturers = new Lecturer[0],
                 Groups = new Group[0],

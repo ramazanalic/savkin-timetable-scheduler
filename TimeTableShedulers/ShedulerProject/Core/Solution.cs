@@ -22,7 +22,7 @@ namespace SchedulerProject.Core
 
         public bool feasible;
         public int scv;   // keeps the number of soft constraint violations (ComputeScv() has to be called)
-        public int hcv;  // keeps the number of hard constraint violations (computeHcv() has to be called)
+        public int hcv;   // keeps the number of hard constraint violations (computeHcv() has to be called)
 
 
         public bool ResolveSecondWeek = false;
@@ -52,9 +52,12 @@ namespace SchedulerProject.Core
 
         public int CompareTo(Solution other)
         {
-            this.computeHcv();
-            other.computeHcv();
-            return this.hcv.CompareTo(other.hcv);
+            this.ComputeHcv();
+            this.ComputeScv();
+            other.ComputeHcv();
+            other.ComputeScv();
+            int result = this.hcv.CompareTo(other.hcv);
+            return result == 0 ? this.scv.CompareTo(other.scv) : result;
         }
 
         private Solution() { }
@@ -82,7 +85,7 @@ namespace SchedulerProject.Core
                 return result.Select((a, i) =>
                 {
                     Event ev = data.Events.First(e => e.Id == data.GetWeekEvents(week)[i].Id);
-                    Room room = data.Rooms.First(r => r.Id == a.RoomId);
+                    Room room = data.Rooms.FirstOrDefault(r => r.Id == a.RoomId);
                     TimeSlot slot = TimeSlot.FromId(a.TimeSlotId,
                                                     data.Days, data.SlotsPerDay);
 
@@ -114,22 +117,23 @@ namespace SchedulerProject.Core
             // and assign rooms to events in each non-empty timeslot
             foreach (int timeSlot in notEmptySlots)
             {
-                assignRooms(timeSlot);
+                AssignRooms(timeSlot);
             }
         }
 
-        public bool computeFeasibility()
+        #region Hcv
+        public bool ComputeFeasibility()
         {
-            feasible = getHcv(true) == 0;
+            hcv = GetHcv(true);
+            feasible = hcv == 0;
             return feasible;
         }
 
         /// <summary>
         /// Check feasibility.
         /// </summary>
-        int getHcv(bool stopOnFirst)
+        int GetHcv(bool stopOnFirst)
         {
-            //Console.WriteLine(" === getHcv === ");
             int hcv = 0;
             for (int i = 0; i < eventsCount; i++)
             {
@@ -139,7 +143,6 @@ namespace SchedulerProject.Core
                         result[i].RoomId == result[j].RoomId)
                     {
                         if (stopOnFirst) return 1;
-                        //Console.WriteLine("Room conflict");
                         hcv++; // only one class can be in each room at any timeslot
                     }
 
@@ -147,7 +150,6 @@ namespace SchedulerProject.Core
                         result[i].TimeSlotId == result[j].TimeSlotId)
                     {
                         if (stopOnFirst) return 1;
-                        //Console.WriteLine("Event conflict");
                         hcv++; // two events sharing groups cannot be in the same timeslot
                     }
                 }
@@ -155,10 +157,8 @@ namespace SchedulerProject.Core
                 if(!data.SuitableRoom(events[i].Id, result[i].RoomId))
                 {
                     if (stopOnFirst) return 1;
-                    //Console.WriteLine("Room type conflict");
                     hcv++; // each event should take place in a suitable room
                 }
-                // TODO: check lecturer constraits
             }
 
             // if none of the previous hard constraint violations occurs the timetable is feasible
@@ -166,27 +166,18 @@ namespace SchedulerProject.Core
         }
 
         /// <summary>
-        /// Compute soft constraint violations.
-        /// </summary>
-        public int computeScv()
-        {
-            // TODO: add analysis of the required soft constraits
-            return 0;
-        }
-
-        /// <summary>
         /// Compute hard constraint violations.
         /// </summary>
-        public int computeHcv()
+        public int ComputeHcv()
         {
-            hcv = getHcv(false);
+            hcv = GetHcv(false);
             return hcv;
         }
 
         /// <summary>
         /// Evaluate number of hcv caused by event e.
         /// </summary>
-        int eventHcv(int e)
+        int EventHcv(int e)
         {
             int eHcv = 0;			// set to zero hard constraint violations for event e
             int t = result[e].TimeSlotId;	// note the timeslot in which event e is
@@ -215,7 +206,7 @@ namespace SchedulerProject.Core
         /// <summary>
         /// Evaluate the hcv that might be affected when event e is moved from its timeslot.
         /// </summary>
-        int eventAffectedHcv(int e)
+        int EventAffectedHcv(int e)
         {
             int aHcv = 0;					// set to zero the affected hard constraint violations for event e
             int t = result[e].TimeSlotId;			// t timeslot where event e is
@@ -249,7 +240,7 @@ namespace SchedulerProject.Core
         /// <summary>
         /// Evaluate all the room hcv as above for all the events in timeslot t.
         /// </summary>
-        int affectedRoomInTimeslotHcv(int t)
+        int AffectedRoomInTimeslotHcv(int t)
         {
             int roomHcv = 0;
             for (int i = 0; i < timeslot_events[t].Count; i++)
@@ -265,14 +256,128 @@ namespace SchedulerProject.Core
             }
 
             return roomHcv;
+        }   
+        
+        bool SingleEventLocalSearchHcv(int[] eventList, int eventIndex, double prob1, double prob2, ref int stepCount, bool copyIfHcvCountEquals)
+        {
+            if (prob1 != 0)
+            {
+                var ev = eventList[eventIndex];
+                var t_start = (int)(rg.NextDouble() * data.TotalTimeSlots);	// try moves of type 1
+                var t_orig = result[ev].TimeSlotId;
+                for (int h = 0, t = t_start; h < data.TotalTimeSlots; t = (t + 1) % data.TotalTimeSlots, h++)
+                {
+                    if (rg.NextDouble() < prob1)
+                    {
+                        Solution neighbourSolution = new Solution();
+                        this.CopyTo(neighbourSolution);
+
+                        if (neighbourSolution.Move1(ev, t))
+                        {
+                            stepCount++;
+                            var neighbourAffectedHcv = neighbourSolution.EventAffectedHcv(ev) +
+                                                       neighbourSolution.AffectedRoomInTimeslotHcv(t_orig);
+                            var currentAffectedHcv = EventAffectedHcv(ev) + AffectedRoomInTimeslotHcv(t);
+                            if (neighbourAffectedHcv < currentAffectedHcv || 
+                                copyIfHcvCountEquals && neighbourAffectedHcv == currentAffectedHcv)
+                            {
+                                neighbourSolution.CopyTo(this);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (prob2 != 0)
+            {
+                for (var j = (eventIndex + 1) % eventsCount; j != eventIndex; j = (j + 1) % eventsCount)
+                {
+                    if (rg.NextDouble() < prob2)
+                    {
+                        Solution neighbourSolution = new Solution();
+                        this.CopyTo(neighbourSolution);
+                        if (neighbourSolution.Move2(eventList[eventIndex], eventList[j]))
+                        {
+                            stepCount++;
+                            var neighbourAffectedHcv = neighbourSolution.EventAffectedHcv(eventList[eventIndex]) +
+                                                       neighbourSolution.EventAffectedHcv(eventList[j]);
+                            var currentAffectedHcv = EventAffectedHcv(eventList[eventIndex]) + EventAffectedHcv(eventList[j]);
+                            if (neighbourAffectedHcv < currentAffectedHcv || 
+                                copyIfHcvCountEquals && neighbourAffectedHcv == currentAffectedHcv)
+                            {
+                                neighbourSolution.CopyTo(this);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region Scv
+        int GetGaps(IEnumerable<TimeSlot> weekSlots)
+        {
+            return weekSlots.GroupBy(ts => ts.Day).Count(daySlots =>
+            {
+                var max = daySlots.Max(s => s.Slot);
+                var min = daySlots.Min(s => s.Slot);
+                return max - min != daySlots.Count() - 1;
+            });
+        }
+
+        /// <summary>
+        /// Compute soft constraint violations.
+        /// </summary>
+        public int ComputeScv()
+        {
+            scv = GetScv();
+            return scv;
+        }
+
+        /// <summary>
+        /// Compute soft constraint violations.
+        /// </summary>
+        int GetScv()
+        {
+            var groupsTimeSlots = new Dictionary<int, List<TimeSlot>>();
+            var lecturersTimeSlots = new Dictionary<int, List<TimeSlot>>();
+            var lastSlotsCount = 0;
+            for (var i = 0; i < result.Length; i++)
+            {
+                var ts = TimeSlot.FromId(result[i].TimeSlotId, data.Days, data.SlotsPerDay);
+                if (ts.Slot == data.SlotsPerDay)
+                    lastSlotsCount++;
+
+                foreach (var gId in events[i].Groups)
+                {
+                    if (!groupsTimeSlots.ContainsKey(gId))
+                        groupsTimeSlots.Add(gId, new List<TimeSlot>());
+                    groupsTimeSlots[gId].Add(ts);
+                }
+
+                var lId = events[i].LecturerId;
+                if (!lecturersTimeSlots.ContainsKey(lId))
+                    lecturersTimeSlots.Add(lId, new List<TimeSlot>());
+                lecturersTimeSlots[lId].Add(ts);
+            }
+
+            var groupsGaps = groupsTimeSlots.Values.Sum(timeSlots => GetGaps(timeSlots));
+            var lecturerGaps = lecturersTimeSlots.Values.Sum(timeSlots => GetGaps(timeSlots));
+            //TODO: var singleEventsDays
+            return //lastSlotsCount + 
+                groupsGaps + lecturerGaps;
+            //return groupsGaps;
         }
 
         /// <summary>
         /// Evaluate number of scv caused by event e
         /// </summary>
-        int eventScv(int e)
+        int EventScv(int e)
         {
-            // TODO: evaluate scv
             return 0;
         }
 
@@ -280,7 +385,7 @@ namespace SchedulerProject.Core
         /// Evaluate the number of single classes that event e actually solves in the day (or created if e leaves its timeslot).
         /// NOTE: Should be called only if the solution is feasible.
         /// </summary>
-        int singleClassesScv(int e)
+        int SingleClassesScv(int e)
         {
             int t = result[e].TimeSlotId;
             int classes;
@@ -325,6 +430,72 @@ namespace SchedulerProject.Core
             return singleClasses;
         }
 
+        // TODO: Should be refactored! (see SingleEventLocalSearchHcv)
+        bool SingleEventLocalSearchScv(int[] eventList, int eventIndex, int currentScv, double prob1, double prob2, ref int stepCount)
+        {
+            if (prob1 != 0)
+            {
+                var ev = eventList[eventIndex];
+                var t_start = (int)(rg.NextDouble() * data.TotalTimeSlots);	// try moves of type 1
+                var t_orig = result[ev].TimeSlotId;
+                for (int h = 0, t = t_start; h < data.TotalTimeSlots; t = (t + 1) % data.TotalTimeSlots, h++)
+                {
+                    if (rg.NextDouble() < prob1)
+                    {
+                        Solution neighbourSolution = new Solution();
+                        this.CopyTo(neighbourSolution);
+
+                        if (neighbourSolution.Move1(ev, t))
+                        {
+                            stepCount++;
+                            var neighbourFeasible = neighbourSolution.ComputeFeasibility();
+                            if (neighbourFeasible)
+                            {
+                                var neighbourScv = neighbourSolution.ComputeScv();
+
+                                if (neighbourScv < currentScv)
+                                {
+                                    neighbourSolution.CopyTo(this);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (prob2 != 0)
+            {
+                for (var j = (eventIndex + 1) % eventsCount; j != eventIndex; j = (j + 1) % eventsCount)
+                {
+                    if (rg.NextDouble() < prob2)
+                    {
+                        Solution neighbourSolution = new Solution();
+                        this.CopyTo(neighbourSolution);
+                        if (neighbourSolution.Move2(eventList[eventIndex], eventList[j]))
+                        {
+                            stepCount++;
+                            var neighbourFeasible = neighbourSolution.ComputeFeasibility();
+                            if (neighbourFeasible)
+                            {
+                                var neighbourScv = neighbourSolution.ComputeScv();
+
+                                if (neighbourScv < currentScv)
+                                {
+                                    neighbourSolution.CopyTo(this);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region Local search
         /// <summary>
         /// Move event e to timeslot t (type 1 move).
         /// </summary>
@@ -347,12 +518,12 @@ namespace SchedulerProject.Core
             timeslot_events[t].Sort(); // TODO: try to replace insertion and sort with Binary search
 
 	        // reassign rooms to events in timeslot t
-	        assignRooms(t);
+	        AssignRooms(t);
 
 	        // do the same for the original timeslot of event e if it is not empty
 	        if (timeslot_events[prevSlot].Count != 0)
 	        {
-		        assignRooms(prevSlot);
+		        AssignRooms(prevSlot);
 	        }
 
             return true;
@@ -380,8 +551,8 @@ namespace SchedulerProject.Core
             ReplaceEvent(t1, e1, e2);
             ReplaceEvent(t2, e2, e1);
 
-	        assignRooms(result[e1].TimeSlotId);
-	        assignRooms(result[e2].TimeSlotId);
+	        AssignRooms(result[e1].TimeSlotId);
+	        AssignRooms(result[e2].TimeSlotId);
 
             return true;
         }
@@ -413,9 +584,9 @@ namespace SchedulerProject.Core
             ReplaceEvent(t2, e2, e3);
             ReplaceEvent(t3, e3, e1);
 
-	        assignRooms(result[e1].TimeSlotId);
-	        assignRooms(result[e2].TimeSlotId);
-	        assignRooms(result[e3].TimeSlotId);
+	        AssignRooms(result[e1].TimeSlotId);
+	        AssignRooms(result[e2].TimeSlotId);
+	        AssignRooms(result[e3].TimeSlotId);
 
             return true;
         }
@@ -426,518 +597,169 @@ namespace SchedulerProject.Core
             timeslot_events[timeSlot].Add(newEvent);
             timeslot_events[timeSlot].Sort();
         }
-
+     
         /// <summary>
         /// Apply local search with the given parameters.
         /// </summary>
-        public void localSearch(int maxSteps, double prob1 = 1.0, double prob2 = 0.9, double prob3 = 0.4)
+        public void LocalSearch(int maxSteps, double prob1 = 1.0, double prob2 = 0.9, double prob3 = 0.0)
         {
-            // TODO: Refactoring needed
-            //int stries = 0, schanges = 0, rschanges = 0;
-            //int dtries = 0, dchanges = 0, rdchanges = 0;
-
-
             // perform local search with given time limit and probabilities for each type of move
-            int[] eventList = new int[eventsCount]; // keep a list of events to go through
-            for (int i = 0; i < eventsCount; i++)
+            var eventList = new int[eventsCount];
+            for (var e = 0; e < eventsCount; e++)
             {
-                eventList[i] = i;
+                eventList[e] = e;
             }
 
-            for (int i = 0; i < eventsCount; i++)
-            {	// scramble the list of events to obtain a random order
-                int j = (int)(rg.NextDouble() * eventsCount);
-                int h = eventList[i];
-                eventList[i] = eventList[j];
-                eventList[j] = h;
+            for (var e = 0; e < eventsCount; e++)
+            {	
+                // scramble the list of events to obtain a random order
+                var j = (int)(rg.NextDouble() * eventsCount);
+                var tmp = eventList[e];
+                eventList[e] = eventList[j];
+                eventList[j] = tmp;
             }
-
-            /*cout <<"event list" <<endl;
-          for(int i = 0 ; i< data->n_of_events; i++)
-            cout<< eventList[i] << " ";
-            cout << endl;*/
-            int neighbourAffectedHcv = 0;	// partial evaluation of neighbour solution hcv
-            //int neighbourScv = 0;			// partial evaluation of neighbour solution scv
-            int evCount = 0;				// counter of events considered
-            int stepCount = 0;				// set step counter to zero
-            bool foundbetter = false;
-            computeFeasibility();
-            if (!feasible)
-            {						// if the timetable is not feasible try to solve hcv
-                for (int i = 0; evCount < eventsCount; i = (i + 1) % eventsCount)
+            
+            var stepCount = 0;				// set step counter to zero
+            var checkedEvents = 0;          // counter of events considered
+            var foundBetter = false;
+            ComputeFeasibility();
+            var i = 0;
+            while (!feasible && checkedEvents < eventsCount && stepCount < maxSteps)
+            {
+                //Console.WriteLine("checked: {0}, steps: {1}", checkedEvents, stepCount);
+                var currentHcv = EventHcv(eventList[i]);
+                if (currentHcv != 0)
                 {
-                    if (stepCount > maxSteps)
+                    foundBetter = SingleEventLocalSearchHcv(eventList, i, prob1, prob2, ref stepCount, false);
+                }
+                ComputeFeasibility();
+                if (feasible)
+                {
+                    var currentScv = ComputeScv();
+                    foundBetter = SingleEventLocalSearchScv(eventList, i, currentScv, prob1, prob2, ref stepCount);
+                }
+
+                if (foundBetter)
+                    checkedEvents = 0;
+                else
+                    checkedEvents++;
+                i = (i + 1) % eventsCount;
+                foundBetter = false;
+            }
+        }
+        #endregion
+
+        int FindSuitableRoomId(int eventId, int timeSlotId)
+        {
+            var suitable = data.Rooms.Select(r => r.Id).Where(id => data.SuitableRoom(eventId, id)).ToArray();
+            var busy = timeslot_events[timeSlotId].Select(e => result[e].RoomId).ToArray();
+            var x = suitable.Except(busy).ToArray();
+            if (x.Any())
+            {
+                return x.First();
+            }
+            return -1;
+        }
+
+        public void TryResolveHcv()
+        {
+            ResolveSecondWeek = true;
+            var eventList = new int[eventsCount];
+            for (var e = 0; e < eventsCount; e++)
+            {
+                eventList[e] = e;
+            }
+
+            // collect conflicting events
+            var conflictingEvents = new List<int>();
+            for (var i = 0; i < eventsCount; i++)
+            {
+                var useFirstForLocalSearch = !data.IsEveryWeekEvent(events[i].Id);
+                for (var j = i + 1; j < eventsCount; j++)
+                {
+                    if (result[i].TimeSlotId == result[j].TimeSlotId &&
+                        (data.ConflictingEvents(events[i].Id, events[j].Id) ||
+                            result[i].RoomId == result[j].RoomId))
                     {
-                        break;
+                        var toRemove = useFirstForLocalSearch ? i : j;
+                        conflictingEvents.Add(toRemove);
+                        timeslot_events[result[i].TimeSlotId].Remove(toRemove);
                     }
-
-                    int currentHcv = eventHcv(eventList[i]);
-                    if (currentHcv == 0)
-                    {				// if the event on the list does not cause any hcv
-                        evCount++;	// increase the counter
-                        continue;	// go to the next event
-                    }
-
-                    // otherwise if the event in consideration caused hcv
-                    int currentAffectedHcv;
-                    int t_start = (int)(rg.NextDouble() * data.TotalTimeSlots);	// try moves of type 1
-                    int t_orig = result[eventList[i]].TimeSlotId;
-                    for (int h = 0, t = t_start; h < data.TotalTimeSlots; t = (t + 1) % data.TotalTimeSlots, h++)
-                    {
-                        if (stepCount > maxSteps)
-                        {
-                            break;
-                        }
-
-                        if (rg.NextDouble() < prob1)
-                        {
-                            Solution neighbourSolution = new Solution();
-                            this.CopyTo(neighbourSolution);
-                            //stries++;
-
-                            if (neighbourSolution.Move1(eventList[i], t))
-                            {
-                                stepCount++;
-                                neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) + neighbourSolution.affectedRoomInTimeslotHcv(t_orig);
-                                currentAffectedHcv = eventAffectedHcv(eventList[i]) + affectedRoomInTimeslotHcv(t);
-                                if (neighbourAffectedHcv < currentAffectedHcv)
-                                {
-                                    //computeHcv();
-                                    //var tmp = hcv;
-                                    neighbourSolution.CopyTo(this);
-                                    //computeHcv();
-                                    //if (tmp < hcv)
-                                    //{
-                                    //rschanges++;
-                                    //}
-                                    //schanges++;
-                                    evCount = 0;
-                                    foundbetter = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (foundbetter)
-                    {
-                        foundbetter = false;
-                        continue;
-                    }
-
-                    if (prob2 != 0)
-                    {
-                        for (int j = (i + 1) % eventsCount; j != i; j = (j + 1) % eventsCount)
-                        {			// try moves of type 2
-                            if (stepCount > maxSteps)
-                            {
-                                break;
-                            }
-
-                            if (rg.NextDouble() < prob2)
-                            {
-                                Solution neighbourSolution = new Solution();
-                                this.CopyTo(neighbourSolution);
-                                //dtries++;
-                                if (neighbourSolution.Move2(eventList[i], eventList[j]))
-                                {
-                                    stepCount++;
-                                    neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) +
-                                                           neighbourSolution.eventAffectedHcv(eventList[j]);
-                                    currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]);
-                                    if (neighbourAffectedHcv < currentAffectedHcv)
-                                    {
-                                        computeHcv();
-                                        var tmp = hcv;
-                                        neighbourSolution.CopyTo(this);
-                                        computeHcv();
-                                        //if (tmp < hcv)
-                                        //{
-                                        //    rdchanges++;
-                                        //}
-                                        //dchanges++;
-                                        evCount = 0;
-                                        foundbetter = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (foundbetter)
-                        {
-                            foundbetter = false;
-                            continue;
-                        }
-                    }
-
-                    if (prob3 != 0)
-                    {
-                        for (int j = (i + 1) % eventsCount; j != i; j = (j + 1) % eventsCount)
-                        {			// try moves of type 3
-                            if (stepCount > maxSteps)
-                            {
-                                break;
-                            }
-
-                            for (int k = (j + 1) % eventsCount; k != i; k = (k + 1) % eventsCount)
-                            {
-                                if (stepCount > maxSteps)
-                                {
-                                    break;
-                                }
-
-                                if (rg.NextDouble() < prob3)
-                                {
-                                    Solution neighbourSolution = new Solution();
-                                    this.CopyTo(neighbourSolution);
-                                    if (neighbourSolution.Move3(eventList[i], eventList[j], eventList[k])) //try one of the to possible 3-cycle
-                                    {
-                                        stepCount++;
-                                        currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[j]) + eventAffectedHcv(eventList[k]);
-
-                                        neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) +
-                                            neighbourSolution.eventAffectedHcv(eventList[j]) +
-                                            neighbourSolution.eventAffectedHcv(eventList[k]);
-                                        if (neighbourAffectedHcv < currentAffectedHcv)
-                                        {
-                                            computeHcv();
-                                            var tmp = hcv;
-                                            neighbourSolution.CopyTo(this);
-                                            computeHcv();
-                                            evCount = 0;
-                                            foundbetter = true;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (stepCount > maxSteps)
-                                {
-                                    break;
-                                }
-
-                                if (rg.NextDouble() < prob3)
-                                {
-                                    Solution neighbourSolution = new Solution();
-                                    this.CopyTo(neighbourSolution);
-                                    if (neighbourSolution.Move3(eventList[i], eventList[k], eventList[j])) //try one of the to possible 3-cycle
-                                    {
-                                        stepCount++;
-                                        currentAffectedHcv = eventAffectedHcv(eventList[i]) + eventAffectedHcv(eventList[k]) + eventAffectedHcv(eventList[j]);
-
-                                        neighbourAffectedHcv = neighbourSolution.eventAffectedHcv(eventList[i]) +
-                                            neighbourSolution.eventAffectedHcv(eventList[k]) +
-                                            neighbourSolution.eventAffectedHcv(eventList[j]);
-                                        if (neighbourAffectedHcv < currentAffectedHcv)
-                                        {
-                                            computeHcv();
-                                            var tmp = hcv;
-                                            neighbourSolution.CopyTo(this);
-                                            computeHcv();
-                                            evCount = 0;
-                                            foundbetter = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (foundbetter)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (foundbetter)
-                        {
-                            foundbetter = false;
-                            continue;
-                        }
-                    }
-                    evCount++;
                 }
             }
 
-            //Console.WriteLine("S - Tries: {0}, Changes: {1}, Succesfull: {1}, Percent: {2}", 
-            //    stries, schanges, rschanges, (float)schanges / stries);
-            //Console.WriteLine("D - Tries: {0}, Changes: {1}, Succesfull: {1}, Percent: {2}",
-            //    dtries, dchanges, rdchanges, (float)dchanges / dtries);
-            computeFeasibility();
-
-#if FALSE // TODO: try to resolve soft constraits violations
-            if (feasible)
-            {						// if the timetable is feasible
-                evCount = 0;
-
-                int neighbourHcv;
-                for (int i = 0; evCount < data->n_of_events; i = (i + 1) % data->n_of_events)
-                {					//go through the events in the list
-                    if (stepCount > maxSteps)
+            // try to resolve event conflicts
+            foreach (var index in conflictingEvents)
+            {
+                var evId = events[index].Id;
+                for (var t = 0; t < data.TotalTimeSlots; t++)
+                {
+                    if (timeslot_events[t].FindIndex(e => data.ConflictingEvents(evId, events[e].Id)) == -1)
                     {
+                        var x = FindSuitableRoomId(evId, t);
+                        timeslot_events[t].Add(index);
+                        result[index].RoomId = x;
+                        result[index].TimeSlotId = t;
                         break;
                     }
-
-                    int currentScv = eventScv(eventList[i]);
-
-                    //cout << "event " << eventList[i] << " cost " << currentScv<<endl;
-                    if (currentScv == 0)
-                    {				// if there are no scv
-                        evCount++;	// increase counter
-                        continue;	//go to the next event
-                    }
-
-                    // otherwise try all the possible moves
-                    int t_start = (int)(rg->next() * 45);	// try moves of type 1
-                    for (int h = 0, t = t_start; h < 45; t = (t + 1) % 45, h++)
-                    {
-                        if (stepCount > maxSteps)
-                        {
-                            break;
-                        }
-
-                        if (rg->next() < prob1)
-                        {	// each with given propability
-                            stepCount++;
-
-                            Solution* neighbourSolution = new Solution(data, rg);
-                            neighbourSolution->copy(this);
-                            neighbourSolution->Move1(eventList[i], t);
-
-                            //cout<< "event " << eventList[i] << " timeslot " << t << endl;
-                            neighbourHcv = neighbourSolution->eventAffectedHcv(eventList[i]);	//count possible hcv introduced by move
-                            if (neighbourHcv == 0)
-                            {	// consider the move only if no hcv are introduced
-                                //cout<< "reintroduced hcv" << neighbourSolution->computeHcv()<< endl;
-                                neighbourScv = neighbourSolution->eventScv(eventList[i])	// respectively Scv involving event e
-                                + singleClassesScv(eventList[i])						// + single classes introduced in day of original timeslot
-                                - neighbourSolution->singleClassesScv(eventList[i]);	// - single classes "solved" in new day
-
-                                //cout<< "neighbour cost " << neighbourScv<<" " << neighbourHcv<< endl;
-                                if (neighbourScv < currentScv)
-                                {
-                                    //cout<<"current scv " << computeScv() << "neighbour " << neighbourSolution->computeScv()<< endl;
-                                    copy(neighbourSolution);
-                                    evCount = 0;
-                                    foundbetter = true;
-                                    break;
-
-                                }
-                            }
-                        }
-                    }
-
-                    if (foundbetter)
-                    {
-                        foundbetter = false;
-                        continue;
-                    }
-
-                    if (prob2 != 0)
-                    {
-                        for (int j = (i + 1) % data->n_of_events; j != i; j = (j + 1) % data->n_of_events)
-                        {				//try moves of type 2
-                            if (stepCount > maxSteps)
-                            {
-                                break;
-                            }
-
-                            if (rg->next() < prob2)
-                            {			// with the given probability
-                                stepCount++;
-
-                                Solution* neighbourSolution = new Solution(data, rg);
-                                neighbourSolution->copy(this);
-
-                                //cout<< "event " << eventList[i] << " second event " << eventList[j] << endl;
-                                neighbourSolution->Move2(eventList[i], eventList[j]);
-
-                                //count possible hcv introduced with the move
-                                neighbourHcv = neighbourSolution->eventAffectedHcv(eventList[i]) + neighbourSolution->eventAffectedHcv(eventList[j]);
-                                if (neighbourHcv == 0)
-                                {		// only if no hcv are introduced by the move
-                                    //cout<< "reintroduced hcv" << neighbourSolution->computeHcv()<< endl;
-                                    // compute alterations on scv for neighbour solution
-                                    neighbourScv = neighbourSolution->eventScv(eventList[i]) +
-                                        singleClassesScv(eventList[i]) -
-                                        neighbourSolution->singleClassesScv(eventList[i]) +
-                                        neighbourSolution->eventScv(eventList[j]) +
-                                        singleClassesScv(eventList[j]) -
-                                        neighbourSolution->singleClassesScv(eventList[j]);
-
-                                    // cout<< "neighbour cost " << neighbourScv<<" " << neighbourHcv<< endl;
-                                    if (neighbourScv < currentScv + eventScv(eventList[j]))
-                                    {	// if scv are reduced
-                                        //cout<<"current scv " << computeScv() << "neighbour " << neighbourSolution->computeScv()<< endl;
-                                        copy(neighbourSolution);	// do the move
-                                        evCount = 0;
-                                        foundbetter = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (foundbetter)
-                        {
-                            foundbetter = false;
-                            continue;
-                        }
-                    }
-
-                    if (prob3 != 0)
-                    {
-                        for (int j = (i + 1) % data->n_of_events; j != i; j = (j + 1) % data->n_of_events)
-                        {				//try moves of type 3
-                            if (stepCount > maxSteps)
-                            {
-                                break;
-                            }
-
-                            for (int k = (j + 1) % data->n_of_events; k != i; k = (k + 1) % data->n_of_events)
-                            {
-                                if (stepCount > maxSteps)
-                                {
-                                    break;
-                                }
-
-                                if (rg->next() < prob3)
-                                {		// with given probability try one of the 2 possibles 3-cycles
-                                    stepCount++;
-
-                                    Solution* neighbourSolution = new Solution(data, rg);
-                                    neighbourSolution->copy(this);
-                                    neighbourSolution->Move3(eventList[i], eventList[j], eventList[k]);
-
-                                    // cout<< "event " << eventList[i] << " second event " << eventList[j] << " third event "<< eventList[k] << endl;
-                                    // compute the possible hcv introduced by the move
-                                    neighbourHcv = neighbourSolution->eventAffectedHcv(eventList[i]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[j]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[k]);
-                                    if (neighbourHcv == 0)
-                                    {	// consider the move only if hcv are not introduced
-                                        // compute alterations on scv for neighbour solution
-                                        neighbourScv = neighbourSolution->eventScv(eventList[i]) +
-                                            singleClassesScv(eventList[i]) -
-                                            neighbourSolution->singleClassesScv(eventList[i]) +
-                                            neighbourSolution->eventScv(eventList[j]) +
-                                            singleClassesScv(eventList[j]) -
-                                            neighbourSolution->singleClassesScv(eventList[j]) +
-                                            neighbourSolution->eventScv(eventList[k]) +
-                                            singleClassesScv(eventList[k]) -
-                                            neighbourSolution->singleClassesScv(eventList[k]);
-
-                                        // cout<< "neighbour cost " << neighbourScv<<" " << neighbourHcv<< endl;
-                                        if (neighbourScv < currentScv + eventScv(eventList[j]) + eventScv(eventList[k]))
-                                        {
-                                            copy(neighbourSolution);
-                                            evCount = 0;
-                                            foundbetter = true;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (stepCount > maxSteps)
-                                {
-                                    break;
-                                }
-
-                                if (rg->next() < prob3)
-                                {		// with the same probability try the other possible 3-cycle for the same 3 events
-                                    stepCount++;
-
-                                    Solution* neighbourSolution = new Solution(data, rg);
-                                    neighbourSolution->copy(this);
-                                    neighbourSolution->Move3(eventList[i], eventList[k], eventList[j]);
-
-                                    // cout<< "event " << eventList[i] << " second event " << eventList[k] << " third event "<< eventList[j] << endl;
-                                    // compute the possible hcv introduced by the move
-                                    neighbourHcv = neighbourSolution->eventAffectedHcv(eventList[i]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[k]) +
-                                        neighbourSolution->eventAffectedHcv(eventList[j]);
-                                    if (neighbourHcv == 0)
-                                    {	// consider the move only if hcv are not introduced
-                                        // compute alterations on scv for neighbour solution
-                                        neighbourScv = neighbourSolution->eventScv(eventList[i]) +
-                                            singleClassesScv(eventList[i]) -
-                                            neighbourSolution->singleClassesScv(eventList[i]) +
-                                            neighbourSolution->eventScv(eventList[k]) +
-                                            singleClassesScv(eventList[k]) -
-                                            neighbourSolution->singleClassesScv(eventList[k]) +
-                                            neighbourSolution->eventScv(eventList[j]) +
-                                            singleClassesScv(eventList[j]) -
-                                            neighbourSolution->singleClassesScv(eventList[j]);
-
-                                        // cout<< "neighbour cost " << neighbourScv<<" " << neighbourHcv<< endl;
-                                        if (neighbourScv < currentScv + eventScv(eventList[k]) + eventScv(eventList[j]))
-                                        {
-                                            copy(neighbourSolution);
-                                            evCount = 0;
-                                            foundbetter = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (foundbetter)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (foundbetter)
-                        {
-                            foundbetter = false;
-                            continue;
-                        }
-                    }
-
-                    evCount++;
                 }
             }
-#endif
+
+            // try to resolve room conflicts
+            for (var i = 0; i < eventsCount; i++)
+            {
+                if (!data.SuitableRoom(events[i].Id, result[i].RoomId))
+                {
+                    var suitable = FindSuitableRoomId(events[i].Id, result[i].TimeSlotId);
+                    if (suitable != -1)
+                    {
+                        result[i].RoomId = suitable;
+                    }
+                    else
+                    {
+                        var stepCount = 0;
+                        var p = SingleEventLocalSearchHcv(eventList, i, 1, 1, ref stepCount, true);
+                    }
+                }
+            }
         }
 
         public void AssignRoomForEachTimeSlot()
         {
             // assign rooms to events in each non-empty timeslot
-            for (int i = 0; i < data.TotalTimeSlots; i++)
+            for (var i = 0; i < data.TotalTimeSlots; i++)
                 if (timeslot_events[i].Count != 0)
-                    assignRooms(i);
+                    AssignRooms(i);
         }
-
-        int[] roomsAssignmentCounters;
 
         /// <summary>
         /// Assign rooms to events for timeslot t (first apply matching algorithm and then assign unplaced rooms).
         /// </summary>
-        void assignRooms(int t)
+        void AssignRooms(int t)
         {
-            if (ResolveSecondWeek && affectedRoomInTimeslotHcv(t) == 0)
+            if (ResolveSecondWeek && AffectedRoomInTimeslotHcv(t) == 0)
                 return;
 
-            int eventsCount = timeslot_events[t].Count;
+            var eventsCount = timeslot_events[t].Count;
             var x = HopcroftKarpMatching(ResolveSecondWeek ? MakeGraphForSecondWeek(t) : MakeGraph(t), eventsCount);
 
-            roomsAssignmentCounters = new int[data.Rooms.Length];
+            var roomsAssignmentCounters = new int[data.Rooms.Length];
 
-            for (int e = 0; e < eventsCount; e++)
+            for (var e = 0; e < eventsCount; e++)
             {
                 if (x[e] != NIL_VERT_ID)
                 {
-                    int roomId = x[e] - eventsCount;
+                    var roomId = x[e] - eventsCount;
                     result[timeslot_events[t][e]].RoomId = data.Rooms[roomId].Id;
                     roomsAssignmentCounters[roomId]++;
                 }
             }
 
-            for (int e = 0; e < eventsCount; e++)
+            for (var e = 0; e < eventsCount; e++)
             {
                 if (x[e] == NIL_VERT_ID)
                 {
-                    int lessBusyRoom = FindLessBusyRoom(roomsAssignmentCounters);
+                    var lessBusyRoom = FindLessBusyRoom(roomsAssignmentCounters);
                     result[timeslot_events[t][e]].RoomId = data.Rooms[lessBusyRoom].Id;
                     roomsAssignmentCounters[lessBusyRoom]++;
                 }
@@ -946,9 +768,9 @@ namespace SchedulerProject.Core
 
         int FindLessBusyRoom(int[] roomsAssignments)
         {
-            int id = -1;
-            int min = int.MaxValue;
-            for (int i = 0; i < roomsAssignments.Length; i++)
+            var id = -1;
+            var min = int.MaxValue;
+            for (var i = 0; i < roomsAssignments.Length; i++)
             {
                 if (data.Rooms[i].Type != RoomType.Assigned && roomsAssignments[i] < min)
                 {
@@ -1074,7 +896,7 @@ namespace SchedulerProject.Core
                     int suitableRoom = result[timeslot_events[timeslot][e]].RoomId;
                     int roomIndex = Array.FindIndex(data.Rooms, r => r.Id == suitableRoom);
                     res[e, eventsCount + roomIndex] = res[eventsCount + roomIndex, e] = true;
-                    busyRooms.Add(roomIndex);
+                    busyRooms.Add(suitableRoom);
                 }
             }
             
