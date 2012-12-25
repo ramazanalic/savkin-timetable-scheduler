@@ -40,16 +40,26 @@ namespace SchedulerProject.UserInterface
 
         void DrawAssignment(WeeklyEventAssignment assignment, Graphics g, Rectangle rect)
         {
-            using (var brush = new SolidBrush(ForeColor))
+            if (assignment != null)
             {
-                g.DrawString(assignment.ToString(_data),
-                            Font, brush,
-                            rect,
-                            new StringFormat()
-                            {
-                                Alignment = StringAlignment.Center,
-                                LineAlignment = StringAlignment.Center
-                            });
+                using (var brush = new SolidBrush(ForeColor))
+                {
+                    g.DrawString(assignment.ToString(_data),
+                                Font, brush,
+                                rect,
+                                new StringFormat()
+                                {
+                                    Alignment = StringAlignment.Center,
+                                    LineAlignment = StringAlignment.Center
+                                });
+                }
+            }
+            else
+            {
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    g.FillRectangle(brush, rect);
+                }
             }
         }
 
@@ -60,11 +70,9 @@ namespace SchedulerProject.UserInterface
                 DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height));
             else
             {
-                if (SelectedFirstWeekAssignment != null)
-                    DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height / 2));
+                DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height / 2));
                 e.Graphics.DrawLine(Pens.White, 0, Height / 2, Width, Height / 2);
-                if (SelectedSecondWeekAssignment != null)
-                    DrawAssignment(SelectedSecondWeekAssignment, e.Graphics, new Rectangle(0, Height / 2, Width, Height / 2));
+                DrawAssignment(SelectedSecondWeekAssignment, e.Graphics, new Rectangle(0, Height / 2, Width, Height / 2));
             }
             base.OnPaint(e);
         }

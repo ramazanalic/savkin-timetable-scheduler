@@ -143,8 +143,8 @@ namespace SchedulerProject.UserInterface
         private void miLoadData_Click(object sender, EventArgs e)
         {
             openDataFileDialog.InitialDirectory = _openedFileDirectory;
-            openDataFileDialog.FileName = _openedFileName;
-            openDataFileDialog.Filter = "XML-файлы данных расписания|*.xml";
+            openDataFileDialog.FileName = "";
+            openDataFileDialog.Filter = "Файлы данных расписания|*.ttd";
             if (openDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
@@ -167,7 +167,7 @@ namespace SchedulerProject.UserInterface
         {
             saveDataFileDialog.InitialDirectory = _openedFileDirectory;
             saveDataFileDialog.FileName = _openedFileName;
-            openDataFileDialog.Filter = "XML-файлы данных расписания|*.xml";
+            saveDataFileDialog.Filter = "Файлы данных расписания|*.ttd";
             if (saveDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
@@ -188,7 +188,8 @@ namespace SchedulerProject.UserInterface
         private void miOpenTimeTable_Click(object sender, EventArgs e)
         {
             openDataFileDialog.InitialDirectory = "";
-            openDataFileDialog.Filter = "XML-файлы расписаний|*.xml";
+            openDataFileDialog.FileName = "";
+            openDataFileDialog.Filter = "Файлы расписаний|*.crc";
             if (openDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
@@ -216,8 +217,8 @@ namespace SchedulerProject.UserInterface
         private void miSaveTimeTable_Click(object sender, EventArgs e)
         {
             saveDataFileDialog.InitialDirectory = "";
-            saveDataFileDialog.FileName = SelectedTimeTable.Name + ".xml";
-            saveDataFileDialog.Filter = "XML-файлы расписаний|*.xml";
+            saveDataFileDialog.FileName = SelectedTimeTable.Name + ".crc";
+            saveDataFileDialog.Filter = "Файлы расписаний|*.crc";
             if (saveDataFileDialog.ShowDialog() == DialogResult.OK)
             {
                 Cursor = Cursors.WaitCursor;
