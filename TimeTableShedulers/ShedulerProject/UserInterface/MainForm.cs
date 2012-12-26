@@ -291,10 +291,32 @@ namespace SchedulerProject.UserInterface
         private void miShedule_Click(object sender, EventArgs e)
         {
             Cursor = Cursors.WaitCursor;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var timeTable = Scheduler.Shedule(OpenedData);
+            sw.Stop();
             timeTable.Name = "Безымянное расписание";
             AddTimeTable(timeTable);
             Cursor = Cursors.Arrow;
+            var text = Enumerable.Range(1, 2)
+                                 .Select(i =>
+                                 {
+                                    var msg = timeTable.WeeklyAssignments(i)
+                                                       .Where(wa => wa != null && wa.Conflicts != 0)
+                                                       .Select(wa => wa.ToString(timeTable.Data) + " - " + wa.Conflicts)
+                                                       .Aggregate(string.Empty, (acc, curr) => acc + curr + "\n");
+                                    return msg == string.Empty ? msg : string.Format("Конфлиты на {0} неделе:\n{1}", i, msg);
+                                 })
+                                 .Aggregate(string.Empty, (acc, curr) => acc + curr);
+
+            if (text == string.Empty)
+                text = "Расписание составлено успешно";
+            else
+                text = "Расписание составлено с конфликтами:\n" + text;
+
+            MessageBox.Show(this, text, 
+                            string.Format("Расписание составлено ({0} ms)", sw.ElapsedMilliseconds),
+                            MessageBoxButtons.OK, 
+                            MessageBoxIcon.Information);
         }
 
         private void timeTablesList_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
