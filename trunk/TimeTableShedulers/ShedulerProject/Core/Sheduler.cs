@@ -80,7 +80,7 @@ namespace SchedulerProject.Core
                 if (secondWeek)
                 {
                     DEFAULT_MAX_STEPS = Math.Min(DEFAULT_MAX_STEPS + 50, 5000);
-                    bestIterSolution.ResolveSecondWeek = true;
+                    bestIterSolution.ResolveOnlyWeekSpecificConflicts = true;
                 }
                 bestIterSolution.LocalSearch(bestIterSolution.feasible ? 3000 : DEFAULT_MAX_STEPS);
 
@@ -94,7 +94,7 @@ namespace SchedulerProject.Core
                 // update pheromones
                 mmasData.EvaporatePheromone();
                 mmasData.SetPheromoneLimits();
-                if (bestIterSolution.ResolveSecondWeek)
+                if (bestIterSolution.ResolveOnlyWeekSpecificConflicts)
                     mmasData.DepositPheromone(bestIterSolution);
                 else
                     mmasData.DepositPheromone(bestSoFarSolution);

@@ -24,6 +24,7 @@ namespace SchedulerProject.Core
         }
         public TimeSlot TimeSlot { get; private set; }
         public int Week { get; private set; }
+        public int Conflicts { get; set; }
 
         public string ToString(TimeTableData data)
         {            
@@ -91,6 +92,18 @@ namespace SchedulerProject.Core
         public IEnumerable<EventAssignment> Assignments
         {
             get { return assignments.Values; }
+        }
+
+        public IEnumerable<WeeklyEventAssignment> WeeklyAssignments(int week)
+        {
+            Func<EventAssignment, WeeklyEventAssignment> f;
+            switch (week)
+            {
+                case 1: f = a => a.FirstWeekAssignment; break;
+                case 2: f = a => a.SecondWeekAssignment; break;
+                default: throw new ArgumentException("week");
+            }
+            return Assignments.Select(f);
         }
 
         public static TimeTable LoadFromXml(TimeTableData appropriateData, string filename)

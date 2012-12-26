@@ -25,7 +25,7 @@ namespace SchedulerProject.Core
         public int hcv;   // keeps the number of hard constraint violations (computeHcv() has to be called)
 
 
-        public bool ResolveSecondWeek = false;
+        public bool ResolveOnlyWeekSpecificConflicts = false;
 
         Event[] events;
         int eventsCount;
@@ -43,7 +43,7 @@ namespace SchedulerProject.Core
             dest.eventsCount = this.eventsCount;
             dest.week = week;
             dest.result = this.result.AsEnumerable().ToArray();
-            dest.ResolveSecondWeek = this.ResolveSecondWeek;
+            dest.ResolveOnlyWeekSpecificConflicts = this.ResolveOnlyWeekSpecificConflicts;
             dest.timeslot_events = this.timeslot_events
                                     .AsEnumerable()
                                     .ToDictionary(kvp => kvp.Key,
@@ -89,7 +89,7 @@ namespace SchedulerProject.Core
                     TimeSlot slot = TimeSlot.FromId(a.TimeSlotId,
                                                     data.Days, data.SlotsPerDay);
 
-                    return new WeeklyEventAssignment(ev, room, slot, week);
+                    return new WeeklyEventAssignment(ev, room, slot, week) { Conflicts = EventHcv(i) };
                 }).ToArray();
             }
         }
@@ -501,7 +501,7 @@ namespace SchedulerProject.Core
         /// </summary>
         bool Move1(int e, int t)
         {
-            if (ResolveSecondWeek && data.IsEveryWeekEvent(e))
+            if (ResolveOnlyWeekSpecificConflicts && data.IsEveryWeekEvent(e))
                 return false;
 
             if (!data.SuitableTimeSlot(events[e].Id, t))
@@ -534,7 +534,7 @@ namespace SchedulerProject.Core
         /// </summary>
         bool Move2(int e1, int e2)
         {
-            if (ResolveSecondWeek && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2)))
+            if (ResolveOnlyWeekSpecificConflicts && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2)))
                 return false;
 
 	        //swap timeslots between event e1 and event e2
@@ -564,7 +564,7 @@ namespace SchedulerProject.Core
         {
 	        // permute event e1, e2, and e3 in a 3-cycle
             
-            if (ResolveSecondWeek && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2) || data.IsEveryWeekEvent(e3)))
+            if (ResolveOnlyWeekSpecificConflicts && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2) || data.IsEveryWeekEvent(e3)))
                 return false;
 
             int t1 = result[e1].TimeSlotId,
@@ -663,7 +663,7 @@ namespace SchedulerProject.Core
 
         public void TryResolveHcv()
         {
-            ResolveSecondWeek = true;
+            ResolveOnlyWeekSpecificConflicts = true;
             var eventList = new int[eventsCount];
             for (var e = 0; e < eventsCount; e++)
             {
@@ -737,11 +737,11 @@ namespace SchedulerProject.Core
         /// </summary>
         void AssignRooms(int t)
         {
-            if (ResolveSecondWeek && AffectedRoomInTimeslotHcv(t) == 0)
+            if (ResolveOnlyWeekSpecificConflicts && AffectedRoomInTimeslotHcv(t) == 0)
                 return;
 
             var eventsCount = timeslot_events[t].Count;
-            var x = HopcroftKarpMatching(ResolveSecondWeek ? MakeGraphForSecondWeek(t) : MakeGraph(t), eventsCount);
+            var x = HopcroftKarpMatching(ResolveOnlyWeekSpecificConflicts ? MakeWeekSpecificGraph(t) : MakeGraph(t), eventsCount);
 
             var roomsAssignmentCounters = new int[data.Rooms.Length];
 
@@ -880,7 +880,7 @@ namespace SchedulerProject.Core
             return res;
         }
 
-        bool[,] MakeGraphForSecondWeek(int timeslot)
+        bool[,] MakeWeekSpecificGraph(int timeslot)
         {
             int eventsCount = timeslot_events[timeslot].Count;
             //verts 0..evenstCount - 1 - events verts ids
