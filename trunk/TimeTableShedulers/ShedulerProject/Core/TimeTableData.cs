@@ -43,7 +43,7 @@ namespace SchedulerProject.Core
             {
                 Id = string.Join("-", bytes.Select(b => b.ToString("X"))),
                 Days = 6,
-                SlotsPerDay = 4,
+                SlotsPerDay = 5,
                 Rooms = new Room[0],
                 Lecturers = new Lecturer[0],
                 Groups = new Group[0],
@@ -194,7 +194,7 @@ namespace SchedulerProject.Core
             .Where(c => c != null);
         }
 
-        void PrepareSuitableTimeSlots()
+        public void PrepareSuitableTimeSlots(bool useLastTimeSlot)
         {
             suitableTimeSlots = new Dictionary<int, bool[]>();
             foreach (var e in Events)
@@ -215,10 +215,17 @@ namespace SchedulerProject.Core
                 var eventConstraints = EventConstraints(e).ToArray();
 
                 
-                var slotId = 0;
+                var slotId = -1;
                 // set direct impossible timeslots
                 foreach (var timeSlot in TimeSlot.EnumerateAll(Days, SlotsPerDay))
                 {
+                    slotId++;
+                    if (!useLastTimeSlot && 
+                        timeSlot.Slot == SlotsPerDay &&
+                        eventConstraints.All(c => !c[TimeConstraintType.Necessary].Contains(timeSlot)) &&
+                        groupsConstraints.All(c => !c[TimeConstraintType.Necessary].Contains(timeSlot)))
+                        continue;
+
                     var suitableForEvent = eventConstraints.All(c => !c[TimeConstraintType.Impossible].Contains(timeSlot) &&
                                                                      (c[TimeConstraintType.Necessary].Count() == 0 ||
                                                                       c[TimeConstraintType.Necessary].Contains(timeSlot)));
@@ -226,8 +233,7 @@ namespace SchedulerProject.Core
                     var suitableForGroups = groupsConstraints.All(c => c[TimeConstraintType.Necessary].Count() == 0 ||
                                                                        !c[TimeConstraintType.Necessary].Contains(timeSlot));
 
-
-                    suitableTimeSlots[e.Id][slotId++] = suitableForEvent && suitableForGroups;
+                    suitableTimeSlots[e.Id][slotId] = suitableForEvent && suitableForGroups;
                 }
             }
         }
@@ -256,7 +262,7 @@ namespace SchedulerProject.Core
 
             PrepareEventConflicts();
 
-            PrepareSuitableTimeSlots();
+            //PrepareSuitableTimeSlots(false);
 
             PrepareSuitableRooms();
         }

@@ -47,6 +47,8 @@ namespace SchedulerProject.Core
                                 WeeklyEventAssignment[] guidingAssignments = null)
         {
             TimeTableData timeTable = problemData;
+            problemData.PrepareSuitableTimeSlots(false);
+
             MMASData mmasData = new MMASData(timeTable, week, EVAPORATION, MIN_PHERAMONE);
             bool secondWeek = guidingAssignments != null;
 
@@ -76,7 +78,7 @@ namespace SchedulerProject.Core
                                                       })
                                                       .Min();
 
-                // apply local search until local optimum is reached or a time limit reached
+                // apply local search until local optimum is reached or a steps limit reached
                 if (secondWeek)
                 {
                     DEFAULT_MAX_STEPS = Math.Min(DEFAULT_MAX_STEPS + 50, 5000);
@@ -103,18 +105,20 @@ namespace SchedulerProject.Core
                 Console.WriteLine("iter: {0}, HCV: {1}, SCV: {2}", currIter, bestSoFarSolution.hcv, bestSoFarSolution.scv);
             }
 
-            bestSoFarSolution.ComputeFeasibility();
-            if (!bestSoFarSolution.feasible)
-            {
-                bestSoFarSolution.TryResolveHcv();
-                bestSoFarSolution.ComputeFeasibility();
-                if (bestSoFarSolution.feasible)
-                {
-                    bestSoFarSolution.LocalSearch(10000, 1, 1); //try to resolve scv
-                }
-            }
-
             bestSoFarSolution.ComputeHcv();
+            bestSoFarSolution.ComputeScv();
+            Console.WriteLine("RAW: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
+
+            problemData.PrepareSuitableTimeSlots(true);
+
+            bestSoFarSolution.TryResolveHcv();
+            bestSoFarSolution.ComputeHcv();
+            bestSoFarSolution.ComputeScv();
+            Console.WriteLine("RESOLVE: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
+
+            bestSoFarSolution.LocalSearch(10000, 1, 1); //try to resolve scv
+            bestSoFarSolution.ComputeHcv();
+            bestSoFarSolution.ComputeScv();
             Console.WriteLine("RESULT: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
 
             return bestSoFarSolution;
