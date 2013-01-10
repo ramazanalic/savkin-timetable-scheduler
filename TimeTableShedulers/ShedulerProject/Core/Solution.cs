@@ -89,7 +89,7 @@ namespace SchedulerProject.Core
                     TimeSlot slot = TimeSlot.FromId(a.TimeSlotId,
                                                     data.Days, data.SlotsPerDay);
 
-                    return new WeeklyEventAssignment(ev, room, slot, week) { Conflicts = EventHcv(i) };
+                    return new WeeklyEventAssignment(ev, room, slot, week) { Conflicts = EventHcv(i) + (data.SuitableRoom(ev.Id, room.Id) ? 0 : 1) };
                 }).ToArray();
             }
         }
@@ -515,7 +515,7 @@ namespace SchedulerProject.Core
 	        timeslot_events[t].Add(e);	      // and place it in timeslot t
 
 	        // reorder in label order events in timeslot t
-            timeslot_events[t].Sort(); // TODO: try to replace insertion and sort with Binary search
+            //timeslot_events[t].Sort(); // TODO: try to replace insertion and sort with Binary search
 
 	        // reassign rooms to events in timeslot t
 	        AssignRooms(t);
@@ -595,7 +595,7 @@ namespace SchedulerProject.Core
         {
             timeslot_events[timeSlot].Remove(currEvent);
             timeslot_events[timeSlot].Add(newEvent);
-            timeslot_events[timeSlot].Sort();
+            //timeslot_events[timeSlot].Sort();
         }
      
         /// <summary>
@@ -624,7 +624,7 @@ namespace SchedulerProject.Core
             var foundBetter = false;
             ComputeFeasibility();
             var i = 0;
-            while (!feasible && checkedEvents < eventsCount && stepCount < maxSteps)
+            while (checkedEvents < eventsCount && stepCount < maxSteps)
             {
                 //Console.WriteLine("checked: {0}, steps: {1}", checkedEvents, stepCount);
                 var currentHcv = EventHcv(eventList[i]);
@@ -661,6 +661,97 @@ namespace SchedulerProject.Core
             return -1;
         }
 
+        bool SlotWithConflictingEvents(int eventId, int timeSlotId)
+        {
+            return timeslot_events[timeSlotId].FindIndex(e => data.ConflictingEvents(eventId, events[e].Id)) != -1;
+        }
+
+        bool TryMoveToSuitableTimeSlot(int eventIndex)
+        {
+            var evId = events[eventIndex].Id;
+            for (var t = 0; t < data.TotalTimeSlots; t++)
+            {
+                if (t != result[eventIndex].TimeSlotId &&
+                    data.SuitableTimeSlot(evId, t) && !SlotWithConflictingEvents(evId, t))
+                {
+                    var roomId = FindSuitableRoomId(evId, t);
+                    if (roomId != -1)
+                    {
+                        timeslot_events[t].Add(eventIndex);
+                        result[eventIndex].RoomId = roomId;
+                        result[eventIndex].TimeSlotId = t;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        bool TrySwapToSuitableTimeSlot(int eventIndex)
+        {
+            var evTimeSlot = result[eventIndex].TimeSlotId;
+            timeslot_events[evTimeSlot].Remove(eventIndex);
+
+            var evId = events[eventIndex].Id;
+            for (var t = 0; t < data.TotalTimeSlots; t++)
+            {
+                if (t != evTimeSlot && data.SuitableTimeSlot(evId, t))
+                {
+                    for(int i = 0; i < timeslot_events[t].Count; i++)
+                    {
+                        var e = timeslot_events[t][i];
+                        if (data.SuitableTimeSlot(events[e].Id, t))
+                        {
+                            timeslot_events[t].RemoveAt(i);
+                            var conflicting1 = SlotWithConflictingEvents(evId, t);
+                            var conflicting2 = SlotWithConflictingEvents(events[e].Id, evTimeSlot);
+                            var room1 = FindSuitableRoomId(evId, t);
+                            var room2 = FindSuitableRoomId(events[e].Id, evTimeSlot);
+                            if (!conflicting1 && !conflicting2 &&
+                                room1 != -1 && room2 != -1)
+                            {
+                                timeslot_events[t].Add(eventIndex);
+                                result[eventIndex].RoomId = room2;
+                                result[eventIndex].TimeSlotId = t;
+
+                                timeslot_events[evTimeSlot].Add(e);
+                                result[e].RoomId = room1;
+                                result[e].TimeSlotId = evTimeSlot;
+                                return true;
+                            }
+                            else
+                            {
+                                timeslot_events[t].Insert(i, e);
+                            }
+                        }
+                    }
+                }
+            }
+            timeslot_events[evTimeSlot].Add(eventIndex);
+            return false;
+        }
+
+        bool TrySwapRooms(int eventIndex)
+        {
+            var t = result[eventIndex].TimeSlotId;
+            var evId = events[eventIndex].Id;
+            foreach (var e in timeslot_events[t])
+            {
+                if (e != eventIndex)
+                {
+                    var room1 = result[eventIndex].RoomId;
+                    var room2 = result[e].RoomId;
+                    if (room1 != room2 && data.SuitableRoom(evId, room2) && data.SuitableRoom(events[e].Id, room1))
+                    {
+                        result[e].RoomId = room1;
+                        result[eventIndex].RoomId = room2;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public void TryResolveHcv()
         {
             ResolveOnlyWeekSpecificConflicts = true;
@@ -670,57 +761,120 @@ namespace SchedulerProject.Core
                 eventList[e] = e;
             }
 
-            // collect conflicting events
-            var conflictingEvents = new List<int>();
-            for (var i = 0; i < eventsCount; i++)
+            ComputeFeasibility();
+            // Should not be forever because we have reserved slots
+            // TODO: add stop another stop condition
+            //while (!feasible) 
+            for (int tryNumber = 0; tryNumber < 10 && !feasible; tryNumber++)
             {
-                var useFirstForLocalSearch = !data.IsEveryWeekEvent(events[i].Id);
-                for (var j = i + 1; j < eventsCount; j++)
+                // collect conflicting events
+                var groupConflictingEvents = new List<Tuple<int, int>>();
+                var roomConflictingEvents = new List<int>();
+                for (var i = 0; i < eventsCount; i++)
                 {
-                    if (result[i].TimeSlotId == result[j].TimeSlotId &&
-                        (data.ConflictingEvents(events[i].Id, events[j].Id) ||
-                            result[i].RoomId == result[j].RoomId))
+                    var useFirstForLocalSearch = !data.IsEveryWeekEvent(events[i].Id);
+                    for (var j = i + 1; j < eventsCount; j++)
                     {
-                        var toRemove = useFirstForLocalSearch ? i : j;
-                        conflictingEvents.Add(toRemove);
-                        timeslot_events[result[i].TimeSlotId].Remove(toRemove);
+                        if (result[i].TimeSlotId == result[j].TimeSlotId)
+                        {
+                            var doRemove = false;
+                            var indexToRemove = useFirstForLocalSearch ? i : j;
+                            if (data.ConflictingEvents(events[i].Id, events[j].Id))
+                            {
+                                doRemove = true;
+                                groupConflictingEvents.Add(Tuple.Create(indexToRemove, useFirstForLocalSearch ? j : i));
+                            }
+                            if (result[i].RoomId == result[j].RoomId)
+                            {
+                                doRemove = true;
+                                roomConflictingEvents.Add(indexToRemove);
+                            }
+
+                            if(doRemove)
+                                timeslot_events[result[i].TimeSlotId].Remove(indexToRemove);
+                        }
                     }
                 }
-            }
 
-            // try to resolve event conflicts
-            foreach (var index in conflictingEvents)
-            {
-                var evId = events[index].Id;
-                for (var t = 0; t < data.TotalTimeSlots; t++)
+                // try to resolve event conflicts
+                foreach (var conflictingEvents in groupConflictingEvents)
                 {
-                    if (timeslot_events[t].FindIndex(e => data.ConflictingEvents(evId, events[e].Id)) == -1)
-                    {
-                        var x = FindSuitableRoomId(evId, t);
-                        timeslot_events[t].Add(index);
-                        result[index].RoomId = x;
-                        result[index].TimeSlotId = t;
-                        break;
-                    }
-                }
-            }
+                    if (result[conflictingEvents.Item1].TimeSlotId != result[conflictingEvents.Item2].TimeSlotId)
+                        continue;
 
-            // try to resolve room conflicts
-            for (var i = 0; i < eventsCount; i++)
-            {
-                if (!data.SuitableRoom(events[i].Id, result[i].RoomId))
-                {
-                    var suitable = FindSuitableRoomId(events[i].Id, result[i].TimeSlotId);
-                    if (suitable != -1)
+                    var tmp = GetHcv(false);
+                    Console.WriteLine("FIX! {0} - {1}", 
+                                        events[conflictingEvents.Item1].Id, events[conflictingEvents.Item2].Id);
+                    if (!TryMoveToSuitableTimeSlot(conflictingEvents.Item1))
                     {
-                        result[i].RoomId = suitable;
+                        if (!TrySwapToSuitableTimeSlot(conflictingEvents.Item1))
+                        {
+                            if (!TryMoveToSuitableTimeSlot(conflictingEvents.Item2))
+                            {
+                                if (!TrySwapToSuitableTimeSlot(conflictingEvents.Item2))
+                                {
+                                    Console.WriteLine("no event fix");
+                                }
+                                else
+                                    Console.WriteLine("swap item2");
+                            }
+                            else
+                                Console.WriteLine("move item2");
+                        }
+                        else
+                            Console.WriteLine("swap item1");
                     }
                     else
+                        Console.WriteLine("move item1");
+                    Console.WriteLine("fixed: " + (tmp - GetHcv(false)));
+                }
+
+                ComputeHcv();
+                Console.WriteLine("H: " + hcv);
+
+                // try to resolve room conflicts
+                for (var index = 0; index < eventsCount; index++)
+                {
+                    if (!data.SuitableRoom(events[index].Id, result[index].RoomId) || roomConflictingEvents.Contains(index))
                     {
-                        var stepCount = 0;
-                        var p = SingleEventLocalSearchHcv(eventList, i, 1, 1, ref stepCount, true);
+                        var tmp = GetHcv(false);
+                        Console.WriteLine("FIX! ARR: " + roomConflictingEvents.Contains(index));
+                        var suitable = FindSuitableRoomId(events[index].Id, result[index].TimeSlotId);
+                        if (suitable != -1)
+                        {
+                            result[index].RoomId = suitable;
+                            Console.WriteLine("room found");
+                        }
+                        else
+                        {
+                            if (!TrySwapRooms(index))
+                            {
+                                if (!TryMoveToSuitableTimeSlot(index))
+                                {
+                                    if(!TrySwapToSuitableTimeSlot(index))
+                                        Console.WriteLine("no room fix! " + events[index].Id);
+                                }
+                                else
+                                    Console.WriteLine("move event");
+                            }
+                            else
+                                Console.WriteLine("swap event");
+                        }
+                        Console.WriteLine("fixed: " + (tmp - GetHcv(false)));
                     }
                 }
+
+                ComputeHcv();
+                Console.WriteLine("H: " + hcv);
+
+                int rHcv = 0;
+                for (var index = 0; index < eventsCount; index++)
+                {
+                    if (!data.SuitableRoom(events[index].Id, result[index].RoomId))
+                        rHcv++;
+                }
+
+                ComputeFeasibility();
             }
         }
 
