@@ -7,59 +7,59 @@ namespace SchedulerProject.Core
 {
     class MMASData
     {
-        public double evap;
-        public double phe_max;
-        public double phe_min;
+        public double EvaporationRate;
+        public double MaxPherLevel;
+        public double MinPherLevel;
         //public double alpha;
-        public double[,] event_timeslot_pheromone;	// matrix keeping pheromone between events and timeslots
-        public int[] sorted_event_list;			// vector keeping sorted lists of events
+        public double[,] Pheromones;	// matrix keeping pheromone between events and timeslots
+        public int[] SortedEventList;			// vector keeping sorted lists of events
 
-        TimeTableData _data;
-        Event[] _events;
-        int _eventesNumber;
-        int _timeslotsNumber;
+        TimeTableData data;
+        Event[] events;
+        int eventesNumber;
+        int timeslotsNumber;
 
-        public MMASData(TimeTableData data, int week, double evaporation, double minPher)
+        public MMASData(TimeTableData problemData, int week, double evaporation, double minPher)
         {
             //member variables initialization
-            _data = data;
-            _events = _data.GetWeekEvents(week);
-            _eventesNumber = _events.Length;
-            _timeslotsNumber = data.TotalTimeSlots;
-            event_timeslot_pheromone = new double[_eventesNumber, _timeslotsNumber];
-            evap = evaporation;
-            phe_min = minPher;
+            data = problemData;
+            events = data.GetWeekEvents(week);
+            eventesNumber = events.Length;
+            timeslotsNumber = problemData.TotalTimeSlots;
+            Pheromones = new double[eventesNumber, timeslotsNumber];
+            EvaporationRate = evaporation;
+            MinPherLevel = minPher;
 
-            if (evap < 1.0)
+            if (EvaporationRate < 1.0)
             {
-                phe_max = 10.0 / (1.0 - evap);
+                MaxPherLevel = 10.0 / (1.0 - EvaporationRate);
             }
             else
             {
-                phe_max = int.MaxValue;
+                MaxPherLevel = int.MaxValue;
             }
 
             // creating a set of pre-sorted event lists
             // sorting events based on level of correlations
-            int[] event_correlation = new int[_eventesNumber];
-            for (int i = 0; i < _eventesNumber; i++)
+            int[] event_correlation = new int[eventesNumber];
+            for (int i = 0; i < eventesNumber; i++)
             {
                 // summing up the correlations for each event
                 event_correlation[i] = 0;
-                for (int j = 0; j < _eventesNumber; j++)
+                for (int j = 0; j < eventesNumber; j++)
                 {
-                    if (data.ConflictingEvents(_events[i].Id, _events[j].Id))
+                    if (problemData.ConflictingEvents(events[i].Id, events[j].Id))
                         event_correlation[i] += 1;
                 }
             }
 
-            sorted_event_list = new int[_eventesNumber];
-            for (int i = 0; i < _eventesNumber; i++)
+            SortedEventList = new int[eventesNumber];
+            for (int i = 0; i < eventesNumber; i++)
             {
                 // sorting the list
                 int max_correlation = -1;
                 int event_index = -1;
-                for (int j = 0; j < _eventesNumber; j++)
+                for (int j = 0; j < eventesNumber; j++)
                 {
                     if (event_correlation[j] > max_correlation)
                     {
@@ -69,20 +69,20 @@ namespace SchedulerProject.Core
                 }
 
                 event_correlation[event_index] = -2;
-                sorted_event_list[i] = event_index;
+                SortedEventList[i] = event_index;
             }
         }
 
         public void SetPheromoneFromExistingAssignments(WeeklyEventAssignment[] assignments)
         {
-            SetPheromone(phe_min);
+            SetPheromone(MinPherLevel);
             foreach (var assignment in assignments)
             {
-                var eventIndex = Array.IndexOf(_events, assignment.Event);
+                var eventIndex = Array.IndexOf(events, assignment.Event);
                 if (eventIndex != -1)
                 {
-                    var slotId = TimeSlot.ToId(assignment.TimeSlot, _data.Days, _data.SlotsPerDay);
-                    event_timeslot_pheromone[eventIndex, slotId] = phe_max;
+                    var slotId = TimeSlot.ToId(assignment.TimeSlot, data.Days, data.SlotsPerDay);
+                    Pheromones[eventIndex, slotId] = MaxPherLevel;
                 }
             }
         }
@@ -90,16 +90,16 @@ namespace SchedulerProject.Core
         public void ResetPheromone()
         {
             // initialize pheromon levels between events and timeslots to the maximal values
-            SetPheromone(phe_max);
+            SetPheromone(MaxPherLevel);
         }
 
         void SetPheromone(double value)
         {
-            for (int i = 0; i < _eventesNumber; i++)
+            for (int i = 0; i < eventesNumber; i++)
             {
-                for (int j = 0; j < _timeslotsNumber; j++)
+                for (int j = 0; j < timeslotsNumber; j++)
                 {
-                    event_timeslot_pheromone[i, j] = value;
+                    Pheromones[i, j] = value;
                 }
             }
         }
@@ -107,11 +107,11 @@ namespace SchedulerProject.Core
         public void EvaporatePheromone()
         {
             // evaporate some pheromone
-            for (int i = 0; i < _eventesNumber; i++)
+            for (int i = 0; i < eventesNumber; i++)
             {
-                for (int j = 0; j < _timeslotsNumber; j++)
+                for (int j = 0; j < timeslotsNumber; j++)
                 {
-                    event_timeslot_pheromone[i, j] *= (1 - evap);
+                    Pheromones[i, j] *= (1 - EvaporationRate);
                 }
             }
         }
@@ -119,18 +119,18 @@ namespace SchedulerProject.Core
         public void SetPheromoneLimits()
         {
             // limit pheromone values according to MAX-MIN
-            for (int i = 0; i < _eventesNumber; i++)
+            for (int i = 0; i < eventesNumber; i++)
             {
-                for (int j = 0; j < _timeslotsNumber; j++)
+                for (int j = 0; j < timeslotsNumber; j++)
                 {
-                    if (event_timeslot_pheromone[i, j] < phe_min)
+                    if (Pheromones[i, j] < MinPherLevel)
                     {
-                        event_timeslot_pheromone[i, j] = phe_min;
+                        Pheromones[i, j] = MinPherLevel;
                     }
 
-                    if (event_timeslot_pheromone[i, j] > phe_max)
+                    if (Pheromones[i, j] > MaxPherLevel)
                     {
-                        event_timeslot_pheromone[i, j] = phe_max;
+                        Pheromones[i, j] = MaxPherLevel;
                     }
                 }
             }
@@ -139,10 +139,10 @@ namespace SchedulerProject.Core
         public void DepositPheromone(Solution solution)
         {
             // calculate pheromone update
-            for (int i = 0; i < solution.result.Length; i++)
+            for (int i = 0; i < solution.Result.Length; i++)
             {
-                int timeslot = solution.result[i].TimeSlotId;
-                event_timeslot_pheromone[i, timeslot] += 1.0;
+                int timeslot = solution.Result[i].TimeSlotId;
+                Pheromones[i, timeslot] += 1.0;
             }
         }
     }

@@ -12,11 +12,11 @@ namespace SchedulerProject.Core
         static double EVAPORATION = 0.05;
         static double MIN_PHERAMONE = 0.3;
 
-        static public TimeTable Shedule(TimeTableData problemData)
+        static public TimeTable Schedule(TimeTableData problemData)
         {
             problemData.PrepareHelpers();
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            Solution firstWeekSolution = Shedule(problemData, 1);
+            Solution firstWeekSolution = Schedule(problemData, 1);
             sw.Stop();
             Console.WriteLine(sw.ElapsedMilliseconds + " ms");
 
@@ -26,7 +26,7 @@ namespace SchedulerProject.Core
 
             sw.Start();
             // try to partially apply the first week solution to the second one
-            Solution secondWeekSolution = Shedule(problemData, 2, firstWeekAssignments);
+            Solution secondWeekSolution = Schedule(problemData, 2, firstWeekAssignments);
             sw.Stop();
             Console.WriteLine(sw.ElapsedMilliseconds + " ms");
 
@@ -43,7 +43,7 @@ namespace SchedulerProject.Core
             return result;
         }
 
-        static Solution Shedule(TimeTableData problemData, int week, 
+        static Solution Schedule(TimeTableData problemData, int week, 
                                 WeeklyEventAssignment[] guidingAssignments = null)
         {
             TimeTableData timeTable = problemData;
@@ -84,7 +84,7 @@ namespace SchedulerProject.Core
                     DEFAULT_MAX_STEPS = Math.Min(DEFAULT_MAX_STEPS + 50, 5000);
                     bestIterSolution.ResolveOnlyWeekSpecificConflicts = true;
                 }
-                bestIterSolution.LocalSearch(bestIterSolution.feasible ? 3000 : DEFAULT_MAX_STEPS);
+                bestIterSolution.LocalSearch(bestIterSolution.IsFeasible ? 3000 : DEFAULT_MAX_STEPS);
 
                 // output the new best solution, if found
                 if (bestIterSolution.CompareTo(bestSoFarSolution) < 0)
@@ -102,24 +102,24 @@ namespace SchedulerProject.Core
                     mmasData.DepositPheromone(bestSoFarSolution);
 
                 currIter++;
-                Console.WriteLine("iter: {0}, HCV: {1}, SCV: {2}", currIter, bestSoFarSolution.hcv, bestSoFarSolution.scv);
+                Console.WriteLine("iter: {0}, HCV: {1}, SCV: {2}", currIter, bestSoFarSolution.Hcv, bestSoFarSolution.Scv);
             }
 
             bestSoFarSolution.ComputeHcv();
             bestSoFarSolution.ComputeScv();
-            Console.WriteLine("RAW: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
+            Console.WriteLine("RAW: HCV: {0}, SCV: {1}", bestSoFarSolution.Hcv, bestSoFarSolution.Scv);
 
             problemData.PrepareSuitableTimeSlots(true);
 
             bestSoFarSolution.TryResolveHcv();
             bestSoFarSolution.ComputeHcv();
             bestSoFarSolution.ComputeScv();
-            Console.WriteLine("RESOLVE: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
+            Console.WriteLine("RESOLVE: HCV: {0}, SCV: {1}", bestSoFarSolution.Hcv, bestSoFarSolution.Scv);
 
             bestSoFarSolution.LocalSearch(10000, 1, 1); //try to resolve scv
             bestSoFarSolution.ComputeHcv();
             bestSoFarSolution.ComputeScv();
-            Console.WriteLine("RESULT: HCV: {0}, SCV: {1}", bestSoFarSolution.hcv, bestSoFarSolution.scv);
+            Console.WriteLine("RESULT: HCV: {0}, SCV: {1}", bestSoFarSolution.Hcv, bestSoFarSolution.Scv);
 
             return bestSoFarSolution;
         }

@@ -10,85 +10,85 @@ namespace SchedulerProject.Core
         public Ant(TimeTableData problemData, MMASData mmasData, int week)
         {
             // memeber variables initialization
-            _data = problemData;
-            _solution = new Solution(problemData, week);
-            _events = _data.GetWeekEvents(week);
-            _eventsCount = _events.Length;
-            _mmasData = mmasData;
-            _totalTimeSlots = _data.TotalTimeSlots;
+            data = problemData;
+            solution = new Solution(problemData, week);
+            events = data.GetWeekEvents(week);
+            eventsCount = events.Length;
+            this.mmasData = mmasData;
+            totalTimeSlots = data.TotalTimeSlots;
         }
 
-        Solution _solution;
-        TimeTableData _data;
-        MMASData _mmasData;
-        Event[] _events;
-        int _totalTimeSlots;
-        int _eventsCount;
+        Solution solution;
+        TimeTableData data;
+        MMASData mmasData;
+        Event[] events;
+        int totalTimeSlots;
+        int eventsCount;
 
         public Solution GetSolution()
         {
             // itarate through all the events to complete the path
-            for (var i = 0; i < _eventsCount; i++)
+            for (var i = 0; i < eventsCount; i++)
             {
                 // chose next event from the list
-                var e = _mmasData.sorted_event_list[i];
+                var e = mmasData.SortedEventList[i];
                 var timeslot = GetTimeSlotId(e);
                 // put an event i into timeslot t
-                _solution.result[e].TimeSlotId = timeslot;
-                _solution.timeslot_events[timeslot].Add(e);
+                solution.Result[e].TimeSlotId = timeslot;
+                solution.TimeslotEvents[timeslot].Add(e);
             }
 
-            _solution.AssignRoomForEachTimeSlot();
+            solution.AssignRoomForEachTimeSlot();
 
-            return _solution;
+            return solution;
         }
 
         public Solution GetSolution(WeeklyEventAssignment[] existingAssignments)
         {
             foreach (var assignment in existingAssignments)
             {
-                var eventIndex = Array.IndexOf(_events, assignment.Event);
+                var eventIndex = Array.IndexOf(events, assignment.Event);
                 if (eventIndex != -1)
                 {
-                    var slotId = TimeSlot.ToId(assignment.TimeSlot, _data.Days, _data.SlotsPerDay);
-                    _solution.result[eventIndex].TimeSlotId = slotId;
-                    _solution.result[eventIndex].RoomId = assignment.RoomId;
-                    _solution.timeslot_events[slotId].Add(eventIndex);
+                    var slotId = TimeSlot.ToId(assignment.TimeSlot, data.Days, data.SlotsPerDay);
+                    solution.Result[eventIndex].TimeSlotId = slotId;
+                    solution.Result[eventIndex].RoomId = assignment.RoomId;
+                    solution.TimeslotEvents[slotId].Add(eventIndex);
                 }
             }
 
             // itarate through all the events to complete the path
-            for (var i = 0; i < _eventsCount; i++)
+            for (var i = 0; i < eventsCount; i++)
             {
                 // chose next event from the list
-                var e = _mmasData.sorted_event_list[i];
-                if (_solution.result[e].TimeSlotId == -1)
+                var e = mmasData.SortedEventList[i];
+                if (solution.Result[e].TimeSlotId == -1)
                 {
                     var timeslot = GetTimeSlotId(e);
-                    _solution.result[e].TimeSlotId = timeslot;
+                    solution.Result[e].TimeSlotId = timeslot;
                     int[] assignedRooms = existingAssignments
-                        .Where(a => TimeSlot.ToId(a.TimeSlot, _data.Days, _data.SlotsPerDay) == timeslot)                                                             
+                        .Where(a => TimeSlot.ToId(a.TimeSlot, data.Days, data.SlotsPerDay) == timeslot)                                                             
                         .Select(a => a.RoomId)
                         .ToArray();
-                    _solution.result[e].RoomId = _data.Rooms.Where(r => _data.SuitableRoom(_events[e].Id, r.Id) &&
+                    solution.Result[e].RoomId = data.Rooms.Where(r => data.SuitableRoom(events[e].Id, r.Id) &&
                                                                         !assignedRooms.Contains(r.Id))
                                                             .Select(r => r.Id)
-                                                            .Shuffle(_solution.rg)
-                                                            .DefaultIfEmpty(_data.Rooms[_solution.rg.Next(_data.Rooms.Length)].Id)
+                                                            .Shuffle(solution.rg)
+                                                            .DefaultIfEmpty(data.Rooms[solution.rg.Next(data.Rooms.Length)].Id)
                                                             .First(); 
-                    _solution.timeslot_events[timeslot].Add(e);
+                    solution.TimeslotEvents[timeslot].Add(e);
                 }
             }
 
-            return _solution;
+            return solution;
         }
 
         // finding the range for normalization
         double GetNormalizationRange(int eventIndex)
         {
             double range = 0.0;
-            for (int j = 0; j < _data.TotalTimeSlots; j++)
-                range += _mmasData.event_timeslot_pheromone[eventIndex, j];
+            for (int j = 0; j < data.TotalTimeSlots; j++)
+                range += mmasData.Pheromones[eventIndex, j];
             return range;
         }
 
@@ -97,18 +97,18 @@ namespace SchedulerProject.Core
         {
             // choose a random number between 0.0 and sum of the pheromone level
             // for this event and current sum of heuristic information
-            var limit = _solution.rg.NextDouble() * GetNormalizationRange(eventIndex);
+            var limit = solution.rg.NextDouble() * GetNormalizationRange(eventIndex);
 
             double total = 0.0;
             int timeslot = -1;
-            for (int j = 0; j < _totalTimeSlots; j++)
+            for (int j = 0; j < totalTimeSlots; j++)
             {
                 // check the pheromone
-                total += _mmasData.event_timeslot_pheromone[eventIndex, j];
+                total += mmasData.Pheromones[eventIndex, j];
                 if (total >= limit)
                 {
-                    while (!_data.SuitableTimeSlot(_events[eventIndex].Id, j))
-                        j = (j + 1) % _totalTimeSlots;
+                    while (!data.SuitableTimeSlot(events[eventIndex].Id, j))
+                        j = (j + 1) % totalTimeSlots;
                     timeslot = j;
                     break;
                 }
