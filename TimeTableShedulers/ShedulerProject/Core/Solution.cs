@@ -14,16 +14,15 @@ namespace SchedulerProject.Core
     class Solution : IComparable<Solution>
     {
         //result index = week events index
-        public InternalEventAssignment[] result; // vector of (timeslot, room) assigned for each event (index is an event number)
+        public InternalEventAssignment[] Result; // vector of (timeslot, room) assigned for each event (index is an event number)
 
-        public Dictionary<int, List<int>> timeslot_events = new Dictionary<int, List<int>>(); // for each timeslot a vector of events taking place in it
+        public Dictionary<int, List<int>> TimeslotEvents = new Dictionary<int, List<int>>(); // for each timeslot a vector of events taking place in it
         public TimeTableData data;
         public Random rg = new Random();
 
-        public bool feasible;
-        public int scv;   // keeps the number of soft constraint violations (ComputeScv() has to be called)
-        public int hcv;   // keeps the number of hard constraint violations (computeHcv() has to be called)
-
+        public bool IsFeasible;
+        public int Scv;   // keeps the number of soft constraint violations (ComputeScv() has to be called)
+        public int Hcv;   // keeps the number of hard constraint violations (ComputeHcv() has to be called)
 
         public bool ResolveOnlyWeekSpecificConflicts = false;
 
@@ -36,15 +35,15 @@ namespace SchedulerProject.Core
         public void CopyTo(Solution dest)
         {
             dest.data = this.data;
-            dest.feasible = this.feasible;
-            dest.scv = this.scv;
-            dest.hcv = this.hcv;
+            dest.IsFeasible = this.IsFeasible;
+            dest.Scv = this.Scv;
+            dest.Hcv = this.Hcv;
             dest.events = this.events;
             dest.eventsCount = this.eventsCount;
             dest.week = week;
-            dest.result = this.result.AsEnumerable().ToArray();
+            dest.Result = this.Result.AsEnumerable().ToArray();
             dest.ResolveOnlyWeekSpecificConflicts = this.ResolveOnlyWeekSpecificConflicts;
-            dest.timeslot_events = this.timeslot_events
+            dest.TimeslotEvents = this.TimeslotEvents
                                     .AsEnumerable()
                                     .ToDictionary(kvp => kvp.Key,
                                                 kvp => kvp.Value.AsEnumerable().ToList());
@@ -56,8 +55,8 @@ namespace SchedulerProject.Core
             this.ComputeScv();
             other.ComputeHcv();
             other.ComputeScv();
-            int result = this.hcv.CompareTo(other.hcv);
-            return result == 0 ? this.scv.CompareTo(other.scv) : result;
+            int result = this.Hcv.CompareTo(other.Hcv);
+            return result == 0 ? this.Scv.CompareTo(other.Scv) : result;
         }
 
         private Solution() { }
@@ -69,12 +68,12 @@ namespace SchedulerProject.Core
             events = data.GetWeekEvents(week);
             eventsCount = events.Length;
             this.week = week;
-            result = new InternalEventAssignment[eventsCount];
+            Result = new InternalEventAssignment[eventsCount];
             for (int t = 0; t < data.TotalTimeSlots; t++)
-                timeslot_events.Add(t, new List<int>());
-            for (int i = 0; i < result.Length; i++)
+                TimeslotEvents.Add(t, new List<int>());
+            for (int i = 0; i < Result.Length; i++)
             {
-                result[i].RoomId = result[i].TimeSlotId = -1;
+                Result[i].RoomId = Result[i].TimeSlotId = -1;
             }
         }
 
@@ -82,7 +81,7 @@ namespace SchedulerProject.Core
         {
             get
             {
-                return result.Select((a, i) =>
+                return Result.Select((a, i) =>
                 {
                     Event ev = data.Events.First(e => e.Id == data.GetWeekEvents(week)[i].Id);
                     Room room = data.Rooms.FirstOrDefault(r => r.Id == a.RoomId);
@@ -106,11 +105,11 @@ namespace SchedulerProject.Core
                 while (!data.SuitableTimeSlot(events[e].Id, t))
                     t = (t + 1) % data.TotalTimeSlots;
 
-                result[e].TimeSlotId = t;
-                timeslot_events[t].Add(e);
+                Result[e].TimeSlotId = t;
+                TimeslotEvents[t].Add(e);
             }
 
-            var notEmptySlots = from p in timeslot_events
+            var notEmptySlots = from p in TimeslotEvents
                                 where p.Value.Count != 0
                                 select p.Key;
 
@@ -124,9 +123,9 @@ namespace SchedulerProject.Core
         #region Hcv
         public bool ComputeFeasibility()
         {
-            hcv = GetHcv(true);
-            feasible = hcv == 0;
-            return feasible;
+            Hcv = GetHcv(true);
+            IsFeasible = Hcv == 0;
+            return IsFeasible;
         }
 
         /// <summary>
@@ -139,22 +138,22 @@ namespace SchedulerProject.Core
             {
                 for (int j = i + 1; j < eventsCount; j++)
                 {
-                    if (result[i].TimeSlotId == result[j].TimeSlotId &&
-                        result[i].RoomId == result[j].RoomId)
+                    if (Result[i].TimeSlotId == Result[j].TimeSlotId &&
+                        Result[i].RoomId == Result[j].RoomId)
                     {
                         if (stopOnFirst) return 1;
                         hcv++; // only one class can be in each room at any timeslot
                     }
 
                     if (data.ConflictingEvents(events[i].Id, events[j].Id) &&
-                        result[i].TimeSlotId == result[j].TimeSlotId)
+                        Result[i].TimeSlotId == Result[j].TimeSlotId)
                     {
                         if (stopOnFirst) return 1;
                         hcv++; // two events sharing groups cannot be in the same timeslot
                     }
                 }
 
-                if(!data.SuitableRoom(events[i].Id, result[i].RoomId))
+                if(!data.SuitableRoom(events[i].Id, Result[i].RoomId))
                 {
                     if (stopOnFirst) return 1;
                     hcv++; // each event should take place in a suitable room
@@ -170,8 +169,8 @@ namespace SchedulerProject.Core
         /// </summary>
         public int ComputeHcv()
         {
-            hcv = GetHcv(false);
-            return hcv;
+            Hcv = GetHcv(false);
+            return Hcv;
         }
 
         /// <summary>
@@ -180,18 +179,18 @@ namespace SchedulerProject.Core
         int EventHcv(int e)
         {
             int eHcv = 0;			// set to zero hard constraint violations for event e
-            int t = result[e].TimeSlotId;	// note the timeslot in which event e is
-            for (int i = 0; i < timeslot_events[t].Count; i++)
+            int t = Result[e].TimeSlotId;	// note the timeslot in which event e is
+            for (int i = 0; i < TimeslotEvents[t].Count; i++)
             {
-                if (timeslot_events[t][i] != e)
+                if (TimeslotEvents[t][i] != e)
                 {
-                    if (result[e].RoomId == result[timeslot_events[t][i]].RoomId)
+                    if (Result[e].RoomId == Result[TimeslotEvents[t][i]].RoomId)
                     {
                         // adds up number of events sharing room and timeslot with the given one
                         eHcv = eHcv + 1;
                     }
 
-                    if (data.ConflictingEvents(events[e].Id, events[timeslot_events[t][i]].Id))
+                    if (data.ConflictingEvents(events[e].Id, events[TimeslotEvents[t][i]].Id))
                     {
                         // adds up number of incompatible( because of students in common) events in the same timeslot                    
                         eHcv = eHcv + 1;
@@ -209,12 +208,12 @@ namespace SchedulerProject.Core
         int EventAffectedHcv(int e)
         {
             int aHcv = 0;					// set to zero the affected hard constraint violations for event e
-            int t = result[e].TimeSlotId;			// t timeslot where event e is
-            for (int i = 0; i < timeslot_events[t].Count; i++)
+            int t = Result[e].TimeSlotId;			// t timeslot where event e is
+            for (int i = 0; i < TimeslotEvents[t].Count; i++)
             {
-                for (int j = i + 1; j < timeslot_events[t].Count; j++)
+                for (int j = i + 1; j < TimeslotEvents[t].Count; j++)
                 {
-                    if (result[timeslot_events[t][i]].RoomId == result[timeslot_events[t][j]].RoomId)
+                    if (Result[TimeslotEvents[t][i]].RoomId == Result[TimeslotEvents[t][j]].RoomId)
                     {
                         // adds up number of room clashes in the timeslot of the given event
                         // (rooms assignement are affected by move for the whole timeslot)
@@ -222,9 +221,9 @@ namespace SchedulerProject.Core
                     }
                 }
 
-                if (timeslot_events[t][i] != e)
+                if (TimeslotEvents[t][i] != e)
                 {
-                    if (data.ConflictingEvents(events[e].Id, events[timeslot_events[t][i]].Id))
+                    if (data.ConflictingEvents(events[e].Id, events[TimeslotEvents[t][i]].Id))
                     {
                         // adds up number of incompatible (because of students in common) events in the same timeslot
                         // the only hcv of this type affected when e is moved are the ones involving e
@@ -243,12 +242,12 @@ namespace SchedulerProject.Core
         int AffectedRoomInTimeslotHcv(int t)
         {
             int roomHcv = 0;
-            for (int i = 0; i < timeslot_events[t].Count; i++)
+            for (int i = 0; i < TimeslotEvents[t].Count; i++)
             {
-                for (int j = i + 1; j < timeslot_events[t].Count; j++)
+                for (int j = i + 1; j < TimeslotEvents[t].Count; j++)
                 {
-                    if (result[timeslot_events[t][i]].RoomId ==
-                        result[timeslot_events[t][j]].RoomId)
+                    if (Result[TimeslotEvents[t][i]].RoomId ==
+                        Result[TimeslotEvents[t][j]].RoomId)
                     {
                         roomHcv += 1;
                     }
@@ -264,7 +263,7 @@ namespace SchedulerProject.Core
             {
                 var ev = eventList[eventIndex];
                 var t_start = (int)(rg.NextDouble() * data.TotalTimeSlots);	// try moves of type 1
-                var t_orig = result[ev].TimeSlotId;
+                var t_orig = Result[ev].TimeSlotId;
                 for (int h = 0, t = t_start; h < data.TotalTimeSlots; t = (t + 1) % data.TotalTimeSlots, h++)
                 {
                     if (rg.NextDouble() < prob1)
@@ -334,8 +333,8 @@ namespace SchedulerProject.Core
         /// </summary>
         public int ComputeScv()
         {
-            scv = GetScv();
-            return scv;
+            Scv = GetScv();
+            return Scv;
         }
 
         /// <summary>
@@ -346,9 +345,9 @@ namespace SchedulerProject.Core
             var groupsTimeSlots = new Dictionary<int, List<TimeSlot>>();
             var lecturersTimeSlots = new Dictionary<int, List<TimeSlot>>();
             var lastSlotsCount = 0;
-            for (var i = 0; i < result.Length; i++)
+            for (var i = 0; i < Result.Length; i++)
             {
-                var ts = TimeSlot.FromId(result[i].TimeSlotId, data.Days, data.SlotsPerDay);
+                var ts = TimeSlot.FromId(Result[i].TimeSlotId, data.Days, data.SlotsPerDay);
                 if (ts.Slot == data.SlotsPerDay)
                     lastSlotsCount++;
 
@@ -387,7 +386,7 @@ namespace SchedulerProject.Core
         /// </summary>
         int SingleClassesScv(int e)
         {
-            int t = result[e].TimeSlotId;
+            int t = Result[e].TimeSlotId;
             int classes;
             int singleClasses = 0;
             for (int i = 0; i < data.Groups.Length; i++)
@@ -407,9 +406,9 @@ namespace SchedulerProject.Core
                         if (s != t)
                         {	
                             // we are in the feasible region so there are not events sharing students in the same timeslot
-                            for (int j = 0; j < timeslot_events[s].Count; j++)
+                            for (int j = 0; j < TimeslotEvents[s].Count; j++)
                             {
-                                if (data.GroupHasEvent(data.Groups[i].Id, events[timeslot_events[s][j]].Id))
+                                if (data.GroupHasEvent(data.Groups[i].Id, events[TimeslotEvents[s][j]].Id))
                                 {
                                     classes += 1;
                                     break;
@@ -437,7 +436,7 @@ namespace SchedulerProject.Core
             {
                 var ev = eventList[eventIndex];
                 var t_start = (int)(rg.NextDouble() * data.TotalTimeSlots);	// try moves of type 1
-                var t_orig = result[ev].TimeSlotId;
+                var t_orig = Result[ev].TimeSlotId;
                 for (int h = 0, t = t_start; h < data.TotalTimeSlots; t = (t + 1) % data.TotalTimeSlots, h++)
                 {
                     if (rg.NextDouble() < prob1)
@@ -508,11 +507,11 @@ namespace SchedulerProject.Core
                 return false;
 
 	        //move event e to timeslot t
-	        int prevSlot = result[e].TimeSlotId;
-	        result[e].TimeSlotId = t;
+	        int prevSlot = Result[e].TimeSlotId;
+	        Result[e].TimeSlotId = t;
 
-            timeslot_events[prevSlot].Remove(e); // remove event e from the original timeslot 
-	        timeslot_events[t].Add(e);	      // and place it in timeslot t
+            TimeslotEvents[prevSlot].Remove(e); // remove event e from the original timeslot 
+	        TimeslotEvents[t].Add(e);	      // and place it in timeslot t
 
 	        // reorder in label order events in timeslot t
             //timeslot_events[t].Sort(); // TODO: try to replace insertion and sort with Binary search
@@ -521,7 +520,7 @@ namespace SchedulerProject.Core
 	        AssignRooms(t);
 
 	        // do the same for the original timeslot of event e if it is not empty
-	        if (timeslot_events[prevSlot].Count != 0)
+	        if (TimeslotEvents[prevSlot].Count != 0)
 	        {
 		        AssignRooms(prevSlot);
 	        }
@@ -538,21 +537,21 @@ namespace SchedulerProject.Core
                 return false;
 
 	        //swap timeslots between event e1 and event e2
-            int t1 = result[e1].TimeSlotId,
-                t2 = result[e2].TimeSlotId;
+            int t1 = Result[e1].TimeSlotId,
+                t2 = Result[e2].TimeSlotId;
 
             if (!data.SuitableTimeSlot(events[e1].Id, t2) ||
                 !data.SuitableTimeSlot(events[e2].Id, t1))
                 return false;
 
-	        result[e1].TimeSlotId = t2;
-	        result[e2].TimeSlotId = t1;
+	        Result[e1].TimeSlotId = t2;
+	        Result[e2].TimeSlotId = t1;
 
             ReplaceEvent(t1, e1, e2);
             ReplaceEvent(t2, e2, e1);
 
-	        AssignRooms(result[e1].TimeSlotId);
-	        AssignRooms(result[e2].TimeSlotId);
+	        AssignRooms(Result[e1].TimeSlotId);
+	        AssignRooms(Result[e2].TimeSlotId);
 
             return true;
         }
@@ -567,34 +566,34 @@ namespace SchedulerProject.Core
             if (ResolveOnlyWeekSpecificConflicts && (data.IsEveryWeekEvent(e1) || data.IsEveryWeekEvent(e2) || data.IsEveryWeekEvent(e3)))
                 return false;
 
-            int t1 = result[e1].TimeSlotId,
-                t2 = result[e2].TimeSlotId,
-                t3 = result[e3].TimeSlotId;
+            int t1 = Result[e1].TimeSlotId,
+                t2 = Result[e2].TimeSlotId,
+                t3 = Result[e3].TimeSlotId;
 
             if (!data.SuitableTimeSlot(events[e1].Id, t2) ||
                 !data.SuitableTimeSlot(events[e2].Id, t3) ||
                 !data.SuitableTimeSlot(events[e3].Id, t1))
                 return false;
 
-	        result[e1].TimeSlotId = t2;
-	        result[e2].TimeSlotId = t3;
-	        result[e3].TimeSlotId = t1;
+	        Result[e1].TimeSlotId = t2;
+	        Result[e2].TimeSlotId = t3;
+	        Result[e3].TimeSlotId = t1;
 
             ReplaceEvent(t1, e1, e2);
             ReplaceEvent(t2, e2, e3);
             ReplaceEvent(t3, e3, e1);
 
-	        AssignRooms(result[e1].TimeSlotId);
-	        AssignRooms(result[e2].TimeSlotId);
-	        AssignRooms(result[e3].TimeSlotId);
+	        AssignRooms(Result[e1].TimeSlotId);
+	        AssignRooms(Result[e2].TimeSlotId);
+	        AssignRooms(Result[e3].TimeSlotId);
 
             return true;
         }
 
         void ReplaceEvent(int timeSlot, int currEvent, int newEvent)
         {
-            timeslot_events[timeSlot].Remove(currEvent);
-            timeslot_events[timeSlot].Add(newEvent);
+            TimeslotEvents[timeSlot].Remove(currEvent);
+            TimeslotEvents[timeSlot].Add(newEvent);
             //timeslot_events[timeSlot].Sort();
         }
      
@@ -633,7 +632,7 @@ namespace SchedulerProject.Core
                     foundBetter = SingleEventLocalSearchHcv(eventList, i, prob1, prob2, ref stepCount, false);
                 }
                 ComputeFeasibility();
-                if (feasible)
+                if (IsFeasible)
                 {
                     var currentScv = ComputeScv();
                     foundBetter = SingleEventLocalSearchScv(eventList, i, currentScv, prob1, prob2, ref stepCount);
@@ -652,7 +651,7 @@ namespace SchedulerProject.Core
         int FindSuitableRoomId(int eventId, int timeSlotId)
         {
             var suitable = data.Rooms.Select(r => r.Id).Where(id => data.SuitableRoom(eventId, id)).ToArray();
-            var busy = timeslot_events[timeSlotId].Select(e => result[e].RoomId).ToArray();
+            var busy = TimeslotEvents[timeSlotId].Select(e => Result[e].RoomId).ToArray();
             var x = suitable.Except(busy).ToArray();
             if (x.Any())
             {
@@ -663,7 +662,7 @@ namespace SchedulerProject.Core
 
         bool SlotWithConflictingEvents(int eventId, int timeSlotId)
         {
-            return timeslot_events[timeSlotId].FindIndex(e => data.ConflictingEvents(eventId, events[e].Id)) != -1;
+            return TimeslotEvents[timeSlotId].FindIndex(e => data.ConflictingEvents(eventId, events[e].Id)) != -1;
         }
 
         bool TryMoveToSuitableTimeSlot(int eventIndex)
@@ -671,15 +670,15 @@ namespace SchedulerProject.Core
             var evId = events[eventIndex].Id;
             for (var t = 0; t < data.TotalTimeSlots; t++)
             {
-                if (t != result[eventIndex].TimeSlotId &&
+                if (t != Result[eventIndex].TimeSlotId &&
                     data.SuitableTimeSlot(evId, t) && !SlotWithConflictingEvents(evId, t))
                 {
                     var roomId = FindSuitableRoomId(evId, t);
                     if (roomId != -1)
                     {
-                        timeslot_events[t].Add(eventIndex);
-                        result[eventIndex].RoomId = roomId;
-                        result[eventIndex].TimeSlotId = t;
+                        TimeslotEvents[t].Add(eventIndex);
+                        Result[eventIndex].RoomId = roomId;
+                        Result[eventIndex].TimeSlotId = t;
                         return true;
                     }
                 }
@@ -689,20 +688,20 @@ namespace SchedulerProject.Core
 
         bool TrySwapToSuitableTimeSlot(int eventIndex)
         {
-            var evTimeSlot = result[eventIndex].TimeSlotId;
-            timeslot_events[evTimeSlot].Remove(eventIndex);
+            var evTimeSlot = Result[eventIndex].TimeSlotId;
+            TimeslotEvents[evTimeSlot].Remove(eventIndex);
 
             var evId = events[eventIndex].Id;
             for (var t = 0; t < data.TotalTimeSlots; t++)
             {
                 if (t != evTimeSlot && data.SuitableTimeSlot(evId, t))
                 {
-                    for(int i = 0; i < timeslot_events[t].Count; i++)
+                    for(int i = 0; i < TimeslotEvents[t].Count; i++)
                     {
-                        var e = timeslot_events[t][i];
+                        var e = TimeslotEvents[t][i];
                         if (data.SuitableTimeSlot(events[e].Id, t))
                         {
-                            timeslot_events[t].RemoveAt(i);
+                            TimeslotEvents[t].RemoveAt(i);
                             var conflicting1 = SlotWithConflictingEvents(evId, t);
                             var conflicting2 = SlotWithConflictingEvents(events[e].Id, evTimeSlot);
                             var room1 = FindSuitableRoomId(evId, t);
@@ -710,41 +709,41 @@ namespace SchedulerProject.Core
                             if (!conflicting1 && !conflicting2 &&
                                 room1 != -1 && room2 != -1)
                             {
-                                timeslot_events[t].Add(eventIndex);
-                                result[eventIndex].RoomId = room2;
-                                result[eventIndex].TimeSlotId = t;
+                                TimeslotEvents[t].Add(eventIndex);
+                                Result[eventIndex].RoomId = room2;
+                                Result[eventIndex].TimeSlotId = t;
 
-                                timeslot_events[evTimeSlot].Add(e);
-                                result[e].RoomId = room1;
-                                result[e].TimeSlotId = evTimeSlot;
+                                TimeslotEvents[evTimeSlot].Add(e);
+                                Result[e].RoomId = room1;
+                                Result[e].TimeSlotId = evTimeSlot;
                                 return true;
                             }
                             else
                             {
-                                timeslot_events[t].Insert(i, e);
+                                TimeslotEvents[t].Insert(i, e);
                             }
                         }
                     }
                 }
             }
-            timeslot_events[evTimeSlot].Add(eventIndex);
+            TimeslotEvents[evTimeSlot].Add(eventIndex);
             return false;
         }
 
         bool TrySwapRooms(int eventIndex)
         {
-            var t = result[eventIndex].TimeSlotId;
+            var t = Result[eventIndex].TimeSlotId;
             var evId = events[eventIndex].Id;
-            foreach (var e in timeslot_events[t])
+            foreach (var e in TimeslotEvents[t])
             {
                 if (e != eventIndex)
                 {
-                    var room1 = result[eventIndex].RoomId;
-                    var room2 = result[e].RoomId;
+                    var room1 = Result[eventIndex].RoomId;
+                    var room2 = Result[e].RoomId;
                     if (room1 != room2 && data.SuitableRoom(evId, room2) && data.SuitableRoom(events[e].Id, room1))
                     {
-                        result[e].RoomId = room1;
-                        result[eventIndex].RoomId = room2;
+                        Result[e].RoomId = room1;
+                        Result[eventIndex].RoomId = room2;
                         return true;
                     }
                 }
@@ -765,7 +764,7 @@ namespace SchedulerProject.Core
             // Should not be forever because we have reserved slots
             // TODO: add stop another stop condition
             //while (!feasible) 
-            for (int tryNumber = 0; tryNumber < 10 && !feasible; tryNumber++)
+            for (int tryNumber = 0; tryNumber < 10 && !IsFeasible; tryNumber++)
             {
                 // collect conflicting events
                 var groupConflictingEvents = new List<Tuple<int, int>>();
@@ -775,7 +774,7 @@ namespace SchedulerProject.Core
                     var useFirstForLocalSearch = !data.IsEveryWeekEvent(events[i].Id);
                     for (var j = i + 1; j < eventsCount; j++)
                     {
-                        if (result[i].TimeSlotId == result[j].TimeSlotId)
+                        if (Result[i].TimeSlotId == Result[j].TimeSlotId)
                         {
                             var doRemove = false;
                             var indexToRemove = useFirstForLocalSearch ? i : j;
@@ -784,14 +783,14 @@ namespace SchedulerProject.Core
                                 doRemove = true;
                                 groupConflictingEvents.Add(Tuple.Create(indexToRemove, useFirstForLocalSearch ? j : i));
                             }
-                            if (result[i].RoomId == result[j].RoomId)
+                            if (Result[i].RoomId == Result[j].RoomId)
                             {
                                 doRemove = true;
                                 roomConflictingEvents.Add(indexToRemove);
                             }
 
                             if(doRemove)
-                                timeslot_events[result[i].TimeSlotId].Remove(indexToRemove);
+                                TimeslotEvents[Result[i].TimeSlotId].Remove(indexToRemove);
                         }
                     }
                 }
@@ -799,7 +798,7 @@ namespace SchedulerProject.Core
                 // try to resolve event conflicts
                 foreach (var conflictingEvents in groupConflictingEvents)
                 {
-                    if (result[conflictingEvents.Item1].TimeSlotId != result[conflictingEvents.Item2].TimeSlotId)
+                    if (Result[conflictingEvents.Item1].TimeSlotId != Result[conflictingEvents.Item2].TimeSlotId)
                         continue;
 
                     var tmp = GetHcv(false);
@@ -830,19 +829,19 @@ namespace SchedulerProject.Core
                 }
 
                 ComputeHcv();
-                Console.WriteLine("H: " + hcv);
+                Console.WriteLine("H: " + Hcv);
 
                 // try to resolve room conflicts
                 for (var index = 0; index < eventsCount; index++)
                 {
-                    if (!data.SuitableRoom(events[index].Id, result[index].RoomId) || roomConflictingEvents.Contains(index))
+                    if (!data.SuitableRoom(events[index].Id, Result[index].RoomId) || roomConflictingEvents.Contains(index))
                     {
                         var tmp = GetHcv(false);
                         Console.WriteLine("FIX! ARR: " + roomConflictingEvents.Contains(index));
-                        var suitable = FindSuitableRoomId(events[index].Id, result[index].TimeSlotId);
+                        var suitable = FindSuitableRoomId(events[index].Id, Result[index].TimeSlotId);
                         if (suitable != -1)
                         {
-                            result[index].RoomId = suitable;
+                            Result[index].RoomId = suitable;
                             Console.WriteLine("room found");
                         }
                         else
@@ -865,12 +864,12 @@ namespace SchedulerProject.Core
                 }
 
                 ComputeHcv();
-                Console.WriteLine("H: " + hcv);
+                Console.WriteLine("H: " + Hcv);
 
                 int rHcv = 0;
                 for (var index = 0; index < eventsCount; index++)
                 {
-                    if (!data.SuitableRoom(events[index].Id, result[index].RoomId))
+                    if (!data.SuitableRoom(events[index].Id, Result[index].RoomId))
                         rHcv++;
                 }
 
@@ -882,7 +881,7 @@ namespace SchedulerProject.Core
         {
             // assign rooms to events in each non-empty timeslot
             for (var i = 0; i < data.TotalTimeSlots; i++)
-                if (timeslot_events[i].Count != 0)
+                if (TimeslotEvents[i].Count != 0)
                     AssignRooms(i);
         }
 
@@ -894,7 +893,7 @@ namespace SchedulerProject.Core
             if (ResolveOnlyWeekSpecificConflicts && AffectedRoomInTimeslotHcv(t) == 0)
                 return;
 
-            var eventsCount = timeslot_events[t].Count;
+            var eventsCount = TimeslotEvents[t].Count;
             var x = HopcroftKarpMatching(ResolveOnlyWeekSpecificConflicts ? MakeWeekSpecificGraph(t) : MakeGraph(t), eventsCount);
 
             var roomsAssignmentCounters = new int[data.Rooms.Length];
@@ -904,7 +903,7 @@ namespace SchedulerProject.Core
                 if (x[e] != NIL_VERT_ID)
                 {
                     var roomId = x[e] - eventsCount;
-                    result[timeslot_events[t][e]].RoomId = data.Rooms[roomId].Id;
+                    Result[TimeslotEvents[t][e]].RoomId = data.Rooms[roomId].Id;
                     roomsAssignmentCounters[roomId]++;
                 }
             }
@@ -914,7 +913,7 @@ namespace SchedulerProject.Core
                 if (x[e] == NIL_VERT_ID)
                 {
                     var lessBusyRoom = FindLessBusyRoom(roomsAssignmentCounters);
-                    result[timeslot_events[t][e]].RoomId = data.Rooms[lessBusyRoom].Id;
+                    Result[TimeslotEvents[t][e]].RoomId = data.Rooms[lessBusyRoom].Id;
                     roomsAssignmentCounters[lessBusyRoom]++;
                 }
             }
@@ -1018,14 +1017,14 @@ namespace SchedulerProject.Core
 
         bool[,] MakeGraph(int timeslot)
         {
-            int eventsCount = timeslot_events[timeslot].Count;
+            int eventsCount = TimeslotEvents[timeslot].Count;
             //verts 0..evenstCount - 1 - events verts ids
             //verts eventsCount..eventsCount + data.Rooms.Count - 1 - rooms verts ids
             //vert eventsCount + data.Rooms.Count - NULL vert
             var res = new bool[eventsCount + data.Rooms.Length + 1, eventsCount + data.Rooms.Length + 1];
             for (int e = 0; e < eventsCount; e++)
             {
-                Event ev = events[timeslot_events[timeslot][e]];
+                Event ev = events[TimeslotEvents[timeslot][e]];
                 for (int r = 0; r < data.Rooms.Length; r++)
                 {
                     res[e, eventsCount + r] = res[eventsCount + r, e] = data.SuitableRoom(ev.Id, data.Rooms[r].Id);
@@ -1036,7 +1035,7 @@ namespace SchedulerProject.Core
 
         bool[,] MakeWeekSpecificGraph(int timeslot)
         {
-            int eventsCount = timeslot_events[timeslot].Count;
+            int eventsCount = TimeslotEvents[timeslot].Count;
             //verts 0..evenstCount - 1 - events verts ids
             //verts eventsCount..eventsCount + data.Rooms.Count - 1 - rooms verts ids
             //vert eventsCount + data.Rooms.Count - NULL vert
@@ -1044,10 +1043,10 @@ namespace SchedulerProject.Core
             List<int> busyRooms = new List<int>();
             for (int e = 0; e < eventsCount; e++)
             {
-                Event ev = events[timeslot_events[timeslot][e]];
+                Event ev = events[TimeslotEvents[timeslot][e]];
                 if (data.IsEveryWeekEvent(ev.Id))
                 {
-                    int suitableRoom = result[timeslot_events[timeslot][e]].RoomId;
+                    int suitableRoom = Result[TimeslotEvents[timeslot][e]].RoomId;
                     int roomIndex = Array.FindIndex(data.Rooms, r => r.Id == suitableRoom);
                     res[e, eventsCount + roomIndex] = res[eventsCount + roomIndex, e] = true;
                     busyRooms.Add(suitableRoom);
@@ -1056,7 +1055,7 @@ namespace SchedulerProject.Core
             
             for (int e = 0; e < eventsCount; e++)
             {
-                Event ev = events[timeslot_events[timeslot][e]];
+                Event ev = events[TimeslotEvents[timeslot][e]];
                 if (!data.IsEveryWeekEvent(ev.Id))
                 {
                     for (int r = 0; r < data.Rooms.Length; r++)

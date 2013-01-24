@@ -13,18 +13,18 @@ namespace SchedulerProject.UserInterface
 {
     public class EventAssignmentControl : TimeSlotControl<EventAssignmentControl>
     {
-        public EventAssignmentControl(TimeTableData data, 
+        public EventAssignmentControl(TimeTableData problemData, 
                                       WeeklyEventAssignment firstWeekAssignment,
                                       WeeklyEventAssignment secondWeekAssignment)
         {
-            _data = data;
+            data = problemData;
             SelectedFirstWeekAssignment = firstWeekAssignment;
             SelectedSecondWeekAssignment = secondWeekAssignment;
             BackColor = Color.LightBlue;
             TimeSlot = (firstWeekAssignment ?? secondWeekAssignment).TimeSlot;
         }
 
-        TimeTableData _data;
+        TimeTableData data;
         
         public WeeklyEventAssignment SelectedFirstWeekAssignment
         {
@@ -44,7 +44,7 @@ namespace SchedulerProject.UserInterface
             {
                 using (var brush = new SolidBrush(ForeColor))
                 {
-                    g.DrawString(assignment.ToString(_data),
+                    g.DrawString(assignment.ToString(data),
                                 Font, brush,
                                 rect,
                                 new StringFormat()
@@ -66,7 +66,7 @@ namespace SchedulerProject.UserInterface
         protected override void OnPaint(PaintEventArgs e)
         {
             if (SelectedFirstWeekAssignment != null && SelectedSecondWeekAssignment != null && 
-                SelectedFirstWeekAssignment.ToString(_data) == SelectedSecondWeekAssignment.ToString(_data))
+                SelectedFirstWeekAssignment.ToString(data) == SelectedSecondWeekAssignment.ToString(data))
                 DrawAssignment(SelectedFirstWeekAssignment, e.Graphics, new Rectangle(0, 0, Width, Height));
             else
             {

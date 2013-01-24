@@ -13,15 +13,15 @@ namespace SchedulerProject.UserInterface
 {
     public partial class MainForm : Form
     {
-        TimeTableData _openedData;
+        TimeTableData openedData;
 
-        EditDataForm _editDataForm;
+        EditDataForm editDataForm;
 
-        string _openedFile;
-        string _openedFileName;
-        string _openedFileDirectory;
-        private bool _dataChanged;
-        TimeTable _selectedTimeTable;
+        string openedFile;
+        string openedFileName;
+        string openedFileDirectory;
+        private bool dataChanged;
+        TimeTable selectedTimeTable;
 
         TimeTableView byGroupsTimeTableView, byLecturersTimeTableView;
 
@@ -59,10 +59,10 @@ namespace SchedulerProject.UserInterface
 
         TimeTableData OpenedData
         {
-            get { return _openedData; }
+            get { return openedData; }
             set
             {
-                _openedData = value;
+                openedData = value;
                 PopulateListBoxes();
                 ValidateTimeTablesList();
             }
@@ -99,10 +99,10 @@ namespace SchedulerProject.UserInterface
 
         TimeTable SelectedTimeTable
         { 
-            get { return _selectedTimeTable; }            
+            get { return selectedTimeTable; }            
             set
             {
-                _selectedTimeTable = value;
+                selectedTimeTable = value;
                 OnSelectedTimeTableChanged(value);
             }
         }
@@ -116,33 +116,33 @@ namespace SchedulerProject.UserInterface
 
         private string OpenedFile
         {
-            get { return _openedFile; }
+            get { return openedFile; }
             set 
             { 
-                _openedFile = value;
-                _openedFileName = System.IO.Path.GetFileName(_openedFile);
-                _openedFileDirectory = System.IO.Path.GetDirectoryName(_openedFile);
+                openedFile = value;
+                openedFileName = System.IO.Path.GetFileName(openedFile);
+                openedFileDirectory = System.IO.Path.GetDirectoryName(openedFile);
                 Text = WindowTitle; 
             }
         }
 
         private bool OpenedDataChanged
         {
-            get { return _dataChanged; }
-            set { _dataChanged = value; Text = WindowTitle; }
+            get { return dataChanged; }
+            set { dataChanged = value; Text = WindowTitle; }
         }
 
         private string WindowTitle
         {
             get
             {
-                return "Составление расписания - " + _openedFile + (_dataChanged ? " *" : "");
+                return "Составление расписания - " + openedFile + (dataChanged ? " *" : "");
             }
         }
 
         private void miLoadData_Click(object sender, EventArgs e)
         {
-            openDataFileDialog.InitialDirectory = _openedFileDirectory;
+            openDataFileDialog.InitialDirectory = openedFileDirectory;
             openDataFileDialog.FileName = "";
             openDataFileDialog.Filter = "Файлы данных расписания|*.ttd";
             if (openDataFileDialog.ShowDialog() == DialogResult.OK)
@@ -165,8 +165,8 @@ namespace SchedulerProject.UserInterface
 
         private void miSaveData_Click(object sender, EventArgs e)
         {
-            saveDataFileDialog.InitialDirectory = _openedFileDirectory;
-            saveDataFileDialog.FileName = _openedFileName;
+            saveDataFileDialog.InitialDirectory = openedFileDirectory;
+            saveDataFileDialog.FileName = openedFileName;
             saveDataFileDialog.Filter = "Файлы данных расписания|*.ttd";
             if (saveDataFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -264,13 +264,13 @@ namespace SchedulerProject.UserInterface
         {
             try
             {
-                _editDataForm = new EditDataForm(OpenedData);
-                _editDataForm.SetActiveTab(startTab);
-                _editDataForm.ShowDialog(this);
-                if (_editDataForm.DataChanged)
+                editDataForm = new EditDataForm(OpenedData);
+                editDataForm.SetActiveTab(startTab);
+                editDataForm.ShowDialog(this);
+                if (editDataForm.DataChanged)
                 {
                     OpenedDataChanged = true;
-                    OpenedData = _editDataForm.NewData;
+                    OpenedData = editDataForm.NewData;
                 }
             }
             catch (Exception ex)
@@ -292,7 +292,7 @@ namespace SchedulerProject.UserInterface
         {
             Cursor = Cursors.WaitCursor;
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            var timeTable = Scheduler.Shedule(OpenedData);
+            var timeTable = Scheduler.Schedule(OpenedData);
             sw.Stop();
             timeTable.Name = "Безымянное расписание";
             AddTimeTable(timeTable);

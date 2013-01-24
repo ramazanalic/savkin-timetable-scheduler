@@ -54,7 +54,7 @@
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\TimeTable.cs" />
     <Compile Include="Core\MMASData.cs" />
-    <Compile Include="Core\Sheduler.cs" />
+    <Compile Include="Core\Scheduler.cs" />
     <Compile Include="Core\Solution.cs" />
     <Compile Include="Core\TimeConstraints.cs" />
     <Compile Include="Core\TimeTableData.cs" />
