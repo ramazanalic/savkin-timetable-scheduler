@@ -122,8 +122,8 @@ namespace SchedulerProject.Core
                                             .FirstOrDefault(ev => ev.Id == int.Parse(e.Attribute("id").Value))
                             select new EventAssignment(ev)
                             {
-                                FirstWeekAssignment = ParseWeeklyAssignment(appropriateData, e.Elements("FirstWeek").FirstOrDefault(), ev, 1),
-                                SecondWeekAssignment = ParseWeeklyAssignment(appropriateData, e.Elements("SecondWeek").FirstOrDefault(), ev, 2),
+                                FirstWeekAssignment = ParseWeeklyAssignment(appropriateData, e, ev, 1),
+                                SecondWeekAssignment = ParseWeeklyAssignment(appropriateData, e, ev, 2),
                             };
 
             return new TimeTable(appropriateData)
@@ -133,17 +133,46 @@ namespace SchedulerProject.Core
             };
         }
 
-        private static WeeklyEventAssignment ParseWeeklyAssignment(TimeTableData appropriateData, XElement elem, Event ev, int week)
+        static WeeklyEventAssignment ParseWeeklyAssignment(TimeTableData appropriateData, XElement elem, Event ev, int week)
         {
             if (elem != null)
             {
-                var room = appropriateData.Rooms.FirstOrDefault(r => r.Id == int.Parse(elem.Attribute("room").Value));
-                var timeSlot = new TimeSlot(int.Parse(elem.Attribute("day").Value),
-                                            int.Parse(elem.Attribute("slot").Value));
+                var weekTag = string.Empty;
+                switch (week)
+                {
+                    case 1: weekTag = "FirstWeek"; break;
+                    case 2: weekTag = "SecondWeek"; break;
+                    default: throw new ArgumentException("week");
+                }
+
+                var weekNode = elem.Elements(weekTag).FirstOrDefault();
+
+                if (weekNode == null) 
+                    return null;
+
+                var room = appropriateData.Rooms.FirstOrDefault(r => r.Id == int.Parse(weekNode.Attribute("room").Value));
+                var timeSlot = new TimeSlot(int.Parse(weekNode.Attribute("day").Value),
+                                            int.Parse(weekNode.Attribute("slot").Value));
 
                 return new WeeklyEventAssignment(ev, room, timeSlot, week);
             }
             return null;
+        }
+
+        static XElement MakeWeekAssignmentElement(WeeklyEventAssignment was)
+        {
+            if (was == null) return null;
+            var weekTag = string.Empty;
+            switch (was.Week)
+            {
+                case 1: weekTag = "FirstWeek"; break;
+                case 2: weekTag = "SecondWeek"; break;
+                default: throw new ArgumentException("week");
+            }
+            return new XElement(weekTag,
+                                new XAttribute("room", was.RoomId),
+                                new XAttribute("day", was.TimeSlot.Day),
+                                new XAttribute("slot", was.TimeSlot.Slot));
         }
 
         public void SaveToXml(string filename)
@@ -152,18 +181,12 @@ namespace SchedulerProject.Core
                 new XAttribute("time_table_id", Data.Id),
                 new XAttribute("name", Name),
                 from pair in assignments
-                let fwa = pair.Value.FirstWeekAssignment ?? pair.Value.SecondWeekAssignment 
-                let swa = pair.Value.SecondWeekAssignment ?? pair.Value.FirstWeekAssignment
+                let fwa = pair.Value.FirstWeekAssignment
+                let swa = pair.Value.SecondWeekAssignment
                 select new XElement("Event",
                                     new XAttribute("id", pair.Key.Id),
-                                    new XElement("FirstWeek",
-                                        new XAttribute("room", fwa.RoomId),
-                                        new XAttribute("day", fwa.TimeSlot.Day),
-                                        new XAttribute("slot", fwa.TimeSlot.Slot)),
-                                    new XElement("SecondWeek", 
-                                        new XAttribute("room", swa.RoomId),
-                                        new XAttribute("day", swa.TimeSlot.Day),
-                                        new XAttribute("slot", swa.TimeSlot.Slot))));
+                                    MakeWeekAssignmentElement(fwa),
+                                    MakeWeekAssignmentElement(swa)));
             root.Save(filename);
         }
     }
